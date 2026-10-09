@@ -3,8 +3,8 @@ import { en } from '../../content/copy';
 import { Text } from '../Text';
 import { EDGE, SURFACE } from '../theme';
 
-export function ChapterProgress({ step, total }: { step: number; total: number }) {
-  const label = en('onboarding.step').replace('{n}', String(step)).replace('{total}', String(total));
+export function ChapterProgress({ step, total, label: given }: { step: number; total: number; label?: string }) {
+  const label = given ?? en('onboarding.step').replace('{n}', String(step)).replace('{total}', String(total));
   return (
     <View accessible accessibilityLabel={label} className="flex-row items-center justify-center gap-xs">
       <View className={`${EDGE} flex-row gap-xxs rounded-sm p-xxs`}>
