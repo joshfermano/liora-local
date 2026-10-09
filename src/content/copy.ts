@@ -47,6 +47,7 @@ export const COPY = {
   'go.signs.header': ui('Signs in your message'),
   'go.source.header': ui('Source'),
 
+  'followup.comfort': ui("I'm here with you. One quick question, so I understand it better.", 'Nandito lang ako. Isang tanong lang, para mas maintindihan kita.'),
   'followup.skip_means': ui('If you skip, Liora treats it as serious.'),
 
   'calm.copy': who("If at any time you have any concerns about your or your baby’s health, go to the health centre."),
@@ -196,9 +197,9 @@ export const COPY = {
   'tabs.liora': ui('Liora'),
   'tabs.profile': ui('Profile'),
   // companion (LUM-84): team phrases that only point to her data, the rules or a quoted card
-  'companion.symptom.go_now': ui('This needs care now. Here is what the WHO rules say.'),
-  'companion.symptom.follow_up': ui('One question first, so the rules can decide.'),
-  'companion.symptom.ok': ui('Here is what the rules found.'),
+  'companion.symptom.go_now': ui("I'm here with you. This one needs care now, so here is what the WHO rules say."),
+  'companion.symptom.follow_up': ui("I'm here with you. Before anything else, one quick question so I understand how you feel."),
+  'companion.symptom.ok': ui('Thank you for telling me. Here is what the rules found.'),
   'companion.period.heard': ui('Shall I put this on your calendar?'),
   'companion.period.when': ui('When did it start? You can mark it on the calendar.'),
   'companion.mood.noted': ui('Thank you for telling me. I noted how you feel.'),
@@ -313,7 +314,7 @@ export const COPY = {
   'liora.period.skip': ui('Not now'),
   'liora.period.added': ui('Added to your calendar.'),
   'liora.go.open': ui('Open and show the nurse'),
-  'liora.followup.open': ui('Answer the question'),
+  'liora.followup.open': ui('Answer one quick question'),
   'liora.error': ui('Something went wrong. Please try again.'),
   'liora.clear': ui('New conversation'),
   'liora.history': ui('Past conversations'),

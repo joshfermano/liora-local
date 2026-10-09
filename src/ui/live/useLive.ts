@@ -101,7 +101,9 @@ export function useLive(onDecision: (href?: string) => void) {
       if (decision?.level === 'go_now') {
         return void speak(`${en('go.headline')}. ${en('go.line')}`, () => onDecision(`/result/${decision.entryId}`));
       }
-      if (decision?.level === 'follow_up') return onDecision(`/result/${decision.entryId}`);
+      if (decision?.level === 'follow_up') {
+        return void speak(en('followup.comfort'), () => onDecision(`/result/${decision.entryId}`));
+      }
       if (decision) return onDecision();
       const text = spoken(blocks);
       if (text) void speak(text, () => void listen());

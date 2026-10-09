@@ -1,8 +1,6 @@
 import { useState } from 'react';
 import { View } from 'react-native';
 import { en, fil } from '../../content/copy';
-
-const fill = (s: string, v: Record<string, string>) => s.replace(/\{(\w+)\}/g, (_, k: string) => v[k] ?? '');
 import type { Entry } from '../../core/types';
 import { useTellStore } from '../../store/tell';
 import { ChoiceCard } from '../ChoiceCard';
@@ -12,6 +10,8 @@ import { Screen } from '../Screen';
 import { Text } from '../Text';
 
 type Answer = 'yes' | 'no' | 'skip';
+
+const fill = (s: string, v: Record<string, string>) => s.replace(/\{(\w+)\}/g, (_, k: string) => v[k] ?? '');
 
 // One question, a yes and a no, a plain Skip, and what skipping means (FR-4).
 export function FollowUp({ entry }: { entry: Entry }) {
@@ -30,6 +30,7 @@ export function FollowUp({ entry }: { entry: Entry }) {
   return (
     <Screen>
       <View className="gap-xxl pt-xxl">
+        <Pair copyKey="followup.comfort" large="body" small="subheadline" />
         <View className="gap-xs">
           <Pair copyKey={question} large="title3" small="body" />
           {code ? (
