@@ -21,6 +21,7 @@ import {
   type Turn,
 } from '../core/agent';
 import { composeReply, type ReplyBlock } from '../core/companion';
+import { dangerRulesApply } from '../core/pipeline';
 import type { Entry, MoodResult } from '../core/types';
 import { commit, dataNow, plan, revertLatest, understand } from './agent';
 import { useLogStore } from './log';
@@ -174,7 +175,9 @@ export async function runTurn(text: string, entry: Entry, day: string, thread: T
     if (outcome.smalltalk === 'greeting') attachments.push({ kind: 'actions', items: [...HOME] });
   }
 
-  if (entry.findings.length > 0) attachments.push({ kind: 'decision', entryId: entry.id, level: entry.decision.level });
+  if (entry.findings.length > 0 && dangerRulesApply(contextFrom(profile), entry.input, text)) {
+    attachments.push({ kind: 'decision', entryId: entry.id, level: entry.decision.level });
+  }
 
   const tone = toneOf(text, entry);
   const { facts, fallback, style } = replyPlan(outcome, { name: profile.name, tone, today: day, moods: moodsOn(data.dayLogs, day), said: pick(actions, 'moods')?.moods });

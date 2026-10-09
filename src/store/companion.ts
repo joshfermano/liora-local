@@ -3,6 +3,7 @@ import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
 import { languageOf, triage } from '../core/agent';
 import { composeReply, ruleIntent, type ReplyBlock } from '../core/companion';
+import { dangerRulesApply } from '../core/pipeline';
 import { beginProbe, endProbe, noteTurn, timedSync } from '../core/probe';
 import { canSay, commit, revert, say } from './agent';
 import { contextFrom, readProfile } from './profile';
@@ -149,8 +150,10 @@ export const useCompanionStore = create<CompanionState>()(
           const day = today();
           const read = timedSync('triage', () => triage(text, day, profile.status));
           noteTurn({ purpose: read.purpose, typedScope: read.typed, tools: read.actions.map((a) => a.tool) });
-          // A danger turn gets the rules' fixed decision block and no model-written words.
-          const urgent = entry.decision.level === 'go_now' || entry.decision.level === 'follow_up' || read.purpose === 'urgent';
+          // A danger turn gets the rules' fixed decision block and no model-written words. When the
+          // WHO rules do not cover her (not pregnant), a danger word is logged like any symptom.
+          const rulesApply = dangerRulesApply(contextFrom(profile), input, text);
+          const urgent = entry.decision.level === 'go_now' || entry.decision.level === 'follow_up' || (read.purpose === 'urgent' && rulesApply);
           let turn: AgentTurn | null = null;
           if (!urgent) {
             try {

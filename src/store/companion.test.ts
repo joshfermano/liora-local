@@ -56,6 +56,15 @@ describe('companion thread with the real rules and no model', () => {
     expect(useLogStore.getState().entries.at(-1)?.decision.level).toBe('go_now');
   });
 
+  it('logs a headache like any symptom when she is not pregnant, with no rules block', async () => {
+    useLogStore.setState({ setup: { status: 'neither' } });
+    await send('masakit ulo ko');
+    expect(kinds()).toContain('logged');
+    expect(kinds()).not.toContain('decision');
+    expect(kinds()).not.toContain('text');
+    expect(reply()?.fallback.key).toMatch(/^reply\.saved/);
+  });
+
   it('shows her own Call and Text buttons when she asks Liora to call her contact', async () => {
     await send('Can you call him?');
     expect(reply()?.fallback.key).toMatch(/^reply\.contact/);
