@@ -5,7 +5,7 @@ import { DT01_RULES, DT17_RULE } from './who';
 
 export type { Rule } from './rule';
 
-// The same set applies to every context.status until cited postpartum sets exist.
+// One set for every status, except that vaginal bleeding counts only while pregnant or postpartum (who.ts).
 export const RULES: Rule[] = [...DT01_RULES, DT17_RULE];
 
 export function evaluate(findings: Finding[], context: Context): Decision {
