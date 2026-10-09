@@ -68,8 +68,10 @@ export function carryOver(text: string, last: SavedItem[], today: string): Agent
     return actions.length > 0 ? [{ tool: 'undo_last' }, ...actions] : null;
   }
   if (AGAIN.test(text)) {
+    const loggable = last.map((i) => again(i, i.kind === 'period_start' ? '' : date)).filter((a): a is AgentAction => a !== null);
     const actions = last.filter((i) => !('date' in i) || i.date !== date).map((i) => again(i, date)).filter((a): a is AgentAction => a !== null);
-    return actions.length > 0 ? actions : null;
+    // Already in that day's log: an empty list, so Liora can say so instead of saving it twice.
+    return actions.length > 0 ? actions : loggable.length > 0 ? [] : null;
   }
   return null;
 }
@@ -81,4 +83,11 @@ const FOLLOW_Q =
 
 export function continuesTopic(text: string): boolean {
   return FOLLOW_Q.test(text) && readText(text).length === 0;
+}
+
+// "Hindi pala, malungkot ako": she takes back what Liora just saved and says what is true instead.
+const CORRECTION = /^\s*(?:hindi\s+pala|di\s+pala|mali(?:\s+pala)?|actually|i\s+mean|i\s+meant|sorry|no\s*,|wait\s*,?\s*no|ay\s+hindi|ay\s+mali)\b/i;
+
+export function corrects(text: string, last: SavedItem[]): boolean {
+  return last.length > 0 && CORRECTION.test(text);
 }

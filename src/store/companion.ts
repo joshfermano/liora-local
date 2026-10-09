@@ -16,8 +16,8 @@ import { CONVERSATION_MS, isNewConversation, recentTurns } from './thread';
 import { runTurn, type AgentTurn } from './turn';
 import { mentionsSelfHarm } from '../core/agent/crisis';
 import { mentionsLoss } from '../core/agent/loss';
-import { carryOver, continuesTopic, dateAnswer } from '../core/agent/carry';
-import type { AgentAction, SavedItem } from '../core/agent';
+import { carryOver, continuesTopic, corrects, dateAnswer } from '../core/agent/carry';
+import { WRITE_TOOLS, type AgentAction, type SavedItem } from '../core/agent';
 import { followUpAnswer } from '../core/agent/followon';
 import { afterBirthCard, warningSignsCard } from '../core/agent/warning';
 import { goodNews } from '../core/agent/news';
@@ -199,6 +199,8 @@ export const useCompanionStore = create<CompanionState>()(
         const waiting = lastWaiting(get().messages);
         const dated = waiting ? dateAnswer(text, waiting.actions, today()) : null;
         const carried = dated ?? carryOver(text, lastSaved(get().messages), today());
+        const already = carried !== null && carried.length === 0;
+        const correcting = !carried && corrects(text, lastSaved(get().messages));
         // "Bakit kaya?" right after "masakit puson ko": a question about that, so the card search reads both.
         const topic = before && !carried && continuesTopic(text) ? `${before}. ${text}` : undefined;
         const her: ThreadMessage = { id: newId(), role: 'her', text, at: new Date().toISOString() };
@@ -240,8 +242,8 @@ export const useCompanionStore = create<CompanionState>()(
           }
           return;
         }
-        if (mild && !typed) {
-          add([{ kind: 'reply', text: null, fallback: { key: 'reply.noted' } }]);
+        if ((mild || already) && !typed) {
+          add([{ kind: 'reply', text: null, fallback: { key: already ? 'reply.already' : 'reply.noted' } }]);
           set({ thinking: false });
           return;
         }
@@ -256,7 +258,9 @@ export const useCompanionStore = create<CompanionState>()(
             ? { ...triaged, purpose: 'update' as const, actions: carried }
             : topic
               ? { ...triaged, purpose: 'health' as const, actions: [{ tool: 'health_question' as const }] }
-              : triaged;
+              : correcting && triaged.actions.some((a) => (WRITE_TOOLS as readonly string[]).includes(a.tool))
+                ? { ...triaged, actions: [{ tool: 'undo_last' as const }, ...triaged.actions] }
+                : triaged;
           noteTurn({ purpose: read.purpose, typedScope: read.typed, tools: read.actions.map((a) => a.tool) });
           // A danger turn gets the rules' fixed decision block and no model-written words. When the
           // WHO rules do not cover her (not pregnant), a danger word is logged like any symptom.

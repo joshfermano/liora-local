@@ -11,9 +11,9 @@ import { readDischarge } from './discharge';
 const PERIOD_WORD = /regla|\bmens\b|\bperiod\b|dalaw/i;
 // Speech-to-text spells "niregla" many ways: "na regla", "naregla", "nagregla", "nire-regla".
 const START =
-  /ni(?:re)?-?regla|(?<!tapos\s)\bna\s+regla\s+(?:na\s+)?ako\b|\bnaregla|\bnagregla|nagka-?regla|nag-?mens|dinatnan|dinalaw|nagkaroon\s+(?:ako\s+)?(?:na\s+)?ng\s+regla|may\s+regla\s+na|dumating\s+na\s+(?:ang\s+)?regla|regla\s+(?:ko\s+)?(?:ay\s+)?(?:nagsimula|dumating)|(?:got|have|had)\s+my\s+period|(?:my\s+)?period\s+(?:has\s+)?(?:started|began|came)|\blog\s+(?:my\s+)?period\b|\bi-?log\s+(?:mo\s+)?(?:ang\s+|yung\s+)?(?:regla|period)|\bmag-?log\s+(?:ng\s+)?(?:regla|period)|nag-?(?:simula|start)\s+(?:na\s+)?(?:ang\s+)?(?:regla|mens|period)|started\s+my\s+period|nagkaroon\s+(?:(?:na|ako)\s+){1,2}ng\s+(?:regla|mens|period)|dumating\s+na\s+(?:ang\s+|yung\s+)?(?:regla|mens|period|dalaw)|\bmay\s+(?:regla|mens|period)\s+(?:na|ako)\b|nagka-?(?:period|mens)|\b(?:first|unang)\s+(?:day|araw)\s+(?:ng|of)\s+(?:my\s+)?(?:regla|mens|period)|\bday\s*1\s+(?:ng|of)\s+(?:my\s+)?(?:regla|mens|period)|\b(?:i'?m|i\s+am)\s+on\s+my\s+period/i;
-const END = /natapos|tapos\s+na|wala\s+na|huminto|\b(?:ended|stopped|finished)\b/i;
-const NOT_YET = /(?:hindi|di|wala)\s+pa\b|\bnot\s+yet\b|haven'?t/i;
+  /ni(?:re)?-?regla|(?<!tapos\s)\bna\s+regla\s+(?:na\s+)?ako\b|\bnaregla|\bnagregla|nagka-?regla|nag-?mens|dinatnan|dinalaw|nagkaroon\s+(?:ako\s+)?(?:na\s+)?ng\s+regla|may\s+regla\s+na|dumating\s+na\s+(?:ang\s+)?regla|regla\s+(?:ko\s+)?(?:ay\s+)?(?:nagsimula|dumating)|(?:got|have|had)\s+my\s+period|(?:my\s+)?period\s+(?:has\s+)?(?:started|began|came)|\blog\s+(?:my\s+)?period\b|\bi-?log\s+(?:mo\s+)?(?:ang\s+|yung\s+)?(?:regla|period)|\bmag-?log\s+(?:ng\s+)?(?:regla|period)|nag-?(?:simula|start)\s+(?:na\s+)?(?:ang\s+)?(?:regla|mens|period)|started\s+my\s+period|nagkaroon\s+(?:(?:na|ako)\s+){1,2}ng\s+(?:regla|mens|period)|dumating\s+na\s+(?:ang\s+|yung\s+)?(?:regla|mens|period|dalaw)|\bmay\s+(?:regla|mens|period)\s+(?:na|ako)\b|nagka-?(?:period|mens)|\b(?:first|unang)\s+(?:day|araw)\s+(?:ng|of)\s+(?:my\s+)?(?:regla|mens|period)|\bday\s*1\s+(?:ng|of)\s+(?:my\s+)?(?:regla|mens|period)|\b(?:i'?m|i\s+am)\s+on\s+my\s+period|^\s*(?:(?:regla|mens|dalaw|period)\s+ko|may\s+(?:regla|mens|dalaw)\s+(?:na\s+)?ako)\s+(?:na\s+)?(?:ngayon|today|kanina|kahapon|na)?\s*[.!]*\s*$|\bmay\s+dalaw\s+(?:na|ako)\b/i;
+const END = /natapos|tapos\s+na|wala\s+na|huminto|\b(?:ended|stopped|finished)\b|\b(?:last|huling)\s+(?:day|araw)\s+(?:ng|of)\b/i;
+const NOT_YET = /(?:hindi|di|wala)\s+(?:pa|pala)\b|\bnot\s+yet\b|haven'?t|\bdid\s*n'?t\s+(?:get|have|start)\b/i;
 const NEGATED = /\b(?:hindi|di|walang|ayaw|didn'?t|did\s+not|not|never|no)\b/i;
 const CLAUSE = /[,.;!?]|\b(?:pero|but)\b/i;
 
@@ -56,7 +56,7 @@ const SINCE_BIRTH = /nanganak|panganak|since\s+(?:i\s+)?(?:gave\s+birth|birth|de
 const YESTERDAY = /\b(?:kahapon|yesterday)\b/i;
 const BOTH_DAYS = /\b(?:kahapon|yesterday)\b.*\b(?:at|and|pati|tsaka|saka|hanggang|until)\s+(?:ngayon|today|kanina)\b|\b(?:ngayon|today)\s+(?:at|and|pati|tsaka|saka)\s+(?:kahapon|yesterday)\b/i;
 const CYCLE_QUESTION =
-  /\bilang\s+araw\s+(?:ang\s+|ba\s+ang\s+)?(?:regla|period|mens|dalaw)|\bhow\s+long\s+(?:is|does|do|will)\s+my\s+(?:period|cycle)|\bgaano\s+katagal\s+(?:ang\s+)?(?:regla|period|mens)|\b(?:delayed|late|delay)\s+(?:na\s+)?(?:ako|po)\b|\b(?:late|delayed|delay)\s+(?:na\s+)?(?:ang\s+|yung\s+)?(?:regla|period|mens|dalaw)|(?:regla|period|mens|dalaw)\s+(?:ko\s+)?(?:is\s+)?(?:late|delayed)|\baverage\s+(?:na\s+)?cycle\b|\bcycle\s+(?:length\s+)?ko\b|\bgaano\s+kahaba\s+(?:ang\s+)?(?:cycle|regla)\b|\bkailan\b.*(?:regla|period|mens|dalaw|fertile|obul|ovulat)|(?:regla|period|mens|dalaw).*\bkailan\b|\bwhen\b.*(?:period|next|fertile|ovulat)|next\s+(?:period|regla)|\bmy\s+fertile|fertile\s+(?:window\s+)?ko\b/i;
+  /\bwala\s+pa\s+(?:rin\s+|din\s+)?(?:akong\s+|ang\s+)?(?:regla|mens|dalaw|period)|\bhindi\s+pa\s+(?:rin\s+)?ako\s+(?:dinadatnan|nireregla|nagkakaregla)|\bperiod\s+(?:still\s+)?(?:has\s*n'?t|hasnt|did\s*n'?t|didnt)\s+(?:come|started|arrived)|\bilang\s+araw\s+(?:ang\s+|ba\s+ang\s+)?(?:regla|period|mens|dalaw)|\bhow\s+long\s+(?:is|does|do|will)\s+my\s+(?:period|cycle)|\bgaano\s+katagal\s+(?:ang\s+)?(?:regla|period|mens)|\b(?:delayed|late|delay)\s+(?:na\s+)?(?:ako|po)\b|\b(?:late|delayed|delay)\s+(?:na\s+)?(?:ang\s+|yung\s+)?(?:regla|period|mens|dalaw)|(?:regla|period|mens|dalaw)\s+(?:ko\s+)?(?:is\s+)?(?:late|delayed)|\baverage\s+(?:na\s+)?cycle\b|\bcycle\s+(?:length\s+)?ko\b|\bgaano\s+kahaba\s+(?:ang\s+)?(?:cycle|regla)\b|\bkailan\b.*(?:regla|period|mens|dalaw|fertile|obul|ovulat)|(?:regla|period|mens|dalaw).*\bkailan\b|\bwhen\b.*(?:period|next|fertile|ovulat)|next\s+(?:period|regla)|\bmy\s+fertile|fertile\s+(?:window\s+)?ko\b/i;
 
 
 
@@ -71,25 +71,26 @@ function activitiesOf(text: string): Activity[] {
   return ACTIVITIES.filter((a) => done.some((c) => ACTIVITY[a].test(c)));
 }
 
-const NOT_PREGNANT = /\b(?:hindi|di)\s+(?:na\s+)?(?:ako\s+)?buntis\b|\b(?:i'?m|i\s+am)\s+not\s+pregnant\b|\bnegative\s+(?:ang\s+)?(?:pt|pregnancy\s+test)|\b(?:pt|pregnancy\s+test)\s+(?:ko\s+)?(?:ay\s+)?negative\b/i;
+const NOT_PREGNANT = /\b(?:nag-?)?(?:pt|pregnancy\s+test)\b[^.?]*\bnegative\b|\b(?:hindi|di)\s+(?:na\s+)?(?:ako\s+)?buntis\b|\b(?:i'?m|i\s+am)\s+not\s+pregnant\b|\bnegative\s+(?:ang\s+)?(?:pt|pregnancy\s+test)|\b(?:pt|pregnancy\s+test)\s+(?:ko\s+)?(?:ay\s+)?negative\b/i;
 const UNSURE = /\b(?:baka|siguro|maybe|might\s+be|parang|kung)\s+(?:(?:na|ay)\s+)?(?:buntis|pregnant)\b/i;
-const PREGNANT = /\bbuntis\s+(?:na\s+)?ako\b|\bako\s+(?:ay\s+)?buntis\b|\bnagdadalang-?tao\s+(?:na\s+)?ako\b|\b(?:i'?m|i\s+am)\s+pregnant\b|\bpositive\s+(?:ang\s+)?(?:pt|pregnancy\s+test)|\b(?:pt|pregnancy\s+test)\s+(?:ko\s+)?(?:ay\s+)?positive\b/i;
+const PREGNANT = /\bbuntis\s+(?:na\s+)?ako\b|\bako\s+(?:ay\s+)?buntis\b|\bnagdadalang-?tao\s+(?:na\s+)?ako\b|\b(?:i'?m|i\s+am)\s+pregnant\b|\bpositive\s+(?:ang\s+)?(?:pt|pregnancy\s+test)|\b(?:nag-?)?(?:pt|pregnancy\s+test)\b[^.?]*\bpositive\b|\b(?:pt|pregnancy\s+test)\s+(?:ko\s+)?(?:ay\s+)?positive\b/i;
 const GAVE_BIRTH = /\bnanganak\s+na\s+ako\b|\bkaka-?panganak\s+ko\s+lang\b|\bkapapanganak\s+ko\s+lang\b|\bi\s+(?:just\s+)?gave\s+birth\b|\bi\s+(?:just\s+)?had\s+(?:my|the)\s+baby\b/i;
 
 function statusOf(text: string): 'pregnant' | 'postpartum' | 'neither' | null {
-  if (NOT_PREGNANT.test(text)) return 'neither';
   if (GAVE_BIRTH.test(text)) return 'postpartum';
+  if (NOT_PREGNANT.test(text)) return 'neither';
   if (PREGNANT.test(text) && !UNSURE.test(text)) return 'pregnant';
   return null;
 }
 
+const NOT_A_NAME = /^(?:later|back|soon|tomorrow|tonight|now|anytime|again|when|if|not|na|a|an|the|nothing|none|maybe|mamaya|bukas|ulit|kapag|pag|baby|mommy|mama|anything|whatever)\b/i;
 const RENAME =
   /^\s*(?:(?:please|pls|liora,?)\s+)*(?:(?:change|update|set)\s+my\s+name\s+(?:to|as|into)|call\s+me|my\s+name\s+is|tawagin\s+mo\s+(?:akong|ako\s+na|na\s+lang\s+akong)|palitan\s+mo\s+(?:ang\s+)?pangalan\s+ko\s+(?:ng|sa|to|into)|(?:ang\s+)?pangalan\s+ko\s+ay)\s+([\p{L}][\p{L}' .-]{0,38}?)(?:\s+(?:po|na\s+lang|nalang|please|instead))*[\s.!]*$/iu;
 
 // "Call me Bea": her new name, as she wrote it, or null.
 export function readRename(text: string): string | null {
   const name = RENAME.exec(text)?.[1]?.trim();
-  return name && name.split(/\s+/).length <= 3 ? name : null;
+  return name && name.split(/\s+/).length <= 3 && !NOT_A_NAME.test(name) ? name : null;
 }
 
 export function readActions(text: string, today: string): AgentAction[] {

@@ -19,9 +19,17 @@ describe('mentionsSelfHarm', () => {
     'suicidal ako',
     'ayoko na sa buhay ko',
     'pagod na ako sa buhay',
+    'sobrang lungkot ko gusto ko na lang mawala',
+    'sana mawala na lang ako',
+    'sana hindi na ako magising',
+    'ayoko nang gumising',
+    'mas mabuti pa kung wala na ako',
+    'I just want to disappear',
+    'I wish I was dead',
+    'everyone would be better off without me',
   ])('hears "%s"', (text) => expect(mentionsSelfHarm(text)).toBe(true));
 
-  it.each(['masakit ulo ko', 'parang mamatay na ako sa sakit ng tiyan', 'sobrang lungkot ko', 'pagod na pagod ako', 'nasaktan ako sa sinabi niya', 'kill the pain please'])(
+  it.each(['masakit ulo ko', 'parang mamatay na ako sa sakit ng tiyan', 'sobrang lungkot ko', 'pagod na pagod ako', 'nasaktan ako sa sinabi niya', 'kill the pain please', 'gusto ko nang mawala ang sakit', 'sana mawala na ang sakit ng ulo ko', 'gusto ko lang mawala yung pagod'])(
     'leaves "%s" to the usual turn',
     (text) => expect(mentionsSelfHarm(text)).toBe(false),
   );

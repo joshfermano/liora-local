@@ -217,8 +217,18 @@ describe('readActions: her name', () => {
     expect(readActions(text, TODAY)).toEqual([{ tool: 'set_name', name }]);
   });
 
+  it.each(['call me later', 'my name is not important', 'call me back tomorrow', 'tawagin mo ako mamaya'])('does not rename for "%s"', (text) => {
+    expect(readActions(text, TODAY).some((a) => a.tool === 'set_name')).toBe(false);
+  });
+
   it('asks before changing it', () => {
     expect(planActions([{ tool: 'set_name', name: 'Bea' }], { periods: [], dayLogs: [], cycleSettings: {}, setup: null }, 'neither', TODAY).confirm).toHaveLength(1);
+  });
+});
+
+describe('readActions: periods she did not get', () => {
+  it.each(['hindi pala ako niregla', "I didn't get my period"])('logs nothing for "%s"', (text) => {
+    expect(readActions(text, TODAY).some((a) => a.tool === 'period_start')).toBe(false);
   });
 });
 

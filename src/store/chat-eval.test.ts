@@ -93,6 +93,8 @@ const CASES: [Status, string, string][] = [
   ['neither', 'I want to kill myself', CRISIS],
   ['postpartum', "I don't want to live anymore", CRISIS],
   ['pregnant', 'wala nang saysay ang buhay ko', CRISIS],
+  ['postpartum', 'sobrang lungkot ko gusto ko na lang mawala', CRISIS],
+  ['postpartum', 'sana hindi na ako magising', CRISIS],
   // Signs on the cited DOH warning list that the WHO rules do not cover: that card, verbatim.
   ['pregnant', 'hindi gumagalaw si baby', DOH],
   ['pregnant', 'my baby is not kicking', DOH],
@@ -198,6 +200,21 @@ const CASES: [Status, string, string][] = [
   ['neither', 'tired and moody today', 'reply.saved.gentle | logged:symptoms+moods'],
   ['neither', 'ok', 'reply.chat'],
   ['neither', 'sige', 'reply.chat'],
+  // Loop round five.
+  ['neither', 'last day ng regla ko ngayon', 'reply.confirm | confirm:period_end'],
+  ['neither', 'nag-pt ako, positive!', 'reply.confirm | confirm:status=pregnant'],
+  ['neither', 'nag-pt ako, negative', 'reply.status.same'],
+  // Loop round four.
+  ['pregnant', 'msakit ulo q', FOLLOW],
+  ['pregnant', 'masakit din tiyan ko', FOLLOW],
+  ['pregnant', 'nahilo ako kanina pero ok na', DOH],
+  ['pregnant', 'buntis ako', 'reply.status.same'],
+  ['postpartum', 'hindi na ako buntis, nanganak na ako last week', 'reply.status.same'],
+  ['neither', 'mens ko ngayon', 'reply.saved | logged:period_start'],
+  ['neither', 'may dalaw ako', 'reply.confirm | confirm:period_start'],
+  ['neither', 'wala pa rin akong regla', 'companion.cycle.no_data'],
+  ['neither', 'show me my logs for yesterday', 'reply.day_empty'],
+  ['neither', 'ano ang nangyari sa akin nung lunes?', 'reply.day_empty'],
   // Loop round three.
   ['postpartum', 'sobrang lungkot ko, parang hindi ko kaya alagaan si baby', 'companion.heavy_heart | logged:moods | contact'],
   ['pregnant', 'hindi ko na kaya, sobrang bigat ng pakiramdam ko', 'companion.heavy_heart | contact'],
@@ -250,6 +267,7 @@ async function talk(status: Status, texts: string[]): Promise<string> {
 
 describe('answering the follow-up by typing', () => {
   it.each([
+    [['masakit ulo ko', 'masakit din tiyan ko'], FOLLOW],
     [['masakit ulo ko', 'skip'], 'companion.symptom.skipped | decision:go_now'],
     [['masakit ulo ko', 'hindi naman masyado'], 'companion.symptom.ok | decision:ok'],
     [['masakit ulo ko', 'no'], 'companion.symptom.ok | decision:ok'],
@@ -271,6 +289,8 @@ describe('following on from what Liora just did', () => {
     [['malungkot ako', 'ano pwede kong gawin?'], 'reply.no_card'],
     [['remember that my OB is Dr. Santos', 'sino OB ko?'], 'reply.recall'],
     [['what do you remember?'], 'reply.recall.none'],
+    [['masaya ako', 'hindi pala, malungkot ako'], 'reply.saved.gentle | logged:moods'],
+    [['masakit puson ko', 'pati ngayon'], 'reply.already'],
     [['remember na allergic ako sa ibuprofen', 'ano allergy ko?'], 'reply.recall'],
     [['nagsimula regla ko noong Sept 12', 'nagsimula ulit noong Oct 9'], 'reply.saved | logged:period_start'],
     [['masakit ulo ko', 'hindi naman masyado'], 'reply.noted'],
@@ -281,6 +301,11 @@ describe('following on from what Liora just did', () => {
     [['masakit ulo ko kahapon at ngayon'], 'reply.saved.gentle | logged:symptoms+symptoms'],
   ] as [string[], string][])('%j', async (texts, expected) => {
     expect(await talk('neither', texts)).toBe(expected);
+  });
+
+  it('replaces the mood she takes back', async () => {
+    await talk('neither', ['masaya ako', 'hindi pala, malungkot ako']);
+    expect(useLogStore.getState().dayLogs.flatMap((l) => l.moods)).toEqual(['sad']);
   });
 
   it('moves the period rather than adding a second one', async () => {

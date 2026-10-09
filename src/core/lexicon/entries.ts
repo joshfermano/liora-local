@@ -8,9 +8,9 @@ export interface Entry {
 }
 
 const HEAD_PAIN =
-  /\b(?:(?:masakit|sakit|kirot|kumikirot|sumasakit|sumakit|nananakit)\s+(?:(?:lang|na|talaga|pa)\s+)?(?:ng\s+|ang\s+)?ulo|ulo\s+(?:ko\s+)?(?:ay\s+)?(?:masakit|kumikirot|sumasakit|sumakit)|headaches?|migraine)\b/i;
+  /\b(?:(?:masakit|msakit|mskit|skit|sakit|kirot|kumikirot|sumasakit|sumakit|nananakit)\s+(?:(?:lang|na|talaga|pa|din|rin|ulit|naman|nanaman)\s+)*(?:ng\s+|ang\s+)?ulo|ulo\s+(?:ko\s+)?(?:ay\s+)?(?:masakit|kumikirot|sumasakit|sumakit)|headaches?|migraine)\b/i;
 const BELLY_PAIN =
-  /\b(?:(?:masakit|sakit|kirot|kumikirot|sumasakit|sumakit|nananakit)\s+(?:(?:lang|na|talaga|pa)\s+)?(?:ng\s+|ang\s+|sa\s+)?tiyan|tiyan\s+(?:ko\s+)?(?:ay\s+)?masakit|(?:stomach|abdominal|belly|tummy)\s*(?:pain|ache)s?|stomachache)\b/i;
+  /\b(?:(?:masakit|msakit|mskit|skit|sakit|kirot|kumikirot|sumasakit|sumakit|nananakit)\s+(?:(?:lang|na|talaga|pa|din|rin|ulit|naman|nanaman)\s+)*(?:ng\s+|ang\s+|sa\s+)?(?:tiyan|tyan)|(?:tiyan|tyan)\s+(?:ko\s+)?(?:ay\s+)?masakit|(?:stomach|abdominal|belly|tummy)\s*(?:pain|ache)s?|stomachache)\b/i;
 
 export const ENTRIES: Entry[] = [
   { pattern: HEAD_PAIN, codes: ['severe_headache', 'headache'] },
