@@ -60,7 +60,7 @@ export const COPY = {
   'companion.symptom.skipped': ui("I'm here with you. We skipped the question, so let's be safe."),
   'followup.skip_means': ui('If you skip, Liora treats it as serious.'),
 
-  'calm.saved': ui('Saved to your notes.'),
+  'calm.saved': ui('Saved to logs.'),
   'calm.copy': who("If at any time you have any concerns about your or your baby’s health, go to the health centre."),
   'calm.watch.header': who('Go to the hospital or health centre immediately, day or night, DO NOT wait, if any of the following signs:'),
   'calm.watch.items': who('vaginal bleeding\nconvulsions/fits\nsevere headaches with blurred vision\nfever and too weak to get out of bed\nsevere abdominal pain\nfast or difficult breathing.'),
@@ -643,7 +643,7 @@ export const COPY = {
   'warm.tired': ui('That sounds tiring. Be gentle with yourself today.'),
   'warm.happy': ui("I'm so glad to hear from you."),
   'warm.neutral': ui('Thank you for checking in with me.'),
-  'agent.logged.title': ui('Saved'),
+  'agent.logged.title': ui('Saved to logs'),
   'agent.logged.period_start': ui('Period started {date}'),
   'agent.logged.period_end': ui('Period ended {date}'),
   'agent.logged.flow': ui('{flow} flow, {date}'),

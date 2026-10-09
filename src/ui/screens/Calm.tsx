@@ -94,7 +94,7 @@ export function Calm({ entry }: { entry: Entry }) {
         ) : (
           <Appear order={0}>
             <View className={`${SURFACE.tintSoft} rounded-pane flex-row items-center gap-sm p-lg`}>
-              <Symbol name="checkmark.circle.fill" fallback="check" tone="tintSoftInk" size={22} />
+              <Symbol name="note.text" fallback="list" tone="tintSoftInk" size={22} />
               <Text variant="title3" tone="tintSoftInk" className="flex-1">
                 {en('calm.saved')}
               </Text>

@@ -228,9 +228,12 @@ function Logged({ block }: { block: Extract<ReplyBlock, { kind: 'logged' }> }) {
   if (undone) return <Text variant="subheadline" tone="secondary" accessibilityLiveRegion="polite">{en('agent.undone')}</Text>;
   return (
     <GlassCard className="gap-xxs px-md py-sm">
-      <Text variant="footnote" tone="secondary" accessibilityRole="header">
-        {en('agent.logged.title')}
-      </Text>
+      <View className="flex-row items-center gap-xxs" accessibilityRole="header">
+        <Symbol name="note.text" fallback="list" tone="secondary" size={14} />
+        <Text variant="footnote" tone="secondary">
+          {en('agent.logged.title')}
+        </Text>
+      </View>
       {block.items.map((item, i) => (
         <View key={i} className="flex-row items-center gap-xs">
           <Symbol name="checkmark.circle" fallback="check" tone="tint" size={16} />
@@ -258,7 +261,16 @@ function Logged({ block }: { block: Extract<ReplyBlock, { kind: 'logged' }> }) {
 
 function Confirm({ block }: { block: Extract<ReplyBlock, { kind: 'confirm' }> }) {
   const [state, setState] = useState<'ask' | 'saved' | 'skipped'>('ask');
-  if (state === 'saved') return <Text variant="subheadline" tone="secondary">{en('agent.logged.title')}</Text>;
+  if (state === 'saved') {
+    return (
+      <View className="flex-row items-center gap-xxs">
+        <Symbol name="note.text" fallback="list" tone="secondary" size={14} />
+        <Text variant="subheadline" tone="secondary">
+          {en('agent.logged.title')}
+        </Text>
+      </View>
+    );
+  }
   if (state === 'skipped') return null;
   const lines = block.actions.map((a) => confirmLine(a)).filter((l): l is string => l !== null);
   if (lines.length === 0) return null;
