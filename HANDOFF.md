@@ -37,11 +37,11 @@ Update section 1 and section 2 of this file as work completes, so any session ca
 | Scope               | **Approved:** text and voice input, danger-sign decision model, go-now screen, nurse card, calm answer, on-device RAG over cited source cards, log, mood check, AI-off checklist, "How Liora decided" drawer, privacy controls, **cycle calendar with next-period estimate**. Stretch: photo of check-up record. Out: photos of the body, medicine advice, fertile-window predictions, contraception guidance. |
 | Spec                | **Approved, v4** (models changed by the user on 2026-10-09 evening: Gemma 4 E2B, Jev-style typed decisions, EmbeddingGemma 2): `docs/superpowers/specs/2026-10-09-tell-liora-design.md`.                                                                                                                                                                                                                                                                                                                                    |
 | Implementation plan | Linear project `liora-local-hackathon`: milestones M1–M7, tickets LUM-44 to LUM-78, each with acceptance criteria and blockers. Ticket rules in `AGENTS.md`; `/tickets` shows progress. |
-| Code                | **Built by 11 PM, 9 Oct (main, 345 tests):** decision engine and pipeline; Gemma 4 typed decisions and voice on the iPhone (llama.rn); screens: home, go-now, nurse card, follow-up, calm, "Why?", "How Liora decided" (`/decided/[id]`), setup, AI-off checklist, calendar with estimate, My log, PHQ-9 mood check and crisis screen; 17 reviewed source cards; WHO-quoted fixed copy. **Checked on a phone (iPhone 16 Pro Max):** model download/load, typed decisions, go-now flow. **Not yet on a phone:** everything else (the last builds waited for the phone to reconnect). |
+| Code                | **Built by midnight, 10 Oct (main, 377 tests):** decision engine and pipeline (with the SR-1 rule that the model alone can't skip a follow-up); Gemma 4 typed decisions and voice; EmbeddingGemma 300M card search on calm answers; 17 reviewed cards; WHO-quoted copy; screens: home, go-now, nurse card, follow-up, calm, "Why?", "How Liora decided", setup (3 downloads), AI-off checklist, calendar (with period-from-text chip), My log, PHQ-9 mood check and crisis; eval runner on the test screen. Safety review done (LUM-73). **Checked on a phone:** only the early go-now flow; every later build waits for the iPhone to reconnect. |
 | GitHub repo / Pages | Public repo `joshfermano/liora-local`; Pages live at https://joshfermano.github.io/liora-local/ (deploys from `main` through Actions). Quick phone testing through `pnpm expo start --tunnel`. |
 | S1 findings         | iPhone Safari 27.0.1: WebGPU on, shader-f16 on, largest GPU buffer 1,024 MB, not cross-origin isolated, about 39 GB storage. Gemma 4 E2B's 1,120 MB token-embedding table is too big for the GPU, so it was moved to the CPU (f928688). **Then the tab was killed at 1,763 of 2,985 MB downloaded (179 s, about 10 MB/s):** Transformers.js holds each whole file in memory until it finishes, and Gemma 4 E2B q4f16 needs about 3 GB at once, plus 1.5 GB of CPU memory for the token embeddings. As packaged, Gemma 4 E2B does not fit a browser tab. Nothing was cached. |
 | Typed decisions     | Code in a866603 (`src/ai/typed-decisions.ts`, `workers/decide.ts`). Laptop observation only (4-bit decoder on CPU, about 0.7 s per question): phrase 1 go-now, phrase 2 calm, phrase 3 go-now instead of the headache follow-up. Causes: the "very ill" question says yes to any ache; the severity score says "moderate" when the message does not say. A yes/no rewording fixed phrase 3 and the "very ill" question but read "medyo masakit" as neither mild nor severe; not applied yet. |
-| Timeline            | At 11 PM: screens done; remaining work is phone checks, the demo iPhones, measurements, the team's Filipino copy, the README numbers, the video and submission. |
+| Timeline            | At midnight: code is feature-complete for the demo; what is left needs the phones and people (Filipino copy, eval phrases, video, submission). |
 
 ## 2. Next steps, in order
 
@@ -205,8 +205,21 @@ wins:
   8. The numbers measured on these iPhones.
 
   Use these three phrases as the first S1 test cases and eval cases.
+- **Native-app notes for the demo (10 Oct, midnight):**
+  - Open Tell Liora and wait for **"AI on"** (about 15 s cold) before airplane mode matters; the
+    models were downloaded at setup.
+  - Step 2: tap the mic, speak, tap again; the words land in the box to edit, then Check.
+  - Step 4: "How Liora decided" is the link under every result.
+  - Step 5: the calm card comes from card search (EmbeddingGemma); with no close match it says "Ask
+    at your check-up".
+  - Step 7: the mood check is the **PHQ-9** (not the EPDS); answering question 9 above "Not at all"
+    opens the crisis screen with NCMH 1553.
+  - Before the final demo build, hide the "Native model test" link (LUM-73).
 - **Judge Q&A (guide section 10):** "If rules decide, why use AI?", "What if the AI is wrong?",
-  "Is this a medical device?", "Why not a native app?", with drafted answers.
+  "Is this a medical device?", "Why not a native app?", with drafted answers. Updates: it **is** a
+  native app now (Safari could not hold Gemma 4 in one tab; native reads the model from storage).
+  "What if the AI is wrong?": the WHO rules decide; an unsure sign gets a follow-up question; the AI
+  can add caution but can never skip a follow-up on its own; with no AI, the checklist still decides.
 - **10 AM checklist (guide section 7):** four boxes: it works, it's safe and private, it's proven,
   it's submitted. Use it as the final definition of done.
 - **Feature numbers:** the guide numbers the 15 must-haves 1 to 15. Guide 1 to 13 are FR-1 to
