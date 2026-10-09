@@ -36,6 +36,8 @@ export function Screen({
   const insets = useSafeAreaInsets();
   const margin = useMargin();
   const bottom = keyboardUp ? 0 : insets.bottom + (tabBar ? TAB_BAR_CLEARANCE : 0);
+  // Beside the tab bar the footer tucks into its clearance, which is generous, to sit just above the bar.
+  const footerGap = tabBar && !keyboardUp ? bottom - 8 : bottom + 12;
   const body = (
     <View
       className="w-full max-w-column self-center flex-1"
@@ -62,7 +64,7 @@ export function Screen({
       {footer ? (
         <View
           className="w-full max-w-column self-center"
-          style={{ paddingHorizontal: margin, paddingBottom: bottom + 12, paddingTop: 8 }}
+          style={{ paddingHorizontal: margin, paddingBottom: footerGap, paddingTop: 8 }}
         >
           {footer}
         </View>
