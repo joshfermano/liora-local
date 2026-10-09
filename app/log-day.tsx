@@ -1,7 +1,7 @@
 import { format } from 'date-fns';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useRef, useState } from 'react';
-import { TextInput, View } from 'react-native';
+import { Keyboard, ScrollView, TextInput, View } from 'react-native';
 import Animated, { FadeIn, useReducedMotion } from 'react-native-reanimated';
 import { en } from '../src/content/copy';
 import { applyFlow } from '../src/core/daylog';
@@ -46,7 +46,17 @@ function saved(date: string): DayLog {
 
 const toggle = <T,>(list: T[], v: T) => (list.includes(v) ? list.filter((x) => x !== v) : [...list, v]);
 
-function NoteField({ initial, onDraft, onSave }: { initial: string; onDraft: (note: string) => void; onSave: (note: string) => void }) {
+function NoteField({
+  initial,
+  onDraft,
+  onSave,
+  onFocus,
+}: {
+  initial: string;
+  onDraft: (note: string) => void;
+  onSave: (note: string) => void;
+  onFocus: () => void;
+}) {
   const colors = useColors();
   const [text, setText] = useState(initial);
   const latest = useRef(text);
@@ -65,6 +75,7 @@ function NoteField({ initial, onDraft, onSave }: { initial: string; onDraft: (no
             onDraft(t);
           }}
           onBlur={() => onSave(latest.current)}
+          onFocus={onFocus}
           accessibilityLabel={en('daylog.note.label')}
           textAlignVertical="top"
           cursorColor={colors.tint}
@@ -86,6 +97,17 @@ export default function LogDaySheet() {
   const [date, setDate] = useState(first);
   const [log, setLog] = useState<DayLog>(() => saved(first));
   const noteDraft = useRef<string | null>(null);
+  const scroll = useRef<ScrollView>(null);
+  // In a sheet the keyboard math falls short, so once the keyboard is up the sheet scrolls to its end:
+  // the note is the last field, with only Clear this day under it.
+  const revealNote = () => {
+    if (Keyboard.isVisible()) return void scroll.current?.scrollToEnd({ animated: true });
+    const shown = Keyboard.addListener('keyboardDidShow', () => {
+      shown.remove();
+      scroll.current?.scrollToEnd({ animated: true });
+    });
+    setTimeout(() => shown.remove(), 1500);
+  };
   const [rev, setRev] = useState(0);
 
   const close = () => (router.canGoBack() ? router.back() : router.replace('/'));
@@ -120,7 +142,7 @@ export default function LogDaySheet() {
   };
 
   return (
-    <Screen raised topInset={false}>
+    <Screen raised topInset={false} scrollRef={scroll}>
       <View className="gap-lg pt-xl pb-xl">
         <View className="gap-xxs">
           <View className="flex-row items-center justify-between">
@@ -174,7 +196,7 @@ export default function LogDaySheet() {
             onToggle={(id) => commit({ ...log, activities: toggle(log.activities, id) })}
           />
 
-          <NoteField initial={log.note ?? ''} onDraft={(t) => (noteDraft.current = t)} onSave={saveNote} />
+          <NoteField initial={log.note ?? ''} onDraft={(t) => (noteDraft.current = t)} onSave={saveNote} onFocus={revealNote} />
         </Animated.View>
 
         <PressableSurface label={en('daylog.clear')} onPress={clear} surfaceClassName="min-h-tap items-center justify-center">

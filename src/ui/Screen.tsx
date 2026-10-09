@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react';
+import type { ReactNode, RefObject } from 'react';
 import { ScrollView, View, useWindowDimensions } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { LightField } from './LightField';
@@ -28,6 +28,7 @@ export function Screen({
   tabBar = false,
   keyboardUp = false,
   footer,
+  scrollRef,
 }: {
   children: ReactNode;
   field?: boolean;
@@ -40,6 +41,8 @@ export function Screen({
   keyboardUp?: boolean;
   // Pinned under the content, above the bottom inset.
   footer?: ReactNode;
+  // Lets a screen scroll itself, for a field the keyboard math leaves covered.
+  scrollRef?: RefObject<ScrollView | null>;
 }) {
   const insets = useSafeAreaInsets();
   const margin = useMargin();
@@ -58,6 +61,7 @@ export function Screen({
       {field && !raised ? <LightField /> : null}
       {scroll ? (
         <ScrollView
+          ref={scrollRef}
           className="flex-1"
           contentContainerStyle={{ flexGrow: 1, paddingBottom: footer ? 0 : bottom + 24 }}
           keyboardShouldPersistTaps="handled"
