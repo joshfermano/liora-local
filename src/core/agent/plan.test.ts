@@ -50,7 +50,8 @@ describe('planActions', () => {
   });
   it('applies flow, but confirms a different flow already on that day', () => {
     const flow: AgentAction = { tool: 'flow', date: today, flow: 'heavy' };
-    expect(plan([flow]).apply).toEqual([flow]);
+    // With no period on or near the day, a flow is her period starting (flow-start.test.ts).
+    expect(plan([flow]).apply).toEqual([{ tool: 'period_start', date: today, flow: 'heavy' }]);
     const log: DayLog = { date: TODAY, flow: 'light', symptoms: [], moods: [], activities: [] };
     expect(plan([flow], data({ dayLogs: [log] })).confirm).toEqual([flow]);
   });

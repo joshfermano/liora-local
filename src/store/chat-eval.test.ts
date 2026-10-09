@@ -102,7 +102,8 @@ const CASES: [Status, string, string][] = [
   // What she logs.
   ['neither', 'Nagsimula regla ko ngayon', 'reply.saved | logged:period_start'],
   ['neither', 'nagsimula regla ko kahapon', 'reply.saved | logged:period_start'],
-  ['neither', 'malakas ang regla ko ngayon', 'reply.saved | logged:flow'],
+  // No period logged near today, so a heavy flow is her period starting, with her usual length.
+  ['neither', 'malakas ang regla ko ngayon', 'reply.saved | logged:period_start+flow'],
   ['pregnant', 'Nagsimula regla ko ngayon', 'reply.confirm | confirm:status=neither+period_start'],
   ['pregnant', 'masaya ako ngayon', 'reply.saved.bright | logged:moods'],
   ['pregnant', 'nag-walk ako kanina', 'reply.saved | logged:activities'],

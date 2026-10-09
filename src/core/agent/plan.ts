@@ -1,5 +1,5 @@
 import { resolveDate } from './dates';
-import { dayHas, flowClashes, openPeriodFor, periodsToDelete, startFits } from './fit';
+import { dayHas, flowClashes, openPeriodFor, periodsToDelete, shift, startFits } from './fit';
 import type { AgentAction, AgentData, AgentPlan } from './types';
 
 type Verdict = 'apply' | 'confirm' | 'skip';
@@ -51,9 +51,21 @@ function verdict(a: AgentAction, data: AgentData, status: string | undefined, to
 
 // Clear logs are saved at once; anything that replaces data, needs a date or changes her status
 // waits for her tap.
+// A flow on a day with no period on or next to it is her period starting, so it is logged with her
+// usual length rather than as one day. Spotting stays a single day.
+function asStart(a: AgentAction, data: AgentData, today: string): AgentAction {
+  if (a.tool !== 'flow' || a.flow === 'spotting') return a;
+  const date = resolveDate(a.date, today);
+  if (!date || !startFits(date, data, today)) return a;
+  const near = [date, shift(date, -1), shift(date, 1)];
+  if (data.dayLogs.some((l) => l.flow !== null && near.includes(l.date))) return a;
+  return { tool: 'period_start', date: a.date, flow: a.flow };
+}
+
 export function planActions(actions: AgentAction[], data: AgentData, status: string | undefined, today: string): AgentPlan {
   const plan: AgentPlan = { apply: [], confirm: [] };
-  for (const a of actions) {
+  const starts = actions.some((a) => a.tool === 'period_start');
+  for (const a of starts ? actions : actions.map((x) => asStart(x, data, today))) {
     const v = verdict(a, data, status, today);
     if (v === 'skip') continue;
     // A period while her profile says pregnant: nothing is saved until she says she is not
