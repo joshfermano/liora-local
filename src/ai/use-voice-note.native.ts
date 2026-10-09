@@ -11,6 +11,7 @@ import { File } from 'expo-file-system';
 import { useEffect, useRef, useState } from 'react';
 import { createVad } from '../core/agent';
 import { gemmaSession } from './gemma-session';
+import { heardWords, MIN_CLIP_MS } from './transcript';
 import { MIC_DENIED, type VoiceNote, type VoiceNoteOptions, type VoiceNoteState } from './voice-note-types';
 
 export { MIC_DENIED, type VoiceNote, type VoiceNoteOptions, type VoiceNoteState } from './voice-note-types';
@@ -38,6 +39,8 @@ const WAV_16K: RecordingOptions = {
 const message = (e: unknown) => (e instanceof Error ? e.message : String(e));
 
 const AUTO_LIMIT_S = 30;
+
+const MIN_TURN_MS = 700;
 
 export function useVoiceNote({ autoStop = false, onHeard }: VoiceNoteOptions = {}): VoiceNote {
   const recorder = useAudioRecorder(WAV_16K);
@@ -86,12 +89,19 @@ export function useVoiceNote({ autoStop = false, onHeard }: VoiceNoteOptions = {
       }
       setState('transcribing');
       const size = new File(uri).size ?? 0;
-      if (__DEV__) console.log(`[voice] recorded ${Date.now() - startedAt.current} ms of wall time into ${size} bytes`);
+      const clipMs = Date.now() - startedAt.current;
+      if (__DEV__) console.log(`[voice] recorded ${clipMs} ms of wall time into ${size} bytes`);
+      // A clip too short to hold words is not sent to Gemma, which would answer about the audio.
+      if (clipMs < MIN_CLIP_MS) {
+        setState('idle');
+        return null;
+      }
       const gemma = await gemmaSession();
       const heard = await gemma.transcribe(uri);
       if (__DEV__) console.log(`[voice] ${size} bytes, ${heard.ms} ms, heard: ${JSON.stringify(heard.text)}`);
       setState('idle');
-      return heard.text ? heard : null;
+      const words = heardWords(heard.text, clipMs);
+      return words ? { ...heard, text: words } : null;
     } catch (e) {
       if (__DEV__) console.warn(`[voice] failed: ${message(e)}`);
       setState('error');
@@ -128,9 +138,12 @@ export function useVoiceNote({ autoStop = false, onHeard }: VoiceNoteOptions = {
   // Hands-free: the recorder's loudness decides when she has finished speaking.
   useEffect(() => {
     if (!autoStop || state !== 'recording' || autoStopping.current) return;
-    const seconds = (status.durationMillis ?? 0) / 1000;
-    const verdict = vad.current.push(status.metering ?? -160, status.durationMillis ?? 0);
-    if (verdict !== 'end' && seconds < AUTO_LIMIT_S) return;
+    // Time each turn from its own start: the recorder's status can still hold the last turn's
+    // duration for a moment, which once ended a new turn the instant it began.
+    const elapsed = Date.now() - startedAt.current;
+    if (elapsed < MIN_TURN_MS) return;
+    const verdict = vad.current.push(status.metering ?? -160, elapsed);
+    if (verdict !== 'end' && elapsed / 1000 < AUTO_LIMIT_S) return;
     autoStopping.current = true;
     void stopLatest.current().then((heard) => heardLatest.current?.(heard));
   }, [autoStop, state, status.metering, status.durationMillis]);

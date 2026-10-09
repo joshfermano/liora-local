@@ -87,8 +87,11 @@ export async function loadGemma(): Promise<NativeGemma> {
     let timer: ReturnType<typeof setTimeout> | undefined;
     const timeout = new Promise<never>((_, reject) => {
       timer = setTimeout(() => {
-        ctx.stopCompletion().catch(() => {});
         reject(new Error('The model took too long'));
+        // stopCompletion's typing says Promise, but the native call can return nothing.
+        try {
+          void Promise.resolve(ctx.stopCompletion()).catch(() => {});
+        } catch {}
       }, ms);
     });
     try {
