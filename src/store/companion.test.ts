@@ -270,5 +270,14 @@ describe('companion thread with the real rules and no model', () => {
       expect(history[0]!.messages[0]!.text).toBe('m54');
     });
   });
+
+  it('answers words about not wanting to live with the crisis line, logging nothing', async () => {
+    useLogStore.setState({ setup: { status: 'pregnant' } });
+    await useCompanionStore.getState().send('gusto ko nang mamatay');
+    const m = useCompanionStore.getState().messages;
+    expect(m.at(-1)!.blocks).toEqual([{ kind: 'text', key: 'crisis.headline' }, { kind: 'crisis' }]);
+    expect(useCompanionStore.getState().thinking).toBe(false);
+    expect(useLogStore.getState().entries).toEqual([]);
+  });
 });
 

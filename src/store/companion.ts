@@ -14,6 +14,7 @@ import { useTellStore } from './tell';
 import { toTrace, useTraceStore } from './trace';
 import { CONVERSATION_MS, isNewConversation, recentTurns } from './thread';
 import { runTurn, type AgentTurn } from './turn';
+import { mentionsSelfHarm } from '../core/agent/crisis';
 
 export interface ThreadMessage {
   id: string;
@@ -181,6 +182,13 @@ export const useCompanionStore = create<CompanionState>()(
           set((s) => ({ messages: [...s.messages, liora] }));
           return liora.id;
         };
+        // Words about not wanting to live go straight to the crisis screen's fixed copy and NCMH 1553:
+        // nothing is logged and no model words a reply.
+        if (mentionsSelfHarm(text)) {
+          add([{ kind: 'text', key: 'crisis.headline' }, { kind: 'crisis' }]);
+          set({ thinking: false });
+          return;
+        }
         const work = async () => {
           const entry = await useTellStore.getState().submit(ruleText, input);
           mark(`rules decided ${entry.decision.level}${entry.decision.follow_up ? ` (asks ${entry.decision.follow_up.question_id})` : ''}`);

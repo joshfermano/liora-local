@@ -175,6 +175,7 @@ export const COPY = {
   'mood.done': ui('Done'),
   'crisis.headline': ui('Talk to someone now.'),
   'crisis.call': ui('Call 1553'),
+  'crisis.more': ui('More ways to get help'),
   'crisis.source': ui('WHO Philippines and DOH, 10 September 2020'),
   // how liora decided (LUM-76)
   'decided.link': ui('How Liora decided'),

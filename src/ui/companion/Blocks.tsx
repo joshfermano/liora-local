@@ -1,9 +1,10 @@
 import { format, parseISO } from 'date-fns';
 import { useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
-import { View } from 'react-native';
+import { Linking, View } from 'react-native';
 import Animated, { FadeOut } from 'react-native-reanimated';
 import { CARDS } from '../../content/cards';
+import { CRISIS_HOTLINE } from '../../content/phq9';
 import { en } from '../../content/copy';
 import type { QuickAction, ReplyBlock } from '../../core/companion';
 import { resolvePeriodDate } from '../../core/cycle';
@@ -358,6 +359,18 @@ export function Block({ block }: { block: ReplyBlock }) {
       return <Decision block={block} />;
     case 'period_confirm':
       return <PeriodConfirm block={block} />;
+    case 'crisis':
+      // The crisis screen's own fixed copy: Call 1553, then the full screen with her contact.
+      return (
+        <View className={`${SURFACE.alarm} rounded-pane gap-sm p-md`} accessibilityRole="alert">
+          <CapsuleButton variant="onAlarm" label={en('crisis.call')} onPress={() => void Linking.openURL(`tel:${CRISIS_HOTLINE.call}`).catch(() => {})} />
+          <PressableSurface label={en('crisis.more')} role="link" onPress={() => router.push('/crisis')} surfaceClassName="min-h-tap items-center justify-center">
+            <Text variant="body" tone="onUrgent" className="font-semibold">
+              {en('crisis.more')}
+            </Text>
+          </PressableSurface>
+        </View>
+      );
     case 'contact':
       return (
         <GlassCard className="p-md">

@@ -98,6 +98,8 @@ export function useLive(onDecision: (href?: string) => void) {
       const reply = [...useCompanionStore.getState().messages].reverse().find((m) => m.role === 'liora');
       const blocks = reply?.blocks ?? [];
       const decision = blocks.find((b): b is Extract<ReplyBlock, { kind: 'decision' }> => b.kind === 'decision');
+      // Words about not wanting to live: Live closes onto the crisis screen at once.
+      if (blocks.some((b) => b.kind === 'crisis')) return onDecision('/crisis');
       if (decision?.level === 'go_now') {
         return void speak(`${en('go.headline')}. ${en('go.line')}`, () => onDecision(`/result/${decision.entryId}`));
       }

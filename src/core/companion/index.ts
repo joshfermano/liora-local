@@ -23,7 +23,9 @@ export type ReplyBlock =
   // The agent's one reply: Gemma's guarded words, or the fixed fallback when it has none.
   | { kind: 'reply'; text: string | null; fallback: { key: string; params?: Record<string, string> } }
   | { kind: 'logged'; items: SavedItem[]; undoId: string }
-  | { kind: 'confirm'; actions: AgentAction[]; confirmId: string };
+  | { kind: 'confirm'; actions: AgentAction[]; confirmId: string }
+  // Words about not wanting to live: Call 1553 and the crisis screen, under the fixed headline.
+  | { kind: 'crisis' };
 
 const isDanger = (code: string) => (DANGER_CODES as readonly string[]).includes(code);
 const CYCLE_QUESTION = /\b(?:kailan|when)\b.*\b(?:regla|period|mens|dalaw)\b|\bnext\s+period\b|\b(?:cycle|siklo)\b/i;
