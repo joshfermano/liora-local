@@ -10,6 +10,13 @@ export const GEMMA_VOICE = {
   file: 'mmproj-gemma-4-E2B-it-Q8_0.gguf',
 };
 
+// What an entry records when Gemma answered its questions.
+export const GEMMA_MODEL_REF = {
+  role: 'llm' as const,
+  id: 'gemma-4-E2B-it Q4_0 (ggml-org/gemma-4-E2B-it-GGUF)',
+  version: 'llama.rn 0.13.0-rc.7',
+};
+
 export type NativeGemma = {
   loadMs: number;
   gpu: boolean;

@@ -5,7 +5,7 @@ const gemmaSession = vi.fn();
 const setAskModel = vi.fn();
 vi.mock('./gemma-native', () => ({ modelBytesOnDisk: () => modelBytesOnDisk() }));
 vi.mock('./gemma-session', () => ({ gemmaSession: () => gemmaSession(), askGemma: vi.fn() }));
-vi.mock('../store/tell', () => ({ setAskModel: (fn: unknown) => setAskModel(fn) }));
+vi.mock('../store/tell', () => ({ setAskModel: (...args: unknown[]) => setAskModel(...args) }));
 
 describe('bootGemma', () => {
   beforeEach(() => {
@@ -18,7 +18,7 @@ describe('bootGemma', () => {
     modelBytesOnDisk.mockReturnValue(2_841_481_184);
     const { bootGemma } = await import('./gemma-boot');
     expect(bootGemma()).toBe(true);
-    expect(setAskModel).toHaveBeenCalledWith(expect.any(Function));
+    expect(setAskModel).toHaveBeenCalledWith(expect.any(Function), expect.objectContaining({ role: 'llm' }));
     expect(gemmaSession).toHaveBeenCalledTimes(1);
   });
 

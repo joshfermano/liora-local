@@ -12,6 +12,7 @@ export interface PipelineInput {
   input: Entry['input'];
   context: Context;
   typedAnswers?: Record<string, number[]>;
+  models?: Entry['models'];
 }
 
 function extract(text: string): Extraction | null {
@@ -20,7 +21,7 @@ function extract(text: string): Extraction | null {
   return { period: null, symptoms: [], moods: [], danger_signs: [], pregnancy_weeks: weeks };
 }
 
-export function runPipeline({ id, now, text, input, context, typedAnswers }: PipelineInput): Entry {
+export function runPipeline({ id, now, text, input, context, typedAnswers, models }: PipelineInput): Entry {
   const findings = mergeFindings([
     ...readText(text),
     ...(typedAnswers ? toFindings(typedAnswers, PROVISIONAL_THRESHOLDS) : []),
@@ -34,7 +35,7 @@ export function runPipeline({ id, now, text, input, context, typedAnswers }: Pip
     extraction: extract(text),
     decision: evaluate(findings, context),
     card_ids: [],
-    models: [],
+    models: models ?? [],
   };
 }
 

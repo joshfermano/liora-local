@@ -19,10 +19,15 @@ export interface TellState {
 type AskModel = (text: string) => Promise<Record<string, number[]>>;
 
 const MODEL_TIMEOUT_MS = 8000;
-let askModel: AskModel | null = null;
+type ModelRef = Entry['models'][number];
 
-export function setAskModel(fn: AskModel | null): void {
+let askModel: AskModel | null = null;
+let modelRef: ModelRef | null = null;
+
+// The ref is what "How Liora decided" lists when this model actually answered.
+export function setAskModel(fn: AskModel | null, ref: ModelRef | null = null): void {
   askModel = fn;
+  modelRef = fn ? ref : null;
 }
 
 // SR-2: the lexicon alone still decides when the model is missing, fails or is slow.
@@ -61,6 +66,7 @@ export const useTellStore = create<TellState>()((set, get) => ({
         input,
         context: get().context,
         typedAnswers: answers,
+        models: answers && modelRef ? [modelRef] : [],
       });
       useLogStore.getState().addEntry(entry);
       set({ current: entry, status: 'done' });

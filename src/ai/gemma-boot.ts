@@ -1,4 +1,5 @@
 import { setAskModel } from '../store/tell';
+import { GEMMA_MODEL_REF } from './gemma-model';
 import { modelBytesOnDisk } from './gemma-native';
 import { askGemma, gemmaSession } from './gemma-session';
 
@@ -8,7 +9,7 @@ export function bootGemma(): boolean {
     setAskModel(null);
     return false;
   }
-  setAskModel(askGemma);
+  setAskModel(askGemma, GEMMA_MODEL_REF);
   gemmaSession().catch(() => {});
   return true;
 }

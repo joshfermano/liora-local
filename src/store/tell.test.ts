@@ -24,6 +24,22 @@ beforeEach(async () => {
 afterEach(() => vi.useRealTimers());
 
 describe('tell store', () => {
+  const GEMMA = { role: 'llm' as const, id: 'gemma-4-E2B-it Q4_0', version: 'llama.rn 0.13.0-rc.7' };
+
+  it('records the model that answered, for "How Liora decided"', async () => {
+    setAskModel(async () => HEADACHE, GEMMA);
+    const entry = await useTellStore.getState().submit('sobrang sakit ng ulo ko');
+    expect(entry.models).toEqual([GEMMA]);
+  });
+
+  it('records no model when the model failed and the word list decided alone', async () => {
+    setAskModel(async () => {
+      throw new Error('out of memory');
+    }, GEMMA);
+    const entry = await useTellStore.getState().submit('masakit ulo ko');
+    expect(entry.models).toEqual([]);
+  });
+
   it('starts idle with a pregnant context', () => {
     const s = useTellStore.getState();
     expect(s.status).toBe('idle');
