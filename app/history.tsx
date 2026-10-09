@@ -23,7 +23,7 @@ const opening = (chat: PastChat) => chat.messages.find((m) => m.role === 'her')?
 export default function History() {
   const router = useRouter();
   const history = useCompanionStore((s) => s.history);
-  const { open, forget } = useCompanionStore.getState();
+  const { open, forget, clearHistory } = useCompanionStore.getState();
 
   return (
     <LockGate>
@@ -83,6 +83,22 @@ export default function History() {
               ))}
             </Section>
           )}
+
+          {history.length > 0 ? (
+            <PressableSurface
+              label={en('history.clear_all')}
+              onPress={() => {
+                tap();
+                clearHistory();
+              }}
+              pressScale={0.98}
+              surfaceClassName="min-h-tap items-center justify-center"
+            >
+              <Text variant="body" tone="urgent">
+                {en('history.clear_all')}
+              </Text>
+            </PressableSurface>
+          ) : null}
         </View>
       </Screen>
     </LockGate>

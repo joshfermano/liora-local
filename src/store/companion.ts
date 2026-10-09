@@ -56,6 +56,8 @@ interface CompanionState {
   // Brings a past conversation back; the current one goes to history.
   open(id: string): void;
   forget(id: string): void;
+  // Every past conversation; the one she is in stays.
+  clearHistory(): void;
   // Delete everything: the thread and all of history.
   wipe(): void;
 }
@@ -96,6 +98,7 @@ export const useCompanionStore = create<CompanionState>()(
           return { messages: chat.messages, thinking: false, history: archived(s.messages, s.history.filter((c) => c.id !== id)) };
         }),
       forget: (id) => set((s) => ({ history: s.history.filter((c) => c.id !== id) })),
+      clearHistory: () => set({ history: [] }),
       wipe: () => set({ messages: [], history: [], thinking: false }),
       undo: (undoId) => {
         if (!revert(undoId)) return false;

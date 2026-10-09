@@ -328,6 +328,7 @@ export const COPY = {
   'history.footer': ui('Kept on this phone only. Delete everything in Profile removes them too.'),
   'history.open': ui('Open this conversation'),
   'history.delete': ui('Delete conversation'),
+  'history.clear_all': ui('Clear all history'),
   // her mood words, shown back as she said them
   'feeling.calm': ui('Calm'),
   'feeling.joyful': ui('Joyful'),
