@@ -16,11 +16,11 @@ import { en } from '../src/content/copy';
 import { GlassCard } from '../src/ui/Glass';
 import { tap } from '../src/ui/haptics';
 import { LightField } from '../src/ui/LightField';
-import { Orb } from '../src/ui/Orb';
+import CloudOrb from '../src/ui/orb/CloudOrb';
 import { PressableSurface } from '../src/ui/PressableSurface';
 import { Symbol } from '../src/ui/Symbol';
 import { Text } from '../src/ui/Text';
-import { SURFACE } from '../src/ui/theme';
+import { SURFACE, useColors } from '../src/ui/theme';
 
 // The orb starts as a seed, swells just past full size and settles; leaving reverses it.
 const SEED = 0.12;
@@ -34,6 +34,8 @@ export default function Live() {
   const { width } = useWindowDimensions();
   const size = Math.min(width * 0.7, 300);
   const reduce = useReducedMotion();
+  const c = useColors();
+  const colors = { deepColor: c.dusk, upperColor: c.tint, lowerColor: c.peach, highlightColor: c['tint-soft'], launchColor: c['tint-fill'], spinnerColor: c.tint };
   const closing = useRef(false);
 
   const scale = useSharedValue(reduce ? 1 : SEED);
@@ -87,7 +89,11 @@ export default function Live() {
       </Animated.View>
       <View className="flex-1 items-center justify-center" style={{ paddingBottom: insets.bottom + 44 }}>
         <Animated.View style={orbStyle}>
-          <Orb size={size} />
+          <CloudOrb
+            size={size}
+            colors={colors}
+            dom={{ style: { width: size, height: size, backgroundColor: 'transparent' }, scrollEnabled: false }}
+          />
         </Animated.View>
       </View>
     </View>
