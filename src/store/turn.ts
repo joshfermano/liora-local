@@ -96,6 +96,19 @@ export async function runTurn(
       noModel: true,
     };
   }
+  // A question her notes answer ("sino OB ko?"): her own words back, quoted, and no model.
+  const notes = useMemoryStore.getState().notes;
+  const recalled = read.purpose !== 'urgent' && entry.decision.level === 'ok' && entry.findings.length === 0 ? recall(text, notes) : null;
+  if (recalled) {
+    noteTurn({ tools: [] });
+    return {
+      attachments: [{ kind: 'steps', steps: [{ kind: 'read' }, { kind: 'recalled', count: recalled.length }] }],
+      fallback: recalled.length > 0 ? { key: 'reply.recall', params: { notes: recalled.map((n) => `“${n}”`).join(', ') } } : { key: 'reply.recall.none' },
+      request: { text: '', pack: '', facts: {}, allowed: {}, thread: [] },
+      undoneId: null,
+      noModel: true,
+    };
+  }
   // Who Liora is, that she has no internet, and what she cannot do: a fixed answer, never a model's,
   // unless the same message carries a danger sign, which the usual turn handles first.
   const about = aboutLiora(text);
@@ -119,19 +132,6 @@ export async function runTurn(
     return {
       attachments: about === 'call' ? [{ kind: 'contact' }] : about === 'love' || about === 'howareyou' || about === 'name' || about === 'language' ? [] : [{ kind: 'actions', items: [...HOME] }],
       fallback,
-      request: { text: '', pack: '', facts: {}, allowed: {}, thread: [] },
-      undoneId: null,
-      noModel: true,
-    };
-  }
-  // A question her notes answer ("sino OB ko?"): her own words back, quoted, and no model.
-  const notes = useMemoryStore.getState().notes;
-  const recalled = read.purpose !== 'urgent' && entry.decision.level === 'ok' && entry.findings.length === 0 ? recall(text, notes) : null;
-  if (recalled) {
-    noteTurn({ tools: [] });
-    return {
-      attachments: [{ kind: 'steps', steps: [{ kind: 'read' }, { kind: 'recalled', count: recalled.length }] }],
-      fallback: recalled.length > 0 ? { key: 'reply.recall', params: { notes: recalled.map((n) => `“${n}”`).join(', ') } } : { key: 'reply.recall.none' },
       request: { text: '', pack: '', facts: {}, allowed: {}, thread: [] },
       undoneId: null,
       noModel: true,

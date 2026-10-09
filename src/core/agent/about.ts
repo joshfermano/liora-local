@@ -32,7 +32,7 @@ const TASK =
   /\bgawan\s+mo\s+(?:ako\s+)?(?:ng\s+)?(?:tula|kwento|kanta|sanaysay|essay|poem|story|song)\b|\b(?:write|compose|draft|gumawa\s+ng|sumulat\s+ng)\s+(?:me\s+)?(?:an?\s+)?(?:poem|tula|essay|story|kwento|song|kanta|letter|liham|code|program|script|report)\b|\b(?:homework|assignment|takdang[-\s]aralin|essay)\b|\b(?:solve|calculate|compute)\b|\d+\s*[x×*/+-]\s*\d+|\btranslate\b|\bisalin\b|\bjokes?\b|\bbiro\b|\brecipe\b|\bhow\s+(?:do\s+i|to)\s+(?:cook|bake)\b|\bpaano\s+(?:magluto|lutuin)\b|\b(?:python|javascript|typescript|html|css|sql)\b|\bcode\b/i;
 // Friendly check-ins and asking for help are never off topic.
 const CHAT =
-  /\bano\s+(?:ang\s+)?dapat\s+(?:kong\s+)?gawin\b|\banong\s+gagawin\s+ko\b|\bwhat\s+should\s+i\s+do\b|^\s*(?:please\s+)?help\s+me(?:\s+please)?[\s.!?]*$|^\s*tulungan\s+mo\s+(?:ako|po\s+ako)?[\s.!?]*$|\b(?:how\s+are\s+(?:you|u)|how'?s\s+it\s+going|what'?s\s+up|kumusta|kamusta|musta|okay\s+ka\s+(?:lang|ba)|ayos\s+ka\s+lang|good\s+(?:morning|afternoon|evening|night))\b/i;
+  /\bano\s+(?:ang\s+)?dapat\s+(?:kong\s+)?gawin\b|\bano(?:ng)?\s+(?:ang\s+)?gagawin\s+ko\b|\bwhat\s+should\s+i\s+do\b|^\s*(?:please\s+)?help\s+me(?:\s+please)?[\s.!?]*$|^\s*tulungan\s+mo\s+(?:ako|po\s+ako)?[\s.!?]*$|\b(?:how\s+are\s+(?:you|u)|how'?s\s+it\s+going|what'?s\s+up|kumusta|kamusta|musta|okay\s+ka\s+(?:lang|ba)|ayos\s+ka\s+lang|good\s+(?:morning|afternoon|evening|night))\b/i;
 const QUESTION = /\?\s*$|^\s*(?:what|who|where|when|why|how|which|explain|tell\s+me\s+about|ano|sino|saan|kailan|bakit|paano|ilan|gaano)\b/i;
 
 // A call to a hospital, doctor or ambulance: Liora cannot dial, so her own Call and Text buttons answer.
@@ -57,7 +57,7 @@ export function aboutLiora(text: string): About | null {
 }
 
 // A plea for help with nothing else in it: Liora answers with what she can do, not small talk.
-const HELP = /\bano\s+(?:ang\s+)?dapat\s+(?:kong\s+)?gawin\b|\banong\s+gagawin\s+ko\b|\bwhat\s+should\s+i\s+do\b|^\s*(?:please\s+)?help\s+me(?:\s+please)?[\s.!?]*$|^\s*tulungan\s+mo\s+(?:ako|po\s+ako)?[\s.!?]*$/i;
+const HELP = /\bano\s+(?:ang\s+)?dapat\s+(?:kong\s+)?gawin\b|\bano(?:ng)?\s+(?:ang\s+)?gagawin\s+ko\b|\bwhat\s+should\s+i\s+do\b|^\s*(?:please\s+)?help\s+me(?:\s+please)?[\s.!?]*$|^\s*tulungan\s+mo\s+(?:ako|po\s+ako)?[\s.!?]*$/i;
 
 export function asksForHelp(text: string): boolean {
   return HELP.test(text);

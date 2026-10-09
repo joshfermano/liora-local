@@ -238,6 +238,7 @@ export const COPY = {
   'companion.mood.noted': ui('Thank you for telling me. I noted how you feel.'),
   'companion.cycle.pregnant': ui('While you are pregnant, Liora does not estimate periods.'),
   'companion.cycle.postpartum': ui('After birth, periods can take a while to return. Log one when it comes.'),
+  'companion.heavy_heart': ui("I'm here with you, and I'm glad you told me. You don't have to carry this alone. Someone you trust is one tap away below, and the mood check can help you see how you are doing."),
   'companion.loss': ui('I am so sorry. You do not have to carry this alone. You can reach someone you trust with the buttons below.'),
   'companion.cycle.no_data': ui('Log at least two periods and I can estimate the next one.'),
   'companion.health.card': ui('This is the closest reviewed source I have, word for word.'),

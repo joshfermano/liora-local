@@ -1,7 +1,7 @@
 import { format } from 'date-fns';
 import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
-import { languageOf, painTooMuch, seriousForAnyone, severityOnly, triage } from '../core/agent';
+import { heavyHeart, languageOf, painTooMuch, seriousForAnyone, severityOnly, triage } from '../core/agent';
 import { composeReply, ruleIntent, type ReplyBlock } from '../core/companion';
 import { dangerRulesApply } from '../core/pipeline';
 import { beginProbe, endProbe, noteTurn, timedSync } from '../core/probe';
@@ -300,6 +300,11 @@ export const useCompanionStore = create<CompanionState>()(
           }
           if (seriousEarlier) {
             add([{ kind: 'text', key: 'companion.serious.still' }, ...kept, { kind: 'contact' }]);
+            return;
+          }
+          // Feelings that are too much: a fixed caring line, the mood check and her contact, no model words.
+          if (heavyHeart(text)) {
+            add([{ kind: 'text', key: 'companion.heavy_heart' }, ...kept, { kind: 'actions', items: ['mood_check'] }, { kind: 'contact' }]);
             return;
           }
           // Pain she cannot bear gets a fixed caring line and her own Call and Text buttons, no model words.

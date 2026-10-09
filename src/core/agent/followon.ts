@@ -13,8 +13,18 @@ export function severityOnly(text: string): boolean {
   return CANNOT_BEAR.test(text) || WORSE.test(text) || ((SEVERE_CUE.test(text) || /\bso\s+much\b/i.test(text)) && PAIN.test(text));
 }
 
+const EMOTION =
+  /lungkot|malungkot|\bsad\b|umiiyak|naiiyak|\bcrying\b|bigat\s+(?:ng\s+)?(?:pakiramdam|loob|kalooban)|hopeless|overwhelm\w*|depress\w*|natatakot|takot\s+ako|kinakabahan|\bscared\b|\banxious\b|\bstress\w*|pagod\s+na\s+(?:ako\s+)?sa\s+lahat|alagaan\s+(?:si\s+|ang\s+)?(?:baby|anak)|can'?t\s+cope|mag-?isa\s+(?:lang\s+)?ako|\balone\b/i;
+
+// Feelings that are too much ("sobrang lungkot ko, hindi ko kaya"), with no pain in them: a caring
+// line, the mood check and her contact, never the pain reply.
+export function heavyHeart(text: string): boolean {
+  return (CANNOT_BEAR.test(text) || SEVERE_CUE.test(text)) && EMOTION.test(text) && !PAIN.test(text);
+}
+
 // She says the pain is more than she can bear: a fixed caring line and her contact, never chit-chat.
 export function painTooMuch(text: string): boolean {
+  if (heavyHeart(text)) return false;
   return CANNOT_BEAR.test(text) || (SEVERE_CUE.test(text) && PAIN.test(text));
 }
 

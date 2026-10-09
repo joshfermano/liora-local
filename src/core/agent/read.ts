@@ -43,7 +43,8 @@ const CONTACT =
 // A question with none of these words is chat ("Nag tatagalog ka ba?"), not a health question.
 const HEALTH =
   /sakit|pain|hurt|ache|dugo|bleed|blood|buntis|pregnan|baby|sanggol|gamot|medicine|vitamin|normal|safe|delikado|danger|kain|\beat|food|pagkain|inom|drink|exercis|ehersisyo|lagnat|fever|suka|vomit|nause|hilo|dizz|cramp|puson|tiyan|ulo|discharge|ihi|\bpee|urin|contraction|hilab|labou?r|panganak|birth|ovulat|obul|fertile|regla|period|mens|cycle|check-?up|doctor|doktor|\bob\b|clinic|ospital|hospital|symptom|sintomas|breast|dede|gatas|milk|tulog|sleep|stress|anxi|weight|timbang|\bsex|contracep|\bpills?\b|condom|trimester|weeks?\b|linggo|swell|manas|maga|headache|bloat|kabag|kirot|hapdi|pagod|tired|manganak|pahinga|\brest\b|ihanda|prepar|tubig|water|kalinisan|hygien|maligo|\bbath|kape|coffee|caffeine|alak|alcohol|beer|wine|yosi|smok|\b(?:pwede|puwede)\s+ba\b|\bcan\s+i\b|\bshould\s+i\b|\bbawal\b|\bok(?:ay)?\s+lang\s+ba\b/i;
-const ACK = /^\s*(?:ok(?:ay)?|okie|k|sige(?:\s+po)?|noted|got\s+it|alright|cool|nice|ayos|g|oo\s+sige)[\s.!]*$/i;
+const WORRY = /\b(?:kulang|konti|kaunti|walang|wala|problema|problem|worried|worry|nag-?aalala|ayaw|hindi|di|baka|maybe|parang|bakit|mahina|low|not\s+enough|trouble|hirap)\b/i;
+const ACK = /^\s*(?:ok(?:ay)?|okie|k|sige(?:\s+po)?|noted|got\s+it|alright|cool|nice|ayos|g|oo\s+sige|buti\s+naman|mabuti\s+naman|good|great|good\s+to\s+know|i\s+see|ah+\s+okay|gets)[\s.!]*$/i;
 const ASKING = /\?\s*$|\bba\b|^\s*(?:ano|bakit|paano|puwede|pwede|is\s+it|is\s+this|is\s+that|can\s+i|should\s+i|what|why|how)\b/i;
 
 // Her message without its question clauses: what she says is happening, not what she asks about.
@@ -51,10 +52,11 @@ function statements(text: string): string {
   const clauses = text.match(/[^,.;!?]+[,.;!?]*/g) ?? [];
   return clauses.filter((c) => !ASKING.test(c.trim())).join(' ');
 }
+const SINCE_BIRTH = /nanganak|panganak|since\s+(?:i\s+)?(?:gave\s+birth|birth|delivery|giving\s+birth)|after\s+(?:birth|delivery|giving\s+birth)|postpartum|\bold\b|gulang|\bpo?st-?partum\b|c-?section|\bcs\b/i;
 const YESTERDAY = /\b(?:kahapon|yesterday)\b/i;
 const BOTH_DAYS = /\b(?:kahapon|yesterday)\b.*\b(?:at|and|pati|tsaka|saka|hanggang|until)\s+(?:ngayon|today|kanina)\b|\b(?:ngayon|today)\s+(?:at|and|pati|tsaka|saka)\s+(?:kahapon|yesterday)\b/i;
 const CYCLE_QUESTION =
-  /\b(?:delayed|late|delay)\s+(?:na\s+)?(?:ako|po)\b|\b(?:late|delayed|delay)\s+(?:na\s+)?(?:ang\s+|yung\s+)?(?:regla|period|mens|dalaw)|(?:regla|period|mens|dalaw)\s+(?:ko\s+)?(?:is\s+)?(?:late|delayed)|\baverage\s+(?:na\s+)?cycle\b|\bcycle\s+(?:length\s+)?ko\b|\bgaano\s+kahaba\s+(?:ang\s+)?(?:cycle|regla)\b|\bkailan\b.*(?:regla|period|mens|dalaw|fertile|obul|ovulat)|(?:regla|period|mens|dalaw).*\bkailan\b|\bwhen\b.*(?:period|next|fertile|ovulat)|next\s+(?:period|regla)|\bmy\s+fertile|fertile\s+(?:window\s+)?ko\b/i;
+  /\bilang\s+araw\s+(?:ang\s+|ba\s+ang\s+)?(?:regla|period|mens|dalaw)|\bhow\s+long\s+(?:is|does|do|will)\s+my\s+(?:period|cycle)|\bgaano\s+katagal\s+(?:ang\s+)?(?:regla|period|mens)|\b(?:delayed|late|delay)\s+(?:na\s+)?(?:ako|po)\b|\b(?:late|delayed|delay)\s+(?:na\s+)?(?:ang\s+|yung\s+)?(?:regla|period|mens|dalaw)|(?:regla|period|mens|dalaw)\s+(?:ko\s+)?(?:is\s+)?(?:late|delayed)|\baverage\s+(?:na\s+)?cycle\b|\bcycle\s+(?:length\s+)?ko\b|\bgaano\s+kahaba\s+(?:ang\s+)?(?:cycle|regla)\b|\bkailan\b.*(?:regla|period|mens|dalaw|fertile|obul|ovulat)|(?:regla|period|mens|dalaw).*\bkailan\b|\bwhen\b.*(?:period|next|fertile|ovulat)|next\s+(?:period|regla)|\bmy\s+fertile|fertile\s+(?:window\s+)?ko\b/i;
 
 
 
@@ -126,7 +128,8 @@ export function readActions(text: string, today: string): AgentAction[] {
   if (moods.length) out.push({ tool: 'moods', date: dateWord(text, now, today), moods });
   const activities = question ? [] : activitiesOf(text);
   if (activities.length) out.push({ tool: 'activities', date: dateWord(text, now, today), activities });
-  const weeks = readWeeks(text);
+  // "2 weeks na mula nanganak ako" counts time since birth, not weeks pregnant.
+  const weeks = SINCE_BIRTH.test(text) ? null : readWeeks(text);
   if (weeks !== null) out.push({ tool: 'weeks', weeks });
 
   // "Kahapon at ngayon": the same log on both days.
@@ -146,7 +149,7 @@ export function readActions(text: string, today: string): AgentAction[] {
   else if (question) out.push(HEALTH.test(text) || out.length > 0 ? { tool: 'health_question' } : { tool: 'smalltalk' });
   if (out.length === 0 && (THANKS.test(text) || ACK.test(text))) out.push({ tool: 'smalltalk' });
   // "Kulang ang gatas ko", "baka buntis ako": about her health, with nothing to log, so a card is looked for.
-  else if (out.length === 0 && HEALTH.test(text) && readText(text).length === 0) out.push({ tool: 'health_question' });
+  else if (out.length === 0 && HEALTH.test(text) && WORRY.test(text) && readText(text).length === 0) out.push({ tool: 'health_question' });
   return out;
 }
 

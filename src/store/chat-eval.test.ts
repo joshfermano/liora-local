@@ -198,6 +198,15 @@ const CASES: [Status, string, string][] = [
   ['neither', 'tired and moody today', 'reply.saved.gentle | logged:symptoms+moods'],
   ['neither', 'ok', 'reply.chat'],
   ['neither', 'sige', 'reply.chat'],
+  // Loop round three.
+  ['postpartum', 'sobrang lungkot ko, parang hindi ko kaya alagaan si baby', 'companion.heavy_heart | logged:moods | contact'],
+  ['pregnant', 'hindi ko na kaya, sobrang bigat ng pakiramdam ko', 'companion.heavy_heart | contact'],
+  ['pregnant', 'di ako makahinga ng maayos pag nakahiga', FOLLOW],
+  ['postpartum', '2 weeks na mula nanganak ako', 'reply.other'],
+  ['neither', 'ilang araw ang regla ko usually?', 'companion.cycle.no_data'],
+  ['neither', 'ano gagawin ko?', 'reply.other'],
+  ['neither', 'buti naman', 'reply.chat'],
+  ['pregnant', 'wala akong gana kumain', 'reply.saved.gentle | logged:symptoms | decision:ok'],
   // Loop round two.
   ['pregnant', 'nagugutom ako palagi', 'reply.saved.gentle | logged:symptoms | decision:ok'],
   ['pregnant', 'hindi ako nakatulog ng maayos kagabi', 'reply.saved.gentle | logged:symptoms | decision:ok'],
@@ -262,6 +271,7 @@ describe('following on from what Liora just did', () => {
     [['malungkot ako', 'ano pwede kong gawin?'], 'reply.no_card'],
     [['remember that my OB is Dr. Santos', 'sino OB ko?'], 'reply.recall'],
     [['what do you remember?'], 'reply.recall.none'],
+    [['remember na allergic ako sa ibuprofen', 'ano allergy ko?'], 'reply.recall'],
     [['nagsimula regla ko noong Sept 12', 'nagsimula ulit noong Oct 9'], 'reply.saved | logged:period_start'],
     [['masakit ulo ko', 'hindi naman masyado'], 'reply.noted'],
     [['i had cramps last monday'], 'reply.saved.gentle | logged:symptoms'],

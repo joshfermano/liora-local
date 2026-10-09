@@ -27,7 +27,7 @@ export const ENTRIES: Entry[] = [
   { pattern: /lagnat|\bsinat\b|\bfever\b|febrile/i, codes: ['fever'] },
   {
     pattern:
-      /hirap\s+(?:na\s+hirap\s+)?(?:akong\s+|ako\s+|na\s+|ng\s+)?(?:huminga|makahinga|paghinga)|hindi\s+(?:ako\s+)?makahinga|kinakapos\s+(?:ang\s+|ng\s+|sa\s+)?(?:hininga|paghinga)|hinihingal|(?:can'?t|cannot|hard\s+to|trouble|difficulty)\s+breath(?:e|ing)|short(?:ness)?\s+of\s+breath/i,
+      /hirap\s+(?:na\s+hirap\s+)?(?:akong\s+|ako\s+|na\s+|ng\s+)?(?:huminga|makahinga|paghinga)|(?:hindi|di)\s+(?:ako\s+)?makahinga|kinakapos\s+(?:ang\s+|ng\s+|sa\s+)?(?:hininga|paghinga)|hinihingal|(?:can'?t|cannot|hard\s+to|trouble|difficulty)\s+breath(?:e|ing)|short(?:ness)?\s+of\s+breath/i,
     codes: ['severe_difficulty_breathing'],
   },
   {
@@ -93,7 +93,7 @@ export const ENTRIES: Entry[] = [
   { pattern: /walang\s+(?:energy|lakas)|(?:low|no)\s+energy/i, codes: ['energy'] },
   { pattern: /stress/i, codes: ['stress'] },
   {
-    pattern: /\bnagugutom\b|\bgutom\s+(?:na\s+)?(?:ako|palagi|lagi)\b|\bhungry\b|\bcravings?\b|\bnaglilihi\b|walang\s+(?:gana|ganang|appetite)|(?:no|loss of|poor)\s+appetite|ayaw\s+kumain/i,
+    pattern: /wala\s+(?:akong|kong)\s+gana|\bnagugutom\b|\bgutom\s+(?:na\s+)?(?:ako|palagi|lagi)\b|\bhungry\b|\bcravings?\b|\bnaglilihi\b|walang\s+(?:gana|ganang|appetite)|(?:no|loss of|poor)\s+appetite|ayaw\s+kumain/i,
     codes: ['appetite'],
   },
 ];
