@@ -9,6 +9,7 @@ import { fill, ymd, useCalendarInput } from '../src/ui/calendar/shared';
 import { Chip } from '../src/ui/Chip';
 import { Screen } from '../src/ui/Screen';
 import { Text } from '../src/ui/Text';
+import { dischargeLine } from '../src/ui/daylog/dischargeLine';
 
 export default function DayPreview() {
   const router = useRouter();
@@ -39,6 +40,7 @@ export default function DayPreview() {
     ? [
         ...(log.flow ? [en(`cal.flow.${log.flow}`)] : []),
         ...log.symptoms.map((x) => en(`symptom.${x}`)),
+        ...(dischargeLine(log.discharge) ? [`${en('daylog.discharge')}: ${dischargeLine(log.discharge)}`] : []),
         ...log.moods.map((x) => en(`feeling.${x}`)),
         ...log.activities.map((x) => en(`activity.${x}`)),
       ]

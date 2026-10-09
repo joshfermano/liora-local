@@ -1,8 +1,10 @@
 import { addDays, format, parseISO } from 'date-fns';
-import type { DayLog, Flow, PeriodRecord } from '../types';
+import type { DayLog, Discharge, Flow, PeriodRecord } from '../types';
 
 const ymd = (d: Date) => format(d, 'yyyy-MM-dd');
 const shift = (date: string, n: number) => ymd(addDays(parseISO(date), n));
+
+export const hasDischarge = (d: Discharge | undefined): boolean => !!d && Object.values(d).some((v) => v !== undefined);
 
 export function isEmptyDayLog(l: DayLog): boolean {
   return (
@@ -10,6 +12,7 @@ export function isEmptyDayLog(l: DayLog): boolean {
     l.symptoms.length === 0 &&
     l.moods.length === 0 &&
     l.activities.length === 0 &&
+    !hasDischarge(l.discharge) &&
     !l.note?.trim()
   );
 }

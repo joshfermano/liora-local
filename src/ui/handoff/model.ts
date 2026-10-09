@@ -4,6 +4,7 @@ import type { HandoffReport } from '../../core/handoff';
 import { DANGER_CODES } from '../../core/vocabulary';
 import { sourceFor } from '../ruleSource';
 import { formatPhPhone } from '../../core/phone';
+import { dischargeLine } from '../daylog/dischargeLine';
 
 // One shape for the screen and the PDF, so the two can never say different things.
 export type Level = 'go_now' | 'follow_up' | 'go_soon' | 'ok';
@@ -143,7 +144,8 @@ function recentDays(report: HandoffReport) {
   for (const date of dates) {
     const d = logged.get(date);
     const flow = d?.flow && has(`cal.flow.${d.flow}`) ? en(`cal.flow.${d.flow}`) : undefined;
-    const symptoms = unique((d?.symptoms ?? []).map(label));
+    const discharge = dischargeLine(d?.discharge);
+    const symptoms = unique([...(d?.symptoms ?? []).map(label), ...(discharge ? [`${en('daylog.discharge')}: ${discharge}`] : [])]);
     const moods = unique((d?.moods ?? []).map((m) => (has(`feeling.${m}`) ? en(`feeling.${m}`) : m)));
     const day = format(parseISO(date), 'EEE d MMM');
     if (!flow && !symptoms.length && !moods.length) empty.push(day);

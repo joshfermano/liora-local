@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import type { DayLog, PeriodRecord } from '../types';
 import { applyFlow, isEmptyDayLog, upsertDayLog } from './index';
+import { DayLogSchema } from '../types';
 
 const period = (start: string, end: string | null, days: Record<string, 'light' | 'medium' | 'heavy'> = {}): PeriodRecord => ({
   id: `cal-${start}`,
@@ -78,5 +79,20 @@ describe('upsertDayLog', () => {
   it('treats a blank note as empty', () => {
     expect(isEmptyDayLog(log('2026-10-01', { note: '  ' }))).toBe(true);
     expect(isEmptyDayLog(log('2026-10-01', { note: 'x' }))).toBe(false);
+  });
+
+  it('counts a logged discharge, and an empty one as nothing', () => {
+    expect(isEmptyDayLog(log('2026-10-01', { discharge: { color: 'white' } }))).toBe(false);
+    expect(isEmptyDayLog(log('2026-10-01', { discharge: {} }))).toBe(true);
+  });
+
+  it('keeps a day with only a discharge', () => {
+    const next = log('2026-10-02', { discharge: { color: 'clear', texture: 'egg_white', amount: 'medium', smell: 'none' } });
+    expect(upsertDayLog([], next)).toEqual([next]);
+    expect(DayLogSchema.safeParse(next).success).toBe(true);
+  });
+
+  it('rejects a discharge detail it does not know', () => {
+    expect(DayLogSchema.safeParse({ ...log('2026-10-02'), discharge: { color: 'purple' } }).success).toBe(false);
   });
 });

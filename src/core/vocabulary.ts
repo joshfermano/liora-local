@@ -9,6 +9,12 @@ export const ACTIVITIES = [
   'walk', 'exercise', 'rest', 'water', 'slept_well', 'checkup_visit', 'medicine_taken',
 ] as const;
 
+// What she can note about discharge on a day: observations for her log, not signs the rules read.
+export const DISCHARGE_COLORS = ['clear', 'white', 'yellow', 'green', 'grey', 'brown', 'pink'] as const;
+export const DISCHARGE_TEXTURES = ['watery', 'sticky', 'creamy', 'egg_white', 'clumpy'] as const;
+export const DISCHARGE_AMOUNTS = ['light', 'medium', 'heavy'] as const;
+export const DISCHARGE_SMELLS = ['none', 'unusual'] as const;
+
 export const MOODS = [
   'calm', 'joyful', 'energetic', 'romantic', 'tired', 'anxious', 'stressed', 'irritable', 'sad',
 ] as const;
