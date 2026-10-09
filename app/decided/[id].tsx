@@ -100,7 +100,8 @@ function Chip({ label, detail, danger }: { label: string; detail: string; danger
   );
 }
 
-// One AI typed decision: the sign and its severity, and a bar that fills to how sure the model was.
+// One AI typed decision, shown as a suggestion: the sign and its settled severity, and a bar for how
+// closely her words matched. Red only when that sign's rule fired.
 function ConfidenceRow({ finding, danger }: { finding: Finding; danger: boolean }) {
   const c = finding.confidence ?? 0;
   const tone = danger ? 'urgent' : 'tintSoftInk';
@@ -120,7 +121,10 @@ function ConfidenceRow({ finding, danger }: { finding: Finding; danger: boolean 
         </Text>
       </View>
       <View className={`h-1.5 overflow-hidden rounded-full ${SURFACE.fill}`}>
-        <View style={{ width: `${Math.round(c * 100)}%` }} className={`h-full rounded-full ${danger ? 'bg-urgent dark:bg-urgent-dark' : 'bg-tint dark:bg-tint-dark'}`} />
+        <View
+          style={{ width: `${Math.round(c * 100)}%` }}
+          className={`h-full rounded-full ${danger ? 'bg-urgent dark:bg-urgent-dark' : 'bg-tint opacity-60 dark:bg-tint-dark'}`}
+        />
       </View>
       <Text variant="caption1" tone={tone} className="tabular-nums">
         {`${confidenceWord(c).replace(/^./, (x) => x.toUpperCase())} · ${Math.round(c * 100)}%`}
@@ -178,6 +182,8 @@ function Body({ entry, context, onBack }: { entry: Entry; context: Context; onBa
     return [id, src ? sourceLine(src) : undefined];
   });
   const outcome = OUTCOME[entry.decision.level];
+  // Red is kept for the signs whose rule fired; everything else the readers noticed is a suggestion.
+  const firedCodes = new Set(entry.decision.fired.flatMap((f) => f.codes));
   const read = READERS.map((reader) => ({ reader, found: oncePerLabel(entry.findings.filter((f) => f.sources.includes(reader))) }));
   const heard = read.filter((r) => r.found.length > 0);
   const silent = read.filter((r) => r.found.length === 0).map((r) => en(`decided.reader.${r.reader}`));
@@ -222,11 +228,16 @@ function Body({ entry, context, onBack }: { entry: Entry; context: Context; onBa
                     {en(`decided.reader.${reader}`)}
                   </Text>
                   {reader === 'llm' ? (
+                    <Text variant="caption1" tone="tertiary">
+                      {en('decided.llm.note')}
+                    </Text>
+                  ) : null}
+                  {reader === 'llm' ? (
                     <View className={`${SURFACE.surface} ${EDGE} rounded-pane overflow-hidden`}>
                       {found.map((f, i) => (
                         <View key={f.code}>
                           {i > 0 ? <View className={`h-px ${SEPARATOR}`} /> : null}
-                          <ConfidenceRow finding={f} danger={checked && isDanger(f.code)} />
+                          <ConfidenceRow finding={f} danger={checked && firedCodes.has(f.code)} />
                         </View>
                       ))}
                     </View>
@@ -236,7 +247,7 @@ function Body({ entry, context, onBack }: { entry: Entry; context: Context; onBa
                         <Chip
                           key={f.code}
                           label={fil(signKey(f.code))}
-                          danger={checked && isDanger(f.code)}
+                          danger={checked && firedCodes.has(f.code)}
                           detail={fil(severityKey(f.severity))}
                         />
                       ))}
