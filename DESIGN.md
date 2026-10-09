@@ -391,6 +391,8 @@ on 2026-10-09.
 - **Mullion** (separator): 1pt lines between panes. **Nacre** (nacre): a lattice's or capsule's
   outer edge.
 - **Hardwood** (frame) and **Lit Shell** (lit): the Home Screen icon and favicon only.
+  The icon is the lit capiz window at night: a Hardwood arched window with Lit Shell panes and one
+  Peony Fill pane, flat on Night Window. Files, construction and usage: `docs/brand/app-icon.md`.
 
 ### The light field
 

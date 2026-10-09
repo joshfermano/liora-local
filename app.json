@@ -12,13 +12,19 @@
     "userInterfaceStyle": "automatic",
     "web": {
       "bundler": "metro",
-      "output": "single"
+      "output": "single",
+      "favicon": "./assets/images/favicon.png"
     },
     "ios": {
       "bundleIdentifier": "com.lumosynlabs.tellliora",
       "supportsTablet": false,
       "entitlements": {
         "com.apple.developer.kernel.increased-memory-limit": true
+      },
+      "icon": {
+        "light": "./assets/images/icon.png",
+        "dark": "./assets/images/icon-dark.png",
+        "tinted": "./assets/images/icon-tinted.png"
       }
     },
     "plugins": [
