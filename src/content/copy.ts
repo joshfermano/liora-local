@@ -473,6 +473,10 @@ export const COPY = {
   'cal2.key.estimated': ui('Estimated'),
   'cal2.key.today': ui('Today'),
   'cal2.pregnant': ui('While you are pregnant, Liora does not estimate periods.'),
+  // day log sheet (LUM-65)
+  'daylog.done': ui('Done'),
+  'daylog.footnote': ui('Tap what fits today. Every tap is saved.'),
+  'daylog.days': ui('Pick a day'),
 } as const satisfies Record<string, Entry>;
 
 export type CopyKey = keyof typeof COPY;

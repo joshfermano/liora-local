@@ -1,6 +1,8 @@
+import type { SFSymbol } from 'expo-symbols';
 import { View } from 'react-native';
 import { Icon } from '../Icon';
 import { PressableSurface } from '../PressableSurface';
+import { Symbol } from '../Symbol';
 import { Text } from '../Text';
 import { EDGE, SURFACE } from '../theme';
 import { tap } from '../haptics';
@@ -8,24 +10,42 @@ import { tap } from '../haptics';
 export interface ChipOption<T extends string> {
   id: T;
   label: string;
+  mark: SFSymbol;
 }
 
-function ToggleChip({ label, chosen, onPress, role }: { label: string; chosen: boolean; onPress: () => void; role: 'checkbox' | 'radio' }) {
+function Chip({
+  label,
+  mark,
+  chosen,
+  role,
+  onPress,
+}: {
+  label: string;
+  mark: SFSymbol;
+  chosen: boolean;
+  role: 'checkbox' | 'radio';
+  onPress: () => void;
+}) {
+  const tone = chosen ? 'tintSoftInk' : 'label';
   return (
     <PressableSurface
       label={label}
       role={role}
       selected={chosen}
+      className="max-w-full"
       onPress={() => {
         tap();
         onPress();
       }}
-      surfaceClassName={`${chosen ? SURFACE.tintSoft : SURFACE.surface} ${EDGE} rounded-full min-h-tap px-md flex-row items-center justify-center gap-xs`}
+      surfaceClassName={`${chosen ? SURFACE.tintSoft : SURFACE.surface} ${EDGE} rounded-full h-tap pl-md pr-sm flex-row items-center gap-xs`}
     >
-      <Text variant="subheadline" tone={chosen ? 'tintSoftInk' : 'label'}>
+      <Symbol name={mark} tone={tone} size={18} />
+      <Text variant="subheadline" tone={tone} className="shrink" numberOfLines={1}>
         {label}
       </Text>
-      {chosen ? <Icon name="check" tone="tintSoftInk" size={16} /> : null}
+      <View className={`w-4 items-center ${chosen ? 'opacity-100' : 'opacity-0'}`}>
+        <Icon name="check" tone="tintSoftInk" size={14} />
+      </View>
     </PressableSurface>
   );
 }
@@ -50,9 +70,10 @@ export function ChipSection<T extends string>({
       </Text>
       <View className="flex-row flex-wrap gap-xs">
         {options.map((o) => (
-          <ToggleChip
+          <Chip
             key={o.id}
             label={o.label}
+            mark={o.mark}
             chosen={chosen.includes(o.id)}
             role={single ? 'radio' : 'checkbox'}
             onPress={() => onToggle(o.id)}
