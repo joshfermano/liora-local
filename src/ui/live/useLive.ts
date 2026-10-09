@@ -8,6 +8,7 @@ import type { ReplyBlock } from '../../core/companion';
 import { useCompanionStore } from '../../store/companion';
 import { agentStore } from '../companion/agent-store';
 import { savedLine } from '../companion/saved';
+import { pickVoice } from './voice';
 
 type SpeechModule = typeof import('expo-speech');
 // An app built before expo-speech must not take the router down with it; Live then just stays silent.
@@ -34,15 +35,12 @@ function spoken(blocks: ReplyBlock[]): string {
 
 type Heard = { text: string; ms: number } | null;
 
-// The best English voice installed (Enhanced first); undefined lets the system pick.
+// Liora speaks as a woman: the best installed English woman's voice; undefined lets the system pick.
 let voicePick: Promise<string | undefined> | null = null;
 function bestVoice(): Promise<string | undefined> {
   voicePick ??= (async () => {
     try {
-      const all = (await Speech?.getAvailableVoicesAsync()) ?? [];
-      const english = all.filter((v) => v.language.toLowerCase().startsWith('en'));
-      const score = (v: (typeof english)[number]) => (v.quality === 'Enhanced' ? 2 : 0) + (v.language.toLowerCase() === 'en-us' ? 1 : 0);
-      return english.sort((x, y) => score(y) - score(x))[0]?.identifier;
+      return pickVoice((await Speech?.getAvailableVoicesAsync()) ?? []);
     } catch {
       return undefined;
     }
