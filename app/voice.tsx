@@ -5,7 +5,7 @@ import { en } from '../src/content/copy';
 import { useLogStore } from '../src/store/log';
 import { confirm, tap } from '../src/ui/haptics';
 import { installedVoices, Speech } from '../src/ui/live/speech';
-import { womenVoices, type VoiceInfo } from '../src/ui/live/voice';
+import { LIORA_VOICES, lioraVoices, tierOf, type VoiceInfo } from '../src/ui/live/voice';
 import { mergeSetup } from '../src/ui/name';
 import { Divider, Section } from '../src/ui/profile/parts';
 import { PressableSurface } from '../src/ui/PressableSurface';
@@ -23,9 +23,7 @@ const ACCENT: Record<string, string> = {
 };
 
 const describe = (v: VoiceInfo) =>
-  [ACCENT[v.language.toLowerCase()] ? en(ACCENT[v.language.toLowerCase()]!) : v.language, v.quality === 'Enhanced' ? en('voice.enhanced') : null]
-    .filter(Boolean)
-    .join(' · ');
+  [ACCENT[v.language.toLowerCase()] ? en(ACCENT[v.language.toLowerCase()]!) : v.language, en(tierOf(v) === 3 ? 'voice.premium' : 'voice.enhanced')].join(' · ');
 
 function Choice({ label, detail, on, onPress }: { label: string; detail?: string; on: boolean; onPress: () => void }) {
   return (
@@ -50,7 +48,7 @@ export default function VoiceSheet() {
   const [playing, setPlaying] = useState<string | null>(null);
 
   useEffect(() => {
-    void installedVoices().then((all) => setVoices(womenVoices(all)));
+    void installedVoices().then((all) => setVoices(lioraVoices(all)));
     return () => void Speech?.stop();
   }, []);
 
@@ -96,14 +94,26 @@ export default function VoiceSheet() {
                 </View>
               </View>
             ))}
+            {voices
+              ? LIORA_VOICES.filter((name) => !voices.some((v) => v.name.toLowerCase().startsWith(name.toLowerCase()))).map((name) => (
+                  <View key={name}>
+                    <Divider />
+                    <View className="min-h-choice flex-row items-center gap-sm px-md opacity-60" accessible accessibilityLabel={`${name}, ${en('voice.missing')}`}>
+                      <View className="w-5" />
+                      <View className="flex-1 py-xs">
+                        <Text variant="body" tone="secondary">
+                          {name}
+                        </Text>
+                        <Text variant="footnote" tone="secondary">
+                          {en('voice.missing')}
+                        </Text>
+                      </View>
+                    </View>
+                  </View>
+                ))
+              : null}
           </View>
         </Section>
-
-        {voices && voices.length === 0 ? (
-          <Text variant="footnote" tone="secondary" className="px-md">
-            {en('voice.none')}
-          </Text>
-        ) : null}
       </View>
     </Screen>
   );

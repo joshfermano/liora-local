@@ -1,50 +1,63 @@
 import { describe, expect, it } from 'vitest';
-import { pickVoice, resolveVoice, womenVoices, type VoiceInfo } from './voice';
+import { LIORA_VOICES, lioraVoices, pickVoice, resolveVoice, tierOf, type VoiceInfo } from './voice';
 
-const v = (name: string, quality = 'Default', language = 'en-US'): VoiceInfo => ({ identifier: `id.${name}.${quality}.${language}`, name, language, quality });
+// Apple's identifiers carry the quality: com.apple.voice.{compact|enhanced|premium}.en-US.Ava
+const v = (name: string, tier: 'compact' | 'enhanced' | 'premium' = 'compact', language = 'en-US'): VoiceInfo => ({
+  identifier: `com.apple.voice.${tier}.${language}.${name}`,
+  name,
+  language,
+  quality: tier === 'enhanced' ? 'Enhanced' : 'Default',
+});
 
-describe('pickVoice', () => {
-  it("prefers a woman's voice over a clearer man's voice", () => {
-    expect(pickVoice([v('Aaron', 'Enhanced'), v('Samantha')])).toBe('id.Samantha.Default.en-US');
-  });
-
-  it("takes the Enhanced woman's voice when there is one", () => {
-    expect(pickVoice([v('Samantha'), v('Ava', 'Enhanced')])).toBe('id.Ava.Enhanced.en-US');
-  });
-
-  it('reads names with a quality suffix', () => {
-    expect(pickVoice([v('Fred'), v('Ava (Premium)', 'Enhanced')])).toBe('id.Ava (Premium).Enhanced.en-US');
-  });
-
-  it('prefers US English among equals and ignores other languages', () => {
-    expect(pickVoice([v('Karen', 'Default', 'en-AU'), v('Samantha'), v('Amélie', 'Enhanced', 'fr-CA')])).toBe('id.Samantha.Default.en-US');
-  });
-
-  it('lets iOS choose when no English voice is installed', () => {
-    expect(pickVoice([v('Amélie', 'Enhanced', 'fr-CA')])).toBeUndefined();
+describe('tierOf', () => {
+  it('reads Premium from the identifier, which expo-speech reports as Default', () => {
+    expect(tierOf(v('Ava', 'premium'))).toBe(3);
+    expect(tierOf(v('Ava', 'enhanced'))).toBe(2);
+    expect(tierOf(v('Ava'))).toBe(1);
   });
 });
 
-describe('womenVoices', () => {
-  it("lists only English women's voices, best first", () => {
-    const list = womenVoices([v('Aaron', 'Enhanced'), v('Samantha'), v('Ava', 'Enhanced'), v('Karen', 'Default', 'en-AU'), v('Amélie', 'Enhanced', 'fr-CA')]);
-    expect(list.map((x) => x.name)).toEqual(['Ava', 'Samantha', 'Karen']);
+describe('lioraVoices', () => {
+  it('offers only Ava and Zoe, in Premium or Enhanced, best first', () => {
+    const list = lioraVoices([v('Samantha', 'enhanced'), v('Ava'), v('Zoe', 'enhanced'), v('Ava', 'premium'), v('Aaron', 'premium')]);
+    expect(list.map((x) => x.identifier)).toEqual(['com.apple.voice.premium.en-US.Ava', 'com.apple.voice.enhanced.en-US.Zoe']);
+  });
+
+  it('is empty when neither is downloaded', () => {
+    expect(lioraVoices([v('Samantha'), v('Ava')])).toEqual([]);
+  });
+
+  it('names the voices the picker offers', () => {
+    expect(LIORA_VOICES).toEqual(['Ava', 'Zoe']);
+  });
+});
+
+describe('pickVoice', () => {
+  it('takes the best Ava or Zoe on the phone', () => {
+    expect(pickVoice([v('Samantha', 'enhanced'), v('Zoe', 'enhanced'), v('Ava', 'premium')])).toBe('com.apple.voice.premium.en-US.Ava');
+  });
+
+  it("falls back to the clearest woman's voice so Live is never silent", () => {
+    expect(pickVoice([v('Aaron', 'enhanced'), v('Samantha')])).toBe('com.apple.voice.compact.en-US.Samantha');
+  });
+
+  it('lets iOS choose when no English voice is installed', () => {
+    expect(pickVoice([v('Amélie', 'premium', 'fr-CA')])).toBeUndefined();
   });
 });
 
 describe('resolveVoice', () => {
-  const installed = [v('Samantha'), v('Ava', 'Enhanced')];
+  const installed = [v('Samantha'), v('Ava', 'premium'), v('Zoe', 'enhanced')];
 
   it('uses the voice she chose while it is installed', () => {
-    expect(resolveVoice(installed, 'id.Samantha.Default.en-US')).toBe('id.Samantha.Default.en-US');
+    expect(resolveVoice(installed, 'com.apple.voice.enhanced.en-US.Zoe')).toBe('com.apple.voice.enhanced.en-US.Zoe');
   });
 
   it('falls back to the automatic pick when her voice was removed', () => {
-    expect(resolveVoice(installed, 'id.Zoe.Enhanced.en-US')).toBe('id.Ava.Enhanced.en-US');
+    expect(resolveVoice(installed, 'com.apple.voice.premium.en-US.Zoe')).toBe('com.apple.voice.premium.en-US.Ava');
   });
 
   it('picks automatically when she has not chosen', () => {
-    expect(resolveVoice(installed, undefined)).toBe('id.Ava.Enhanced.en-US');
+    expect(resolveVoice(installed, undefined)).toBe('com.apple.voice.premium.en-US.Ava');
   });
 });
-
