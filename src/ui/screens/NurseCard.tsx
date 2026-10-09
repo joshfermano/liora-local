@@ -8,6 +8,7 @@ import { CapsuleButton } from '../CapsuleButton';
 import { Pair } from '../Pair';
 import { Screen } from '../Screen';
 import { useName } from '../name';
+import { useProfile } from '../../store/profile';
 import { Text } from '../Text';
 
 function Fact({ label, children }: { label: string; children: ReactNode }) {
@@ -23,6 +24,12 @@ function Fact({ label, children }: { label: string; children: ReactNode }) {
 export function NurseCard({ entry, context }: { entry: Entry; context: Context }) {
   const router = useRouter();
   const name = useName();
+  const profile = useProfile();
+  const body = [
+    ['profile.age', profile.age, 'profile.unit.years'],
+    ['profile.height', profile.heightCm, 'profile.unit.cm'],
+    ['profile.weight', profile.weightKg, 'profile.unit.kg'],
+  ] as const;
   const figure = context.status === 'postpartum' ? context.days_since_birth : context.status === 'pregnant' ? context.weeks : undefined;
   const figureKey = context.status === 'postpartum' ? 'nurse.days_since_birth' : 'nurse.weeks';
   const logged = new Date(entry.created_at);
@@ -54,6 +61,15 @@ export function NurseCard({ entry, context }: { entry: Entry; context: Context }
             </Text>
           </Fact>
         ) : null}
+        {body.map(([label, value, unit]) =>
+          value === undefined ? null : (
+            <Fact key={label} label={label}>
+              <Text variant="title2">
+                {value} {en(unit)}
+              </Text>
+            </Fact>
+          ),
+        )}
         <CapsuleButton variant="neutral" label={en('result.back')} onPress={() => router.back()} />
       </View>
     </Screen>

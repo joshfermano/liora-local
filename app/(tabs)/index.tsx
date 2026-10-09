@@ -1,6 +1,7 @@
 import { Link, useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { KeyboardAvoidingView, Platform, Pressable, View } from 'react-native';
+import { format } from 'date-fns';
 import { useVoiceNote } from '../../src/ai/use-voice-note';
 import { en, fil } from '../../src/content/copy';
 import { useLogStore } from '../../src/store/log';
@@ -15,6 +16,7 @@ import { useAiStatus, useOffline } from '../../src/ui/status';
 import { TellField } from '../../src/ui/TellField';
 import { useName } from '../../src/ui/name';
 import { Text } from '../../src/ui/Text';
+import { QuickActions, StatusCard } from '../../src/ui/today/parts';
 
 const RECORD_LIMIT_S = 30;
 
@@ -55,10 +57,15 @@ export default function Home() {
     <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} className="flex-1">
       <Screen>
         <View className="gap-xl pt-lg">
-          <Text variant="wordmark" accessibilityRole="header">
-            Liora
-          </Text>
-          {name ? <Text variant="title2">{en('home.greeting').replace('{name}', name)}</Text> : null}
+          <View className="gap-xxs">
+            <Text variant="footnote" tone="secondary" className="uppercase">
+              {format(new Date(), 'EEEE, d MMMM')}
+            </Text>
+            <Text variant="displayTitle" accessibilityRole="header">
+              {name ? en('home.greeting').replace('{name}', name) : 'Liora'}
+            </Text>
+          </View>
+          <StatusCard />
           <View accessible accessibilityLabel={`${fil('home.prompt')} ${en('home.prompt')}`} className="gap-xxs">
             <Text variant="displayTitle">{fil('home.prompt')}</Text>
             <Text variant="body" tone="secondary">
@@ -93,28 +100,7 @@ export default function Home() {
             )}
             {offline ? <StatusRow icon="phone">{en('home.offline')}</StatusRow> : null}
           </View>
-          <View className="flex-row gap-lg">
-            <Link href="/calendar">
-              <Text variant="footnote" tone="secondary">
-                {en('home.calendar')}
-              </Text>
-            </Link>
-            <Link href="/log">
-              <Text variant="footnote" tone="secondary">
-                {en('home.log')}
-              </Text>
-            </Link>
-            <Link href="/mood">
-              <Text variant="footnote" tone="secondary">
-                {en('home.mood')}
-              </Text>
-            </Link>
-            <Link href="/settings">
-              <Text variant="footnote" tone="secondary">
-                {en('home.settings')}
-              </Text>
-            </Link>
-          </View>
+          <QuickActions />
           {setupDone ? null : (
             <Link href="/setup" className="self-start">
               <Text variant="footnote" tone="secondary">
