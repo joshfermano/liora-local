@@ -1,6 +1,7 @@
 import { setAudioModeAsync, useAudioPlayer, useAudioPlayerStatus } from 'expo-audio';
 import { useRouter } from 'expo-router';
 import { useEffect, useRef } from 'react';
+import type { OrbState } from 'orb-ui';
 import { useWindowDimensions, View } from 'react-native';
 import Animated, {
   Easing,
@@ -17,11 +18,28 @@ import { en } from '../src/content/copy';
 import { GlassCard } from '../src/ui/Glass';
 import { tap } from '../src/ui/haptics';
 import { LightField } from '../src/ui/LightField';
+import { useLive, type LivePhase } from '../src/ui/live/useLive';
 import CloudOrb from '../src/ui/orb/CloudOrb';
 import { PressableSurface } from '../src/ui/PressableSurface';
 import { Symbol } from '../src/ui/Symbol';
 import { Text } from '../src/ui/Text';
 import { SURFACE, useColors } from '../src/ui/theme';
+
+const ORB_STATE: Record<LivePhase, OrbState> = {
+  starting: 'listening',
+  listening: 'listening',
+  thinking: 'thinking',
+  speaking: 'speaking',
+  setup: 'listening',
+  retry: 'listening',
+};
+const HINT: Partial<Record<LivePhase, string>> = {
+  listening: 'live.listening',
+  thinking: 'live.thinking',
+  speaking: 'live.speaking',
+  retry: 'live.retry',
+  setup: 'liora.voice.setup',
+};
 
 // The orb starts as a seed, swells just past full size and settles; leaving reverses it.
 const SEED = 0.12;
@@ -32,12 +50,13 @@ const inn = Easing.in(Easing.cubic);
 export default function Live() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
-  const { width } = useWindowDimensions();
+  const { width, height } = useWindowDimensions();
   const size = Math.min(width * 0.9, 380);
   const reduce = useReducedMotion();
   const c = useColors();
   const colors = { deepColor: c.dusk, upperColor: c.tint, lowerColor: c.peach, highlightColor: c['tint-soft'], launchColor: c['tint-fill'], spinnerColor: c.tint };
   const closing = useRef(false);
+  const live = useLive(() => close());
   const chime = useAudioPlayer(require('../assets/sounds/live-in.wav'));
 
   const scale = useSharedValue(reduce ? 1 : SEED);
@@ -56,6 +75,11 @@ export default function Live() {
     chimed.current = true;
     chime.play();
   }, [chimeStatus.isLoaded, chime]);
+
+  useEffect(() => {
+    const t = setTimeout(() => void live.listen(), 900);
+    return () => clearTimeout(t);
+  }, [live.listen]);
 
   useEffect(() => {
     glow.value = withDelay(120, withTiming(1, { duration: 300 }));
@@ -92,14 +116,35 @@ export default function Live() {
   return (
     <View className={`flex-1 ${SURFACE.ground}`}>
       <LightField />
-      <View pointerEvents="none" className="absolute inset-0 items-center justify-center">
+      <View pointerEvents="box-none" className="absolute inset-0 items-center justify-center">
         <Animated.View style={orbStyle}>
           <CloudOrb
             size={size}
             colors={colors}
+            state={ORB_STATE[live.phase]}
+            input={live.input}
+            output={live.output}
             dom={{ style: { width: size, height: size, backgroundColor: 'transparent' }, scrollEnabled: false, contentInsetAdjustmentBehavior: 'never' }}
           />
+          {/* The web view swallows touches, so a clear native layer over the orb takes the tap. */}
+          <PressableSurface label={en('live.orb')} hint={HINT[live.phase] ? en(HINT[live.phase]!) : undefined} onPress={live.tapOrb} pressScale={1} className="absolute inset-0" surfaceClassName="flex-1" />
         </Animated.View>
+        {HINT[live.phase] ? (
+          <Animated.View style={[{ top: height / 2 + size / 2 + 16 }, chromeStyle]} className="absolute inset-x-0 items-center px-xl" pointerEvents="box-none">
+            <View className="items-center gap-xs">
+              <Text variant="subheadline" tone="secondary" className="text-center" accessibilityLiveRegion="polite">
+                {en(HINT[live.phase]!)}
+              </Text>
+              {live.phase === 'setup' ? (
+                <PressableSurface label={en('liora.voice.setup.open')} role="link" onPress={() => router.replace('/setup')} surfaceClassName="min-h-tap justify-center">
+                  <Text variant="subheadline" tone="tint" className="font-semibold">
+                    {en('liora.voice.setup.open')}
+                  </Text>
+                </PressableSurface>
+              ) : null}
+            </View>
+          </Animated.View>
+        ) : null}
       </View>
       <Animated.View style={[{ paddingTop: insets.top + 8 }, chromeStyle]} className="flex-row items-center justify-between px-md">
         <Text variant="displayHeading" accessibilityRole="header">
