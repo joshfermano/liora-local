@@ -68,8 +68,9 @@ reported.
 - **Works without the AI.** If the model cannot load, "AI off, checklist on" lets her tap her signs,
   and the same rules decide.
 - **Not a medical device.** Liora doesn't diagnose or prescribe; it helps her decide when to go.
-  There is no medicine advice, no diagnosis from photos of her body, and no fertile-window or
-  birth-control prediction.
+  There is no medicine advice, no diagnosis from photos of her body, and no birth-control advice.
+  The fertile window is an estimate for steady cycles only, labelled "An estimate, not
+  contraception.", with its sources (Bull et al. 2019; Wilcox et al. 1995).
 - **Private.** No account, no server, no analytics. After the first download the app makes no
   network requests, and "Delete everything" wipes all of her data.
 

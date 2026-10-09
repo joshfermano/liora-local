@@ -108,8 +108,8 @@ text.
 
 ### Explicitly out of scope
 
-Diagnosing from photos of the body, reading or advising on medicines, fertile-window or ovulation
-predictions, contraception guidance, partner mode, sexual-activity logging, accounts, sync, any
+Diagnosing from photos of the body, reading or advising on medicines, contraception guidance (an
+estimated fertile window was added on 2026-10-10; see section 8), partner mode, sexual-activity logging, accounts, sync, any
 cloud AI, push notifications, a native App Store build, payments.
 
 ---
@@ -444,8 +444,13 @@ steady (1.4826 x MAD / median <= 0.15); basis: Li, Urteaga et al., JAMIA 2022, o
   more cycles with spread of 7 days or less give `medium`, anything else `low`.
 - **Period length** for drawing predicted days: mean of logged period lengths, else the stated
   period length, else 5.
-- **Never** predicts while `status` is `pregnant` or `postpartum`, and never shows fertile or
-  ovulation days.
+- **Never** predicts while `status` is `pregnant` or `postpartum`.
+- **Fertile window (added 2026-10-10, user's call):** for steady, measured cycles only (at least 3
+  cleaned cycle lengths, the latest 6 varying by 7 days or less, `history` basis), likely ovulation
+  is 12 to 14 days before each estimated period (luteal phase mean 12.4 days, 95% range 7 to 17:
+  Bull et al., npj Digital Medicine 2019) and the fertile window runs from the five days before it
+  through ovulation (Wilcox, Weinberg and Baird, NEJM 1995). Always labelled "An estimate, not
+  contraception." Withheld otherwise; never contraception guidance.
 - Period entries from Tell Liora resolve to a date (`today`, `yesterday`, `days_ago`, or an explicit
   date) and are only written to `PeriodRecord` after she confirms the date chip ("Started Oct 8,
   tama ba?"). `unknown` asks her to pick the day on the calendar.

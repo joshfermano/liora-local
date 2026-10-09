@@ -69,8 +69,8 @@ Value proposition: "Know when to go, even with no signal and no one watching."
 ## Capabilities and Constraints
 
 - The must-have and stretch features are the spec's FR list (section 3). Out of scope: diagnosis
-  from photos of the body, medicine advice, fertile-window or ovulation predictions, contraception
-  guidance, partner mode, sexual-activity logging, accounts, sync, cloud AI, notifications.
+  from photos of the body, medicine advice, contraception guidance (the estimated fertile window
+  is shown for steady cycles only, never as contraception), partner mode, sexual-activity logging, accounts, sync, cloud AI, notifications.
 - **The AI never decides and never writes medical text.** The "go to the hospital now" and crisis
   screens use fixed copy. Source cards are shown verbatim. A danger sign found by any translator
   counts; skipping a follow-up question counts as serious.

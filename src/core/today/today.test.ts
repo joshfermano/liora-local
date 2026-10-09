@@ -140,3 +140,17 @@ describe('the gap question', () => {
     expect(today(input({ periods: PERIODS })).gapQuestion).toBeNull();
   });
 });
+
+describe('the fertile window on Today', () => {
+  const STEADY = ['2026-05-01', '2026-05-29', '2026-06-26', '2026-07-24', '2026-08-21', '2026-09-18'].map((s) => period(s));
+
+  it('shows the current or next estimated window, never one that has passed', () => {
+    expect(today(input({ periods: STEADY })).fertile).toEqual({ from: '2026-10-25', to: '2026-11-01', ovulation: { from: '2026-10-30', to: '2026-11-01' } });
+    expect(today(input({ periods: STEADY, today: '2026-09-30' })).fertile).toMatchObject({ from: '2026-09-27' });
+  });
+
+  it('shows none while pregnant or when there is no steady history', () => {
+    expect(today(input({ periods: STEADY, status: 'pregnant' })).fertile).toBeNull();
+    expect(today(input()).fertile).toBeNull();
+  });
+});

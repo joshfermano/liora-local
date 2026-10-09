@@ -1,5 +1,5 @@
 import { addDays, differenceInCalendarDays, format, parseISO, startOfWeek } from 'date-fns';
-import { estimatedPeriods } from '../calendar';
+import { estimatedPeriods, fertileWindows, type FertileWindow } from '../calendar';
 import { cycleDay, cycleHistory, periodLength, predictNext } from '../cycle';
 import { insights, loggedOn, periodDays, recentLengths, type Insight, type InsightInput } from '../insights';
 import type { DayLog, Prediction } from '../types';
@@ -52,6 +52,7 @@ export interface TodayModel {
   rows: CycleRow[]; // up to 3, newest first
   loggedToday: { period: boolean; symptoms: boolean; mood: boolean; any: boolean };
   gapQuestion: { since: string; days: number } | null; // a cycle running about twice her usual length
+  fertile: FertileWindow | null; // the current or next estimated window; an estimate, not contraception
   patterns: Insight[];
   cyclesLogged: number;
 }
@@ -152,5 +153,7 @@ export function today(input: TodayInput): TodayModel {
   const gapQuestion =
     tracking && lastStart && day !== null && usualCycle && day >= usualCycle * 2 ? { since: lastStart, days: day } : null;
 
-  return { answer, strip, next, cycles, rows, loggedToday, gapQuestion, patterns: insights(input), cyclesLogged: lengths.length };
+  const fertile = tracking ? (fertileWindows(input).find((f) => f.to >= now) ?? null) : null;
+
+  return { answer, strip, next, cycles, rows, loggedToday, gapQuestion, fertile, patterns: insights(input), cyclesLogged: lengths.length };
 }

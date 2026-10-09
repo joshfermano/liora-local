@@ -510,6 +510,21 @@ export const COPY = {
   'onboarding.download_all': ui('Download all'),
   'onboarding.start': ui('Start using Liora'),
   'onboarding.downloading': ui('Downloading'),
+  // fertile window: an estimate from her cycle history, never contraception (sources in the text)
+  'fertile.title': ui('Fertile window, estimated'),
+  'fertile.range': ui('{from} to {to}'),
+  'fertile.ovulation': ui('Likely ovulation {from} to {to}'),
+  'fertile.not_contraception': ui('An estimate, not contraception.'),
+  'fertile.basis': ui('Ovulation is placed 12 to 14 days before your estimated period, and the fertile window is the five days before it through ovulation.'),
+  'fertile.source': ui('Bull et al., npj Digital Medicine, 2019 (luteal phase mean 12.4 days, 95% range 7 to 17; authors linked to a cycle-tracking app). Wilcox, Weinberg and Baird, NEJM, 1995 (conception only from intercourse in the six days ending on ovulation).'),
+  'fertile.withheld': ui('Liora shows a fertile window only for steady cycles: at least three logged, varying by 7 days or less.'),
+  'fertile.key.window': ui('Fertile, estimated'),
+  'fertile.key.ovulation': ui('Likely ovulation'),
+  'fertile.day.window': ui('In the estimated fertile window'),
+  'fertile.day.ovulation': ui('Likely ovulation day, estimated'),
+  'profile.cycle.stated': ui('Usual cycle length'),
+  'profile.period.stated': ui('Usual period length'),
+  'profile.cycle.footer': ui('Liora uses these until you have logged enough periods; it never assumes 28 days.'),
 } as const satisfies Record<string, Entry>;
 
 export type CopyKey = keyof typeof COPY;

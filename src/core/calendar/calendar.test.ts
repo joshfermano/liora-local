@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { DayLog, Entry, PeriodRecord } from '../types';
-import { describeDay, estimatedPeriods, loggedDays, markMonth, periodsFromDays, toggleDay, usualLength, type CalendarInput } from './index';
+import { describeDay, estimatedPeriods, fertileWindows, loggedDays, markMonth, periodsFromDays, toggleDay, usualLength, type CalendarInput } from './index';
 
 const TODAY = '2026-10-10';
 const period = (start: string, end: string | null = null): PeriodRecord => ({ id: start, start, end, flow_by_day: {}, source: 'calendar' });
@@ -110,5 +110,37 @@ describe('edit mode', () => {
       { id: '2026-09-25', start: '2026-09-25', end: '2026-09-27', flow_by_day: { '2026-09-26': 'heavy' }, source: 'calendar' },
       { id: 'cal-2026-10-08', start: '2026-10-08', end: '2026-10-09', flow_by_day: {}, source: 'calendar' },
     ]);
+  });
+});
+
+describe('the fertile window, an estimate and never contraception', () => {
+  // Starts every 28 days: next period Oct 16, then Nov 13 and Dec 11.
+  const STEADY = ['2026-05-01', '2026-05-29', '2026-06-26', '2026-07-24', '2026-08-21', '2026-09-18'].map((s) => period(s));
+  const steady = (over: Partial<CalendarInput> = {}) => input({ periods: STEADY, ...over });
+
+  it('places likely ovulation 12 to 14 days before each estimated period, and the five days before it', () => {
+    const windows = fertileWindows(steady());
+    expect(windows.slice(0, 2)).toEqual([
+      { from: '2026-09-27', to: '2026-10-04', ovulation: { from: '2026-10-02', to: '2026-10-04' } },
+      { from: '2026-10-25', to: '2026-11-01', ovulation: { from: '2026-10-30', to: '2026-11-01' } },
+    ]);
+    expect(windows).toHaveLength(3);
+  });
+
+  it('is withheld during a pregnancy, after birth, with fewer than three cycles, or when her cycles vary widely', () => {
+    expect(fertileWindows(steady({ status: 'pregnant' }))).toEqual([]);
+    expect(fertileWindows(steady({ status: 'postpartum' }))).toEqual([]);
+    expect(fertileWindows(input({ periods: STEADY.slice(-3) }))).toEqual([]);
+    const varying = ['2026-03-01', '2026-03-25', '2026-04-30', '2026-05-26', '2026-07-01', '2026-07-27'].map((s) => period(s));
+    expect(fertileWindows(input({ periods: varying }))).toEqual([]);
+    expect(fertileWindows(input({ periods: [period('2026-09-18')], cycleSettings: { stated_cycle_length: 28 } }))).toEqual([]);
+  });
+
+  it('marks the window and likely ovulation on the calendar, never over a period day', () => {
+    const oct = markMonth(steady(), '2026-10');
+    expect(oct[1]).toMatchObject({ date: '2026-10-02', fertile: 'ovulation' });
+    expect(oct[24]).toMatchObject({ date: '2026-10-25', fertile: 'window' });
+    expect(oct[15]).toMatchObject({ date: '2026-10-16', period: 'estimated', fertile: null });
+    expect(markMonth(steady({ status: 'pregnant' }), '2026-10').every((d) => d.fertile === null)).toBe(true);
   });
 });
