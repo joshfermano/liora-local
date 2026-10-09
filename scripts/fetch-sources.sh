@@ -6,6 +6,10 @@ mkdir -p sources/raw sources/text
 node -e 'for (const s of require("./sources/manifest.json").sources) console.log(s.file, s.url)' |
   while read -r file url; do
     [ -s "sources/raw/$file" ] || curl -sSfL --max-time 120 -o "sources/raw/$file" "$url"
+    if file -b "sources/raw/$file" | grep -qi html; then
+      echo "FAIL $file: the server sent a web page, not the document; fix its url in sources/manifest.json" >&2
+      rm "sources/raw/$file"; exit 1
+    fi
     echo "downloaded $file ($(du -k "sources/raw/$file" | cut -f1) KB)"
     if [[ "$file" == *.pdf ]]; then
       id="${file%.pdf}"; mkdir -p "sources/text/$id"

@@ -16,8 +16,8 @@
       "title": "Digital adaptation kit, Web annex B: decision support logic (includes ANC.DT.01, ANC.DT.17)",
       "org": "WHO",
       "year": 2021,
-      "page": "https://www.who.int/publications/i/item/9789240020306",
-      "url": "https://apps.who.int/iris/bitstream/handle/10665/339741/WHO-SRH-21.2-eng.xlsx",
+      "page": "https://iris.who.int/handle/10665/339741",
+      "url": "https://iris.who.int/server/api/core/bitstreams/e8520d08-bb73-451f-b042-00858b1c1f0f/content",
       "file": "who-anc-dak-annex-b.xlsx",
       "licence": "CC BY-NC-SA 3.0 IGO"
     },
@@ -39,7 +39,7 @@
       "page": "https://www.jica.go.jp/project/philippines/0600894/04/pdf/03_MCB01.pdf",
       "url": "https://www.jica.go.jp/project/philippines/0600894/04/pdf/03_MCB01.pdf",
       "file": "doh-mcb.pdf",
-      "licence": "Philippine government work; edition unconfirmed (JICA-hosted copy). Check against a printed copy from a health centre before shipping excerpts."
+      "licence": "Philippine government work; edition unconfirmed (JICA-hosted copy; the PDF file was created on 17 January 2006, per its metadata). Check against a printed copy from a health centre before shipping excerpts."
     }
   ]
 }

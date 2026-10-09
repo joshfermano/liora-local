@@ -35,7 +35,7 @@ const candidates = specs.map((spec) => {
     .join('\n');
   if (!flat(searchable).includes(flat(body))) failures.push(`${spec.id}: verbatim check failed`);
   const src = manifest.find((m) => m.id === spec.source);
-  return { ...spec, body, citation: { org: src.org, title: src.title, year: src.year, page: spec.page, url: src.page } };
+  return { ...spec, body, citation: { org: src.org, title: src.title, year: src.year, page: spec.page, ...(spec.label ? { label: spec.label } : {}), url: src.page } };
 });
 
 writeFileSync('sources/candidates.json', JSON.stringify(candidates, null, 2) + '\n');

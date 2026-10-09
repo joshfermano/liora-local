@@ -12,14 +12,18 @@
       "fever",
       "severe_headache",
       "visual_disturbance",
-      "severe_vomiting",
+      "severe_vomiting?",
       "severe_abdominal_pain",
       "+reduced_fetal_movement",
       "+swelling_face_hands",
       "+difficulty_breathing",
       "+water_breaking?"
     ],
-    "note": "Includes the form instruction \"Put a check (✔).\" \"Watery vaginal discharge\" mapped to water breaking is an interpretation: please confirm or drop it.",
+    "note": "Includes the form instruction \"Put a check (✔).\" The book says plain \"Vomiting\", not severe vomiting, so that link is our reading. \"Watery vaginal discharge\" as water breaking is also our reading. The book says \"immediately\" for every item, including pallor, vaginal discharge and painful urination, which have no code yet.",
+    "check": {
+      "verdict": "approve",
+      "reason": "Matches page 4 word for word. Approve the text; confirm or drop the two links marked \"please confirm\"."
+    },
     "body": "If I experience any of the following warning signs, I should\nimmediately seek consultation at a health facility. Put a check (✔).\nSwelling of the legs, hands and/or face\nSevere headache, dizziness, blurring of vision\nVaginal bleeding\nPallor or anemia\nFever and chills\nVomiting\nFast or difficult breathing\nSevere abdominal pain\nVaginal discharge\nPainful urination\nWatery vaginal discharge\nConvulsions\nAbsence of/or reduced fetal movements\n(less than 10 kicks in 12 hours in the\nsecond half of pregnancy)",
     "citation": {
       "org": "DOH",
@@ -40,7 +44,11 @@
       "fever",
       "vaginal_bleeding"
     ],
-    "note": "This is a yes/no table a health worker fills in; it may not read well as a card.",
+    "note": "A yes/no table that a health worker fills in at each postpartum visit.",
+    "check": {
+      "verdict": "reject",
+      "reason": "Fails rule 2: it is a health worker's form, not advice for the mother. \"Fever > 39\" has no unit on the page, and \"(Y/N)\" is a form column, so the card would not make sense on its own (rule 4)."
+    },
     "body": "Fever > 39\n(Y/N)\nFoul smelling\nvaginal discharge\n(Y/N)\nExcessive bleeding\n(more than 500 cc\nof blood)\n(Y/N)\nPallor\n(Y/N)",
     "citation": {
       "org": "DOH",
@@ -58,7 +66,11 @@
     "start": "Take a bath daily.",
     "end": "every 4 to 6 hours.",
     "codes": [],
-    "note": "Calm answer, after birth.",
+    "note": "Calm answer, after birth. The next sentence on the page (\"You should be seen by a health worker 4 times after delivery based on the schedule above.\") is left out because it points to the table.",
+    "check": {
+      "verdict": "approve",
+      "reason": "Matches page 17 word for word."
+    },
     "body": "Take a bath daily. Change sanitary pad every 4 to\n6 hours.",
     "citation": {
       "org": "DOH",
@@ -72,11 +84,15 @@
     "id": "mcb-p8-no-self-medication",
     "source": "doh-mcb",
     "page": 8,
-    "stage": "any",
+    "stage": "pregnancy",
     "start": "I will not resort to self medication",
     "end": "harm me and my baby",
     "codes": [],
-    "note": "Calm answer; also supports \"Liora never gives medicine advice\".",
+    "note": "Calm answer; also supports \"Liora never gives medicine advice\". The page is the book's pregnancy tips, so it is marked for pregnancy; card 19 covers after birth.",
+    "check": {
+      "verdict": "approve",
+      "reason": "Matches page 8 word for word (the page has no hyphen in \"self medication\" and no full stop)."
+    },
     "body": "I will not resort to self medication\nfor this can harm me and my baby",
     "citation": {
       "org": "DOH",
@@ -95,6 +111,10 @@
     "end": "transportation).",
     "codes": [],
     "note": "Birth and emergency planning.",
+    "check": {
+      "verdict": "approve",
+      "reason": "Matches page 8 word for word."
+    },
     "body": "I will prepare for possible\nemergency (money,\nblood donor, transportation).",
     "citation": {
       "org": "DOH",
@@ -108,6 +128,7 @@
     "id": "pcpnc-m2-danger-immediately",
     "source": "who-pcpnc",
     "page": 163,
+    "label": "M2",
     "stage": "pregnancy",
     "start": "When to seek care on danger signs",
     "end": "fast or difficult breathing.",
@@ -116,18 +137,22 @@
       "convulsions",
       "severe_headache",
       "visual_disturbance",
-      "fever",
       "looks_very_ill?",
       "severe_abdominal_pain",
       "+difficulty_breathing"
     ],
-    "note": "WHO's \"go now, day or night\" list for pregnancy. \"Fever and too weak to get out of bed\" as looks_very_ill is an interpretation.",
+    "note": "WHO's \"go now, day or night\" list for pregnancy. Plain fever is not linked: this list says \"fever and too weak to get out of bed\", and plain fever is on WHO's \"as soon as possible\" list (card 7). Reading \"fever and too weak\" as looks_very_ill is our interpretation.",
+    "check": {
+      "verdict": "approve",
+      "reason": "Matches M2 (PDF page 163) word for word."
+    },
     "body": "When to seek care on danger signs\nGo to the hospital or health centre immediately, day or night, DO NOT wait, if any of the\nfollowing signs:\nvaginal bleeding\nconvulsions/fits\nsevere headaches with blurred vision\nfever and too weak to get out of bed\nsevere abdominal pain\nfast or difficult breathing.",
     "citation": {
       "org": "WHO",
       "title": "Pregnancy, childbirth, postpartum and newborn care: a guide for essential practice, 3rd edition",
       "year": 2015,
       "page": 163,
+      "label": "M2",
       "url": "https://www.who.int/publications/i/item/9789241549356"
     }
   },
@@ -135,6 +160,7 @@
     "id": "pcpnc-m2-danger-soon",
     "source": "who-pcpnc",
     "page": 163,
+    "label": "M2",
     "stage": "pregnancy",
     "start": "Go to the health centre as soon as possible",
     "end": "swollen fingers, face and legs.",
@@ -143,13 +169,18 @@
       "+water_breaking",
       "+swelling_face_hands"
     ],
-    "note": "WHO's second level: \"as soon as possible\", not \"immediately\". Liora has only go-now and calm today: see question 1.",
+    "note": "WHO's second level: \"as soon as possible\", not \"immediately\". Fever here conflicts with the rule Liora uses today: ANC.DT.01 treats fever alone as a go-now sign. See questions 1 and 2.",
+    "check": {
+      "verdict": "approve",
+      "reason": "Matches M2 (PDF page 163) word for word. Its advice is less urgent than our fever rule; settle question 2 before it ships."
+    },
     "body": "Go to the health centre as soon as possible if any of the following signs:\nfever\nabdominal pain\nwater breaks and not in labour after 6 hours\nfeel ill\nswollen fingers, face and legs.",
     "citation": {
       "org": "WHO",
       "title": "Pregnancy, childbirth, postpartum and newborn care: a guide for essential practice, 3rd edition",
       "year": 2015,
       "page": 163,
+      "label": "M2",
       "url": "https://www.who.int/publications/i/item/9789241549356"
     }
   },
@@ -157,6 +188,7 @@
     "id": "pcpnc-m2-labour-signs",
     "source": "who-pcpnc",
     "page": 163,
+    "label": "M2",
     "stage": "pregnancy",
     "start": "Know the signs of labour",
     "end": "Bloody sticky discharge.",
@@ -164,13 +196,18 @@
       "labour",
       "+water_breaking"
     ],
-    "note": "Signs of labour, with the 12-hour rule.",
+    "note": "Signs of labour, with the 12-hour rule. It says \"as soon as you can\" for waters breaking, while the delivery sheet (card 18) says \"immediately\" if not in labour after 6 hours: see question 2.",
+    "check": {
+      "verdict": "approve",
+      "reason": "Matches M2 (PDF page 163) word for word."
+    },
     "body": "Know the signs of labour\nIf you have any of these signs, go to the health centre as soon as you can.\nIf these signs continue for 12 hours or more, you need to go immediately.\nPainful contractions every 20 minutes or less.\nBag of water breaks.\nBloody sticky discharge.",
     "citation": {
       "org": "WHO",
       "title": "Pregnancy, childbirth, postpartum and newborn care: a guide for essential practice, 3rd edition",
       "year": 2015,
       "page": 163,
+      "label": "M2",
       "url": "https://www.who.int/publications/i/item/9789241549356"
     }
   },
@@ -178,17 +215,23 @@
     "id": "pcpnc-m2-four-visits",
     "source": "who-pcpnc",
     "page": 163,
+    "label": "M2",
     "stage": "pregnancy",
     "start": "Visit the health centre at least 4 times",
     "end": "do not have any problems.",
     "codes": [],
-    "note": "Calm answer.",
+    "note": "From the 2015 guide. WHO's later antenatal care recommendations (2016) call for a minimum of eight contacts, as the 2021 digital adaptation kit states (page 24).",
+    "check": {
+      "verdict": "reject",
+      "reason": "Copied exactly, but out of date: WHO now recommends at least eight antenatal contacts, so showing \"at least 4 times\" would mislead (rule 4)."
+    },
     "body": "Visit the health centre at least 4 times during your pregnancy, even if you do not have any problems.",
     "citation": {
       "org": "WHO",
       "title": "Pregnancy, childbirth, postpartum and newborn care: a guide for essential practice, 3rd edition",
       "year": 2015,
       "page": 163,
+      "label": "M2",
       "url": "https://www.who.int/publications/i/item/9789241549356"
     }
   },
@@ -196,17 +239,23 @@
     "id": "pcpnc-m2-any-concern",
     "source": "who-pcpnc",
     "page": 163,
+    "label": "M2",
     "stage": "pregnancy",
     "start": "If at any time you have any concerns",
     "end": "go to the health centre.",
     "codes": [],
     "note": "Calm answer, and a good general fallback.",
+    "check": {
+      "verdict": "approve",
+      "reason": "Matches M2 (PDF page 163) word for word."
+    },
     "body": "If at any time you have any concerns about your or your baby’s health, go to the health centre.",
     "citation": {
       "org": "WHO",
       "title": "Pregnancy, childbirth, postpartum and newborn care: a guide for essential practice, 3rd edition",
       "year": 2015,
       "page": 163,
+      "label": "M2",
       "url": "https://www.who.int/publications/i/item/9789241549356"
     }
   },
@@ -214,20 +263,23 @@
     "id": "pcpnc-m2-rest",
     "source": "who-pcpnc",
     "page": 163,
+    "label": "M2",
     "stage": "pregnancy",
     "start": "Rest when you can. Avoid",
     "end": "heavy objects.",
-    "codes": [
-      "back_pain?",
-      "fatigue?"
-    ],
-    "note": "Linking this to back pain or tiredness is our choice: confirm or drop the link.",
+    "codes": [],
+    "note": "General self-care. The page does not mention back pain or tiredness, so the card is not linked to them.",
+    "check": {
+      "verdict": "approve",
+      "reason": "Matches M2 (PDF page 163) word for word."
+    },
     "body": "Rest when you can. Avoid lifting heavy objects.",
     "citation": {
       "org": "WHO",
       "title": "Pregnancy, childbirth, postpartum and newborn care: a guide for essential practice, 3rd edition",
       "year": 2015,
       "page": 163,
+      "label": "M2",
       "url": "https://www.who.int/publications/i/item/9789241549356"
     }
   },
@@ -235,17 +287,23 @@
     "id": "pcpnc-m2-no-medication",
     "source": "who-pcpnc",
     "page": 163,
+    "label": "M2",
     "stage": "pregnancy",
     "start": "Do not take medication unless prescribed",
     "end": "at the health centre.",
     "codes": [],
-    "note": "Calm answer.",
+    "note": "Calm answer. The same sentence appears on the after-birth sheet (card 19).",
+    "check": {
+      "verdict": "approve",
+      "reason": "Matches M2 (PDF page 163) word for word."
+    },
     "body": "Do not take medication unless prescribed at the health centre.",
     "citation": {
       "org": "WHO",
       "title": "Pregnancy, childbirth, postpartum and newborn care: a guide for essential practice, 3rd edition",
       "year": 2015,
       "page": 163,
+      "label": "M2",
       "url": "https://www.who.int/publications/i/item/9789241549356"
     }
   },
@@ -253,26 +311,32 @@
     "id": "pcpnc-m4-danger-immediately",
     "source": "who-pcpnc",
     "page": 165,
+    "label": "M4",
     "stage": "postpartum",
     "start": "When to seek care for danger signs",
     "end": "shortness of breath or chest pain.",
     "codes": [
-      "vaginal_bleeding",
+      "vaginal_bleeding?",
       "convulsions",
       "+difficulty_breathing",
-      "fever",
       "looks_very_ill?",
       "severe_headache",
       "visual_disturbance",
-      "+calf_pain_swelling"
+      "+calf_pain_swelling",
+      "+chest_pain"
     ],
-    "note": "WHO's \"go now\" list after birth: the source the postpartum rules were waiting for.",
+    "note": "WHO's \"go now\" list after birth. It says \"Vaginal bleeding has increased\": some bleeding after birth is normal, so a rule built on it needs \"increased\" or \"heavy\", not any bleeding (card 18 gives \"soaks more than 2-3 pads in 15 minutes\"). Plain fever is not linked, for the same reason as card 6.",
+    "check": {
+      "verdict": "approve",
+      "reason": "Matches M4 (PDF page 165) word for word."
+    },
     "body": "When to seek care for danger signs\nGo to hospital or health centre immediately, day or night, DO NOT wait, if any of the following signs:\nVaginal bleeding has increased.\nFits.\nFast or difficult breathing.\nFever and too weak to get out of bed.\nSevere headaches with blurred vision.\nCalf pain, redness or swelling; shortness of breath or chest pain.",
     "citation": {
       "org": "WHO",
       "title": "Pregnancy, childbirth, postpartum and newborn care: a guide for essential practice, 3rd edition",
       "year": 2015,
       "page": 165,
+      "label": "M4",
       "url": "https://www.who.int/publications/i/item/9789241549356"
     }
   },
@@ -280,17 +344,23 @@
     "id": "pcpnc-m4-danger-soon",
     "source": "who-pcpnc",
     "page": 165,
+    "label": "M4",
     "stage": "postpartum",
     "start": "Go to health centre as soon as possible",
     "end": "Smelly vaginal discharge.",
     "codes": [],
     "note": "Second level after birth: see question 1.",
+    "check": {
+      "verdict": "approve",
+      "reason": "Matches M4 (PDF page 165) word for word."
+    },
     "body": "Go to health centre as soon as possible if any of the following signs:\nSwollen, red or tender breasts or nipples.\nProblems urinating, or leaking.\nIncreased pain or infection in the perineum.\nInfection in the area of the wound.\nSmelly vaginal discharge.",
     "citation": {
       "org": "WHO",
       "title": "Pregnancy, childbirth, postpartum and newborn care: a guide for essential practice, 3rd edition",
       "year": 2015,
       "page": 165,
+      "label": "M4",
       "url": "https://www.who.int/publications/i/item/9789241549356"
     }
   },
@@ -298,17 +368,23 @@
     "id": "pcpnc-m4-hygiene",
     "source": "who-pcpnc",
     "page": 165,
+    "label": "M4",
     "stage": "postpartum",
     "start": "Wash all over daily",
     "end": "dispose of it safely.",
     "codes": [],
     "note": "Calm answer, after birth.",
+    "check": {
+      "verdict": "approve",
+      "reason": "Matches M4 (PDF page 165) word for word."
+    },
     "body": "Wash all over daily, particularly the perineum.\nChange pad every 4 to 6 hours. Wash pad or dispose of it safely.",
     "citation": {
       "org": "WHO",
       "title": "Pregnancy, childbirth, postpartum and newborn care: a guide for essential practice, 3rd edition",
       "year": 2015,
       "page": 165,
+      "label": "M4",
       "url": "https://www.who.int/publications/i/item/9789241549356"
     }
   },
@@ -316,19 +392,23 @@
     "id": "pcpnc-m4-rest-water",
     "source": "who-pcpnc",
     "page": 165,
+    "label": "M4",
     "stage": "postpartum",
     "start": "Rest when you can.",
     "end": "clean, safe water.",
-    "codes": [
-      "fatigue?"
-    ],
-    "note": "Calm answer, after birth.",
+    "codes": [],
+    "note": "Calm answer, after birth. Not linked to tiredness: the page does not mention it.",
+    "check": {
+      "verdict": "approve",
+      "reason": "Matches M4 (PDF page 165) word for word."
+    },
     "body": "Rest when you can.\nDrink plenty of clean, safe water.",
     "citation": {
       "org": "WHO",
       "title": "Pregnancy, childbirth, postpartum and newborn care: a guide for essential practice, 3rd edition",
       "year": 2015,
       "page": 165,
+      "label": "M4",
       "url": "https://www.who.int/publications/i/item/9789241549356"
     }
   },
@@ -336,17 +416,23 @@
     "id": "pcpnc-p170-delivery-go-now",
     "source": "who-pcpnc",
     "page": 170,
+    "label": "M9",
     "stage": "pregnancy",
     "start": "If you or your baby has any of these signs",
     "end": "Do not wait.",
     "codes": [],
-    "note": "Heading of the delivery danger-sign box; pairs with the next card. In the PDF they sit in one box: please check the page.",
+    "note": "Heading of the \"Danger signs during delivery\" box on the \"Clean home delivery (2)\" sheet; pairs with the next card. The capital \"Do not wait\" and the comma before it are as printed.",
+    "check": {
+      "verdict": "approve",
+      "reason": "Matches M9 (PDF page 170) word for word. Show only together with card 18."
+    },
     "body": "If you or your baby has any of these signs, go to the hospital or health centre immediately,\nday or night, Do not wait.",
     "citation": {
       "org": "WHO",
       "title": "Pregnancy, childbirth, postpartum and newborn care: a guide for essential practice, 3rd edition",
       "year": 2015,
       "page": 170,
+      "label": "M9",
       "url": "https://www.who.int/publications/i/item/9789241549356"
     }
   },
@@ -354,6 +440,7 @@
     "id": "pcpnc-p170-delivery-mother-signs",
     "source": "who-pcpnc",
     "page": 170,
+    "label": "M9",
     "stage": "pregnancy",
     "start": "If waters break and not in labour",
     "end": "1 hour after birth of baby.",
@@ -362,13 +449,42 @@
       "labour",
       "vaginal_bleeding"
     ],
-    "note": "The mother's signs from that box.",
+    "note": "The mother's signs from that box. The box also lists the baby's signs (very small, difficulty in breathing, fits, fever, feels cold, bleeding, not able to feed); they are left out because Liora covers the mother, not the newborn.",
+    "check": {
+      "verdict": "approve",
+      "reason": "Matches M9 (PDF page 170) word for word."
+    },
     "body": "If waters break and not in labour after 6 hours.\nLabour pains (contractions) continue for more than 12 hours.\nHeavy bleeding (soaks more than 2-3 pads in 15 minutes).\nPlacenta not expelled 1 hour after birth of baby.",
     "citation": {
       "org": "WHO",
       "title": "Pregnancy, childbirth, postpartum and newborn care: a guide for essential practice, 3rd edition",
       "year": 2015,
       "page": 170,
+      "label": "M9",
+      "url": "https://www.who.int/publications/i/item/9789241549356"
+    }
+  },
+  {
+    "id": "pcpnc-m4-no-medication",
+    "source": "who-pcpnc",
+    "page": 165,
+    "label": "M4",
+    "stage": "postpartum",
+    "start": "Do not take medication unless prescribed",
+    "end": "at the health centre.",
+    "codes": [],
+    "note": "Calm answer, after birth. Added in the fact check: the same advice as card 12, from the after-birth sheet.",
+    "check": {
+      "verdict": "approve",
+      "reason": "Matches M4 (PDF page 165) word for word."
+    },
+    "body": "Do not take medication unless prescribed at the health centre.",
+    "citation": {
+      "org": "WHO",
+      "title": "Pregnancy, childbirth, postpartum and newborn care: a guide for essential practice, 3rd edition",
+      "year": 2015,
+      "page": 165,
+      "label": "M4",
       "url": "https://www.who.int/publications/i/item/9789241549356"
     }
   }
