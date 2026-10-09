@@ -3,7 +3,6 @@ import { estimatedPeriods, fertileWindows, type FertileWindow } from '../calenda
 import { cycleDay, cycleHistory, periodLength, predictNext } from '../cycle';
 import { insights, loggedOn, periodDays, recentLengths, type Insight, type InsightInput } from '../insights';
 import type { DayLog, Prediction } from '../types';
-import { SYMPTOMS } from '../vocabulary';
 
 // Everything the Today tab shows, worked out from her logs on the phone. Counts and dates only.
 export interface TodayInput extends InsightInput {
@@ -67,7 +66,6 @@ const shift = (day: string, n: number) => fmt(addDays(parseISO(day), n));
 const between = (a: string, b: string) => differenceInCalendarDays(parseISO(b), parseISO(a));
 const dayOf = (iso: string) => fmt(parseISO(iso));
 const average = (xs: number[]) => Math.round(xs.reduce((a, b) => a + b, 0) / xs.length);
-const isSymptom = (code: string) => (SYMPTOMS as readonly string[]).includes(code);
 
 export function today(input: TodayInput): TodayModel {
   const { entries, moodChecks, periods, cycleSettings, dayLogs, status, today: now } = input;
@@ -104,9 +102,7 @@ export function today(input: TodayInput): TodayModel {
   const next = prediction && now <= prediction.window.to ? { ...prediction, inDays: between(now, prediction.next_start) } : null;
 
   const sinceStart = (date: string) => lastStart !== null && date >= lastStart && date <= now;
-  const symptomsThisCycle =
-    dayLogs.filter((d) => sinceStart(d.date)).reduce((n, d) => n + d.symptoms.length, 0) +
-    entries.filter((e) => sinceStart(dayOf(e.created_at))).reduce((n, e) => n + e.findings.filter((f) => isSymptom(f.code)).length, 0);
+  const symptomsThisCycle = dayLogs.filter((d) => sinceStart(d.date)).reduce((n, d) => n + d.symptoms.length, 0);
   const bled = periodDays(periods);
   const cycles = tracking
     ? {
@@ -144,7 +140,8 @@ export function today(input: TodayInput): TodayModel {
   const todayEntries = entries.filter((e) => dayOf(e.created_at) === now);
   const loggedToday = {
     period: onPeriod || Boolean(todayLog?.flow),
-    symptoms: (todayLog?.symptoms.length ?? 0) > 0 || todayEntries.some((e) => e.findings.some((f) => isSymptom(f.code))),
+    // The day log is the record she edits; the agent saves what she says into it.
+    symptoms: (todayLog?.symptoms.length ?? 0) > 0,
     mood:
       (todayLog?.moods.length ?? 0) > 0 ||
       todayEntries.some((e) => (e.extraction?.moods.length ?? 0) > 0) ||
@@ -160,7 +157,7 @@ export function today(input: TodayInput): TodayModel {
 
   const logged = {
     flow: todayLog?.flow ?? null,
-    symptoms: unique([...(todayLog?.symptoms ?? []), ...todayEntries.flatMap((e) => e.findings.map((f) => f.code).filter(isSymptom))]),
+    symptoms: [...(todayLog?.symptoms ?? [])],
     moods: unique([...(todayLog?.moods ?? []), ...todayEntries.flatMap((e) => e.extraction?.moods ?? [])]),
     activities: [...(todayLog?.activities ?? [])],
     note: todayLog?.note ?? null,

@@ -95,7 +95,8 @@ describe('your cycles', () => {
       length: { min: 27, max: 29, average: 28, count: 4 },
       period: { average: 5, count: 5 },
       last: 29,
-      symptomsThisCycle: 3,
+      // Counted from her day logs only, so a symptom she removed is no longer counted.
+      symptomsThisCycle: 2,
     });
   });
 
@@ -164,7 +165,14 @@ describe("what she logged today, for Today's first pane", () => {
         entries: [entry(TODAY, ['cramps', 'headache']), entry('2026-10-09', ['nausea'])],
       }),
     );
-    expect(model.todayLog).toEqual({ flow: 'light', symptoms: ['cramps', 'headache'], moods: ['tired'], activities: ['walk'], note: 'long day' });
+    // The day log is what she logged and can edit; a message's words are not added on top.
+    expect(model.todayLog).toEqual({ flow: 'light', symptoms: ['cramps'], moods: ['tired'], activities: ['walk'], note: 'long day' });
+  });
+
+  it('keeps a symptom she removed in the editor removed, even though a message that day named it', () => {
+    const model = today(input({ dayLogs: [day(TODAY, { flow: 'medium' })], entries: [entry(TODAY, ['headache', 'bloating'])] }));
+    expect(model.todayLog.symptoms).toEqual([]);
+    expect(model.loggedToday.symptoms).toBe(false);
   });
 
   it('is empty when nothing is logged today', () => {
