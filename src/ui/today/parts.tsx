@@ -11,7 +11,7 @@ import type { IconName } from '../Icon';
 import { PressableSurface } from '../PressableSurface';
 import { Symbol } from '../Symbol';
 import { Text } from '../Text';
-import { HeroScene, SeasonMark, type Season } from '../art';
+import { AvatarMark, HeroScene, SeasonMark, type AvatarMarkName, type Season } from '../art';
 import { answerText } from './text';
 
 // One staggered rise per group; the system Reduce Motion setting turns it into a plain appearance.
@@ -44,13 +44,18 @@ function RoundLink({ label, href, symbol, fallback, children }: { label: string;
   );
 }
 
-export function Header({ initial }: { initial: string }) {
+// Her chosen avatar when she has one, the same one Profile shows; otherwise her initial.
+export function Header({ initial, avatar }: { initial: string; avatar?: AvatarMarkName }) {
   return (
     <View className="flex-row items-center justify-between gap-sm">
       <RoundLink label={en('td.open_profile')} href={'/(tabs)/profile' as Href}>
-        <Text variant="headline" tone="tint">
-          {initial}
-        </Text>
+        {avatar ? (
+          <AvatarMark size={42} mark={avatar} />
+        ) : (
+          <Text variant="headline" tone="tint">
+            {initial}
+          </Text>
+        )}
       </RoundLink>
       <Text variant="headline" numberOfLines={1} accessibilityRole="header" className="flex-1 text-center">
         {format(new Date(), 'EEEE, MMMM d')}

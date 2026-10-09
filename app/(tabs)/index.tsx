@@ -38,7 +38,7 @@ export default function Home() {
       <View className={`gap-xl ${Platform.OS === 'web' ? 'pt-[72px]' : 'pt-lg'}`}>
         <Rise order={0}>
           <View className="gap-md">
-            <Header initial={initial} />
+            <Header initial={initial} avatar={profile.avatar} />
             <Strip strip={model.strip} />
           </View>
           <AnswerBlock answer={model.answer} />
