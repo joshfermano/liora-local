@@ -1,3 +1,4 @@
+import { useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { TextInput, View } from 'react-native';
 import { useVoiceNote } from '../../ai/use-voice-note';
@@ -18,6 +19,7 @@ export const STARTERS = ['liora.starter.1', 'liora.starter.2', 'liora.starter.3'
 
 export function Composer({ text, setText }: { text: string; setText: (t: string) => void }) {
   const colors = useColors();
+  const router = useRouter();
   const thinking = useCompanionStore((s) => s.thinking);
   const voice = useVoiceNote();
   const recording = voice.state === 'recording';
@@ -85,7 +87,14 @@ export function Composer({ text, setText }: { text: string; setText: (t: string)
         </PressableSurface>
       </GlassCard>
       {/* Drawn, not an SF Symbol: three bars, short, long, short, are live mode's own mark. */}
-      <PressableSurface label={en('liora.live')} onPress={tap} surfaceClassName={`h-[60px] w-[60px] items-center justify-center rounded-full ${SURFACE.tintFill}`}>
+      <PressableSurface
+        label={en('liora.live')}
+        onPress={() => {
+          tap();
+          router.push('/live');
+        }}
+        surfaceClassName={`h-[60px] w-[60px] items-center justify-center rounded-full ${SURFACE.tintFill}`}
+      >
         <Icon name="live" tone="onTint" size={32} />
       </PressableSurface>
     </View>

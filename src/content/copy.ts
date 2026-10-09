@@ -280,6 +280,7 @@ export const COPY = {
   'liora.placeholder': ui('Message Liora'),
   'liora.send': ui('Send'),
   'liora.live': ui('Live mode'),
+  'live.close': ui('Close'),
   'liora.typing': ui('Liora is thinking'),
   'liora.period.add': ui('Add to calendar'),
   'liora.period.skip': ui('Not now'),
