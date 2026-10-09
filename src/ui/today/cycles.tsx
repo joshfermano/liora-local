@@ -48,13 +48,13 @@ export function Stats({ cycles }: { cycles: Cycles }) {
             key="len"
             title={en('td.cycle_length')}
             value={length ? (length.min === length.max ? days(length.min) : fill('td.cycle_length.range', { min: length.min, max: length.max })) : none}
-            sub={length ? fill('td.cycle_length.sub', { avg: Math.round(length.average), n: length.count }) : undefined}
+            sub={length ? fill(length.count === 1 ? 'td.cycle_length.sub_one' : 'td.cycle_length.sub', { avg: Math.round(length.average), n: length.count }) : undefined}
           />,
           <Stat
             key="per"
             title={en('td.period_length')}
             value={period ? fill('td.period_length.value', { n: Math.round(period.average) }) : none}
-            sub={period ? fill('td.period_length.sub', { n: period.count }) : undefined}
+            sub={period ? fill(period.count === 1 ? 'td.period_length.sub_one' : 'td.period_length.sub', { n: period.count }) : undefined}
           />,
         ]}
       </Pair>
@@ -111,19 +111,7 @@ export function Rows({ rows }: { rows: CycleRow[] }) {
             <View className={`h-px ${SEPARATOR}`} />
           </View>
         ))}
-        <PressableSurface
-          label={en('td.see_calendar')}
-          role="link"
-          className="min-h-tap"
-          surfaceClassName="min-h-tap items-center justify-center"
-          onPress={() => router.push('/(tabs)/calendar' as Href)}
-        >
-          <Text variant="headline" tone="tint">
-            {en('td.see_calendar')}
-          </Text>
-        </PressableSurface>
-      </View>
-      <View className="flex-row gap-md px-xs" accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
+      <View className="flex-row gap-md px-md py-sm" accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
         <View className="flex-row items-center gap-xxs">
           <View className={DOT.period} />
           <Text variant="caption1" tone="secondary">
@@ -136,6 +124,19 @@ export function Rows({ rows }: { rows: CycleRow[] }) {
             {en('td.key.estimated')}
           </Text>
         </View>
+      </View>
+        <View className={`h-px ${SEPARATOR}`} />
+        <PressableSurface
+          label={en('td.see_calendar')}
+          role="link"
+          className="min-h-tap"
+          surfaceClassName="min-h-tap items-center justify-center"
+          onPress={() => router.push('/(tabs)/calendar' as Href)}
+        >
+          <Text variant="headline" tone="tint">
+            {en('td.see_calendar')}
+          </Text>
+        </PressableSurface>
       </View>
     </View>
   );
