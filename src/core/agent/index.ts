@@ -13,6 +13,7 @@ export { JOURNAL_SIZE, keepRecent, undoable, type JournalEntry } from './journal
 export { toneOf } from './tone';
 export { withoutGreeting } from './greeting';
 export { painTooMuch, severityOnly } from './followon';
+export { seriousForAnyone } from './serious';
 export { cleanForPrompt, looksLikeInjection } from './guardrails';
 export { moodsOn, replyStyle, type ReplyStyle } from './style';
 export { guardWarm } from './guard';

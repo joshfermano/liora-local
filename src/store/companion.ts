@@ -1,7 +1,7 @@
 import { format } from 'date-fns';
 import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
-import { languageOf, painTooMuch, severityOnly, triage } from '../core/agent';
+import { languageOf, painTooMuch, seriousForAnyone, severityOnly, triage } from '../core/agent';
 import { composeReply, ruleIntent, type ReplyBlock } from '../core/companion';
 import { dangerRulesApply } from '../core/pipeline';
 import { beginProbe, endProbe, noteTurn, timedSync } from '../core/probe';
@@ -92,6 +92,15 @@ function lastHerText(messages: ThreadMessage[], now = Date.now()): string | null
   return m.text;
 }
 
+// A serious sign she described earlier in this conversation, while she is not pregnant.
+function activeSerious(messages: ThreadMessage[], now = Date.now()): boolean {
+  for (const m of [...messages].reverse()) {
+    if (m.at && now - Date.parse(m.at) > CONVERSATION_MS) return false;
+    if (m.blocks?.some((b) => b.kind === 'text' && (b.key === 'companion.serious.anyone' || b.key === 'companion.serious.still'))) return true;
+  }
+  return false;
+}
+
 // The go-now from earlier in this conversation (the last 30 minutes), as the decision stands now.
 function activeGoNow(messages: ThreadMessage[], now = Date.now()): string | null {
   const entries = useLogStore.getState().entries;
@@ -153,6 +162,7 @@ export const useCompanionStore = create<CompanionState>()(
         const thread = recentTurns(get().messages);
         const opening = isNewConversation(get().messages);
         const goNow = activeGoNow(get().messages);
+        const seriousEarlier = activeSerious(get().messages);
         // "Sobrang sakit" right after "masakit ulo ko" is about the headache: the rules read both together.
         const before = lastHerText(get().messages);
         const ruleText = before && severityOnly(text) ? `${before}. ${text}` : text;
@@ -211,6 +221,16 @@ export const useCompanionStore = create<CompanionState>()(
           const kept = turn.attachments.filter((b) => b.kind === 'logged' || b.kind === 'confirm');
           if (goNow) {
             add([{ kind: 'text', key: 'companion.go_now.still' }, ...kept, { kind: 'decision', entryId: goNow, level: 'go_now' }]);
+            return;
+          }
+          // Not pregnant, so the WHO pregnancy rules stay out, but signs like losing sight or fits should not
+          // wait for anyone: a plain "do not wait" and her contact, no model words, and it stays in view.
+          if (!rulesApply && seriousForAnyone(entry.findings)) {
+            add([{ kind: 'text', key: 'companion.serious.anyone' }, ...kept, { kind: 'contact' }]);
+            return;
+          }
+          if (seriousEarlier) {
+            add([{ kind: 'text', key: 'companion.serious.still' }, ...kept, { kind: 'contact' }]);
             return;
           }
           // Pain she cannot bear gets a fixed caring line and her own Call and Text buttons, no model words.

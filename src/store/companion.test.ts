@@ -112,6 +112,31 @@ describe('companion thread with the real rules and no model', () => {
     expect(kinds()).not.toContain('actions');
   });
 
+  it('does not let serious signs pass as chat when she is not pregnant, and keeps them in view', async () => {
+    useLogStore.setState({ setup: { status: 'neither' } });
+    const sayFn = vi.fn(async () => 'Remember to be gentle with yourself.');
+    setSayReply(sayFn);
+    await send('I am having sever headache and blurry vision');
+    expect(sayFn).not.toHaveBeenCalled();
+    expect(last().blocks?.find((b) => b.kind === 'text')).toMatchObject({ key: 'companion.serious.anyone' });
+    expect(kinds()).toContain('contact');
+    await send('What should I do?');
+    expect(sayFn).not.toHaveBeenCalled();
+    expect(last().blocks?.find((b) => b.kind === 'text')).toMatchObject({ key: 'companion.serious.still' });
+    expect(kinds()).toContain('contact');
+  });
+
+  it('lets the reply name the signs she described', async () => {
+    useLogStore.setState({ setup: { status: 'neither' } });
+    const seen: { allowed: Record<string, unknown> }[] = [];
+    setSayReply(async (req) => {
+      seen.push(req);
+      return null;
+    });
+    await send('masakit ulo ko');
+    expect(JSON.stringify(seen.at(-1)?.allowed)).toContain('headache');
+  });
+
   it('shows her own Call and Text buttons when she asks Liora to call her contact', async () => {
     await send('Can you call him?');
     expect(reply()?.fallback.key).toMatch(/^reply\.contact/);

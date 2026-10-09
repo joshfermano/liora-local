@@ -20,18 +20,18 @@ export const ENTRIES: Entry[] = [
     codes: ['vaginal_bleeding'],
   },
   {
-    pattern: /kumbulsyon|kombulsyon|convuls|seizure|naninigas/i,
+    pattern: /kumbulsyon|kombulsyon|convuls|seizure|naninigas|nangisay|nangingisay|kinombulsyon|\bfits?\b/i,
     codes: ['convulsions'],
   },
   { pattern: /lagnat|\bsinat\b|\bfever\b|febrile/i, codes: ['fever'] },
   {
     pattern:
-      /hirap\s+(?:akong\s+|ako\s+|na\s+|ng\s+)?(?:huminga|makahinga|paghinga)|hindi\s+(?:ako\s+)?makahinga|kinakapos\s+(?:ang\s+|ng\s+|sa\s+)?(?:hininga|paghinga)|hinihingal|(?:can'?t|cannot|hard\s+to|trouble|difficulty)\s+breath(?:e|ing)|short(?:ness)?\s+of\s+breath/i,
+      /hirap\s+(?:na\s+hirap\s+)?(?:akong\s+|ako\s+|na\s+|ng\s+)?(?:huminga|makahinga|paghinga)|hindi\s+(?:ako\s+)?makahinga|kinakapos\s+(?:ang\s+|ng\s+|sa\s+)?(?:hininga|paghinga)|hinihingal|(?:can'?t|cannot|hard\s+to|trouble|difficulty)\s+breath(?:e|ing)|short(?:ness)?\s+of\s+breath/i,
     codes: ['severe_difficulty_breathing'],
   },
   {
     pattern:
-      /malabo\s+(?:ang\s+|na\s+|ng\s+)?(?:paningin|mata)|nanlalabo|nandidilim\s+ang\s+(?:paningin|mata)|blurr?(?:y|ed)\s+vision|vision\s+(?:is\s+)?blurr|double vision|seeing\s+(?:spots|stars|flashing)/i,
+      /malabo\s+(?:ang\s+|na\s+|ng\s+)?(?:paningin|mata)|nanlalabo|nandidilim\s+ang\s+(?:paningin|mata)|blurr?(?:y|ed)\s+vision|vision\s+(?:is\s+)?blurr|double vision|seeing\s+(?:spots|stars|flashing)|\b(?:can'?t|cannot|can\s+not)\s+see\b|(?:hindi|di)\s+(?:na\s+)?(?:ako\s+)?(?:na\s+)?makakita|nawalan\s+(?:ako\s+)?ng\s+paningin|lost\s+(?:my\s+)?(?:sight|vision)/i,
     codes: ['visual_disturbance'],
   },
   {
@@ -60,7 +60,7 @@ export const ENTRIES: Entry[] = [
   },
   {
     pattern:
-      /hinimatay|nahimatay|nawalan\s+ng\s+(?:malay|ulirat)|walang\s+malay|unconscious|passed\s+out|(?:hindi|di)\s+(?:na\s+)?magising/i,
+      /hinimatay|nahimatay|nawalan\s+(?:ako\s+|siya\s+|sya\s+)?ng\s+(?:malay|ulirat)|walang\s+malay|unconscious|passed\s+out|(?:hindi|di)\s+(?:na\s+)?magising/i,
     codes: ['unconscious'],
   },
   {
@@ -110,6 +110,6 @@ export const MOOD_ENTRIES: { pattern: RegExp; mood: Mood }[] = [
 ];
 
 export const SEVERE_CUE =
-  /\b(?:sobrang|grabe|grabeng|napaka\w*|matindi|matinding|severe|severely|really bad)\b/i;
+  /\b(?:sever|sobrang|grabe|grabeng|napaka\w*|matindi|matinding|severe|severely|really bad)\b/i;
 export const MILD_CUE =
   /\b(?:medyo|konti|konting|kaunti|kaunting|bahagya|slight|slightly|a bit|a little)\b/i;

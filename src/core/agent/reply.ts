@@ -58,7 +58,7 @@ function flat(facts: Facts): string {
 // symptom may be named only when it is in the facts, that is, when she logged it herself.
 // "I logged / saved / removed / updated…": only true when a tool did it this turn.
 const CLAIM =
-  /\b(?:i(?:'ve| have)?|i've)\s+(?:just\s+)?(?:logged|saved|added|recorded|removed|deleted|cleared|updated|changed|undone|undid|set)\b|\b(?:na-?log|nai-?log|naitala|inalis|binura|tinanggal|na-?save)\s+(?:ko|na)\b|^\s*(?:logged|saved|added|noted|recorded|done)\b|\b(?:has|have|had|was|were|is|are)\s+(?:been\s+)?(?:logged|saved|added|recorded|noted|removed|deleted|cleared|updated)\b/i;
+  /\b(?:i(?:'ve| have)?|i've)\s+(?:just\s+)?(?:logged|saved|added|recorded|removed|deleted|cleared|updated|changed|undone|undid|set)\b|\b(?:na-?log|nai-?log|naitala|inalis|binura|tinanggal|na-?save)\s+(?:ko|na)\b|^\s*(?:logged|saved|added|noted|recorded|done)\b|\bi(?:'ll|\s+will)\s+(?:make\s+a\s+note|note|log|save|record|keep\s+track|write)\b|\b(?:has|have|had|was|were|is|are)\s+(?:been\s+)?(?:logged|saved|added|recorded|noted|removed|deleted|cleared|updated)\b/i;
 const acted = (facts: Facts) => ['saved', 'removed', 'undone'].some((k) => {
   const v = facts[k];
   return Array.isArray(v) ? v.length > 0 : Boolean(v);
