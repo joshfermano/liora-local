@@ -1,8 +1,9 @@
-import { useRouter } from 'expo-router';
+import { useRouter, type Href } from 'expo-router';
 import { View } from 'react-native';
 import { bestCard } from '../../content/cards';
 import { en } from '../../content/copy';
 import type { Entry } from '../../core/types';
+import { useCompanionStore } from '../../store/companion';
 import { useTellStore } from '../../store/tell';
 import { HeroScene } from '../art';
 import { CapsuleButton } from '../CapsuleButton';
@@ -51,7 +52,15 @@ export function Calm({ entry }: { entry: Entry }) {
           label={en('result.home')}
           onPress={() => {
             reset();
-            router.replace('/');
+            // Asked from the chat: that conversation is done, so it goes to history and the chat starts fresh.
+            const thread = useCompanionStore.getState();
+            const fromChat = thread.messages.some((m) => m.blocks?.some((b) => b.kind === 'decision' && b.entryId === entry.id));
+            if (fromChat) {
+              thread.clear();
+              router.replace('/(tabs)/liora' as Href);
+            } else {
+              router.replace('/');
+            }
           }}
         />
       </View>
