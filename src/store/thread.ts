@@ -2,13 +2,13 @@ import { en } from '../content/copy';
 import type { Turn } from '../core/agent';
 import type { ReplyBlock } from '../core/companion';
 
-const TURNS = 6;
+const TURNS = 10;
 const TURN_CHARS = 160;
 
 type ThreadLike = { role: 'her' | 'liora'; text?: string; blocks?: ReplyBlock[]; at?: string };
 
-// Messages older than this belong to an earlier conversation.
-const CONVERSATION_MS = 30 * 60 * 1000;
+// After this long without a message, the next one starts a new conversation (and Liora greets).
+export const CONVERSATION_MS = 30 * 60 * 1000;
 
 const fill = (s: string, v: Record<string, string> = {}) => s.replace(/\{(\w+)\}/g, (_, k: string) => v[k] ?? '');
 const short = (s: string) => (s.length > TURN_CHARS ? `${s.slice(0, TURN_CHARS)}…` : s);
@@ -22,11 +22,17 @@ function lioraText(blocks: ReplyBlock[]): string | null {
   return text?.kind === 'text' ? fill(en(text.key), text.params) : null;
 }
 
-// What was said before this message in the current conversation, as she saw it.
-export function recentTurns(messages: ThreadLike[], now: Date = new Date()): Turn[] {
+export function isNewConversation(messages: ThreadLike[], now: Date = new Date()): boolean {
+  const last = messages.at(-1);
+  if (!last) return true;
+  return last.at !== undefined && now.getTime() - Date.parse(last.at) > CONVERSATION_MS;
+}
+
+// What was said before this message, as she saw it: the last turns, however old, so she can come back
+// to what she told Liora.
+export function recentTurns(messages: ThreadLike[], _now: Date = new Date()): Turn[] {
   const turns: Turn[] = [];
   for (const m of messages) {
-    if (m.at && now.getTime() - Date.parse(m.at) > CONVERSATION_MS) continue;
     const text = m.role === 'her' ? m.text : lioraText(m.blocks ?? []);
     if (text?.trim()) turns.push({ role: m.role, text: short(text.trim()) });
   }

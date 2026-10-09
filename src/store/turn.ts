@@ -75,7 +75,14 @@ function pick<T extends AgentAction['tool']>(actions: AgentAction[], tool: T): E
 
 // One calm turn: decide with the rules (Gemma only fills a gap), act through the tools, and collect
 // what happened. The reply is worded from that, never decided by it.
-export async function runTurn(text: string, entry: Entry, day: string, thread: Turn[], read: Triage): Promise<AgentTurn> {
+export async function runTurn(
+  text: string,
+  entry: Entry,
+  day: string,
+  thread: Turn[],
+  read: Triage,
+  opening = thread.length === 0,
+): Promise<AgentTurn> {
   if (looksLikeInjection(text)) {
     noteTurn({ tools: [] });
     return {
@@ -194,7 +201,17 @@ export async function runTurn(text: string, entry: Entry, day: string, thread: T
   return {
     attachments,
     fallback,
-    request: { text, pack: pack.text, facts, allowed: { ...pack.facts, ...facts }, thread, style, language: messageLanguage(text, memory.language ?? 'english'), opening: thread.length === 0 },
+    request: {
+      text,
+      pack: pack.text,
+      facts,
+      // Her own words in this chat may be repeated back to her, so the guard counts them as known.
+      allowed: { ...pack.facts, ...facts, her_words: [...thread.filter((t) => t.role === 'her').map((t) => t.text), text] },
+      thread,
+      style,
+      language: messageLanguage(text, memory.language ?? 'english'),
+      opening,
+    },
     undoneId,
   };
 }

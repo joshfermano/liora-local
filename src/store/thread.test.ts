@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { recentTurns } from './thread';
+import { isNewConversation, recentTurns } from './thread';
 
 describe('recentTurns', () => {
   it('reads Gemma text, the fixed fallback and old fixed lines, newest last', () => {
@@ -20,16 +20,16 @@ describe('recentTurns', () => {
     ]);
   });
 
-  it('keeps only the last six turns and shortens long ones', () => {
-    const many = Array.from({ length: 9 }, (_, i) => ({ role: 'her' as const, text: `m${i}` }));
-    expect(recentTurns(many).map((t) => t.text)).toEqual(['m3', 'm4', 'm5', 'm6', 'm7', 'm8']);
+  it('keeps only the last ten turns and shortens long ones', () => {
+    const many = Array.from({ length: 12 }, (_, i) => ({ role: 'her' as const, text: `m${i}` }));
+    expect(recentTurns(many).map((t) => t.text)).toEqual(['m2', 'm3', 'm4', 'm5', 'm6', 'm7', 'm8', 'm9', 'm10', 'm11']);
     expect(recentTurns([{ role: 'her', text: 'x'.repeat(400) }])[0]!.text.length).toBeLessThanOrEqual(161);
   });
 });
 
 describe('the current conversation', () => {
   const now = new Date('2026-10-10T04:40:00Z');
-  it('counts only the last 30 minutes, so a new day starts a new conversation', () => {
+  it('remembers the last turns whatever their age', () => {
     const turns = recentTurns(
       [
         { role: 'her', text: 'yesterday', at: '2026-10-09T10:00:00Z' },
@@ -37,9 +37,11 @@ describe('the current conversation', () => {
       ],
       now,
     );
-    expect(turns.map((t) => t.text)).toEqual(['just now']);
+    expect(turns.map((t) => t.text)).toEqual(['yesterday', 'just now']);
   });
-  it('is empty when she has not talked to Liora for a while', () => {
-    expect(recentTurns([{ role: 'her', text: 'old', at: '2026-10-10T03:00:00Z' }], now)).toEqual([]);
+  it('starts a new conversation after 30 minutes of quiet, so only then does Liora greet', () => {
+    expect(isNewConversation([{ role: 'her', text: 'old', at: '2026-10-10T03:00:00Z' }], now)).toBe(true);
+    expect(isNewConversation([{ role: 'her', text: 'hi', at: '2026-10-10T04:30:00Z' }], now)).toBe(false);
+    expect(isNewConversation([], now)).toBe(true);
   });
 });

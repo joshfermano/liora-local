@@ -217,6 +217,7 @@ export const COPY = {
   // companion (LUM-84): team phrases that only point to her data, the rules or a quoted card
   'companion.symptom.go_now': ui("I'm here with you. This one needs care now, so here is what the WHO rules say."),
   'companion.symptom.follow_up': ui("I'm here with you. Before anything else, one quick question so I understand how you feel."),
+  'companion.go_now.still': ui("I hear you, and I am staying right here with you. What you told me still needs care now: go to the hospital or health centre, day or night."),
   'companion.symptom.ok': ui('Thank you for telling me. Here is what the rules found.'),
   'companion.period.heard': ui('Shall I put this on your calendar?'),
   'companion.period.when': ui('When did it start? You can mark it on the calendar.'),

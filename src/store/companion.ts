@@ -12,7 +12,7 @@ import { useLogStore } from './log';
 import { storage } from './storage';
 import { useTellStore } from './tell';
 import { toTrace, useTraceStore } from './trace';
-import { recentTurns } from './thread';
+import { CONVERSATION_MS, isNewConversation, recentTurns } from './thread';
 import { runTurn, type AgentTurn } from './turn';
 
 export interface ThreadMessage {
@@ -85,6 +85,20 @@ function putReply(set: Set, id: string, text: string | null) {
   }));
 }
 
+// The go-now from earlier in this conversation (the last 30 minutes), as the decision stands now.
+function activeGoNow(messages: ThreadMessage[], now = Date.now()): string | null {
+  const entries = useLogStore.getState().entries;
+  for (const m of [...messages].reverse()) {
+    if (m.at && now - Date.parse(m.at) > CONVERSATION_MS) break;
+    for (const b of m.blocks ?? []) {
+      if (b.kind !== 'decision') continue;
+      const level = entries.find((e) => e.id === b.entryId)?.decision.level ?? b.level;
+      if (level === 'go_now') return b.entryId;
+    }
+  }
+  return null;
+}
+
 export const useCompanionStore = create<CompanionState>()(
   persist(
     (set, get) => ({
@@ -130,6 +144,8 @@ export const useCompanionStore = create<CompanionState>()(
         const text = raw.trim();
         if (!text || get().thinking) return;
         const thread = recentTurns(get().messages);
+        const opening = isNewConversation(get().messages);
+        const goNow = activeGoNow(get().messages);
         const her: ThreadMessage = { id: newId(), role: 'her', text, at: new Date().toISOString() };
         set((s) => ({ messages: [...s.messages, her], thinking: true }));
         useMemoryStore.getState().setLanguage(languageOf(get().messages.filter((m) => m.role === 'her').map((m) => m.text ?? '')));
@@ -160,7 +176,7 @@ export const useCompanionStore = create<CompanionState>()(
           let turn: AgentTurn | null = null;
           if (!urgent) {
             try {
-              turn = await runTurn(text, entry, day, thread, read);
+              turn = await runTurn(text, entry, day, thread, read, opening);
             } catch {
               turn = null;
             }
@@ -179,6 +195,12 @@ export const useCompanionStore = create<CompanionState>()(
                 name: profile.name,
               }),
             );
+            return;
+          }
+          // A go-now earlier in this conversation stays in front of her: fixed words, the card again, no model.
+          if (goNow) {
+            const kept = turn.attachments.filter((b) => b.kind === 'logged' || b.kind === 'confirm' || b.kind === 'contact');
+            add([{ kind: 'text', key: 'companion.go_now.still' }, ...kept, { kind: 'decision', entryId: goNow, level: 'go_now' }]);
             return;
           }
           const id = add([{ kind: 'reply', text: null, fallback: turn.fallback }, ...turn.attachments]);

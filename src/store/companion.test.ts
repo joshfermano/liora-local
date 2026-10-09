@@ -65,6 +65,31 @@ describe('companion thread with the real rules and no model', () => {
     expect(reply()?.fallback.key).toMatch(/^reply\.saved/);
   });
 
+  it('keeps the go-now in front of her when she pushes back, with fixed words and no model', async () => {
+    useLogStore.setState({ setup: { status: 'pregnant', weeks: 32 } });
+    const sayFn = vi.fn(async () => 'Great that you can manage!');
+    setSayReply(sayFn);
+    await send('dumudugo ako');
+    await send('But I can manage');
+    expect(sayFn).not.toHaveBeenCalled();
+    const blocks = last().blocks ?? [];
+    expect(blocks.find((b) => b.kind === 'text')).toMatchObject({ key: 'companion.go_now.still' });
+    expect(blocks.find((b) => b.kind === 'decision')).toMatchObject({ level: 'go_now' });
+    expect(blocks.some((b) => b.kind === 'reply')).toBe(false);
+  });
+
+  it('lets the reply repeat what she said earlier in the chat', async () => {
+    useLogStore.setState({ setup: { status: 'neither' } });
+    const seen: { allowed: Record<string, unknown> }[] = [];
+    setSayReply(async (req) => {
+      seen.push(req);
+      return null;
+    });
+    await send('my sister Ana is visiting today');
+    await send('What did I say?');
+    expect(JSON.stringify(seen.at(-1)?.allowed)).toContain('my sister Ana is visiting today');
+  });
+
   it('shows her own Call and Text buttons when she asks Liora to call her contact', async () => {
     await send('Can you call him?');
     expect(reply()?.fallback.key).toMatch(/^reply\.contact/);

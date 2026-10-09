@@ -257,7 +257,13 @@ function bubbleText(blocks: ReplyBlock[]): { text: string | null; waiting: boole
   const warm = blocks.find((b): b is Extract<ReplyBlock, { kind: 'warm' }> => b.kind === 'warm');
   if (warm) return { text: warm.text ?? en(`warm.${warm.tone}`), waiting: warm.text === null };
   const text = blocks.find((b): b is Extract<ReplyBlock, { kind: 'text' }> => b.kind === 'text');
-  return text ? { text: fill(en(text.key), text.params), waiting: false } : null;
+  if (!text) return null;
+  // The line above a decision follows the decision as it stands now, so an answered question no longer
+  // reads "one quick question" over a go-now card.
+  const decision = blocks.find((b): b is Extract<ReplyBlock, { kind: 'decision' }> => b.kind === 'decision');
+  const live = decision ? useLogStore.getState().entries.find((e) => e.id === decision.entryId)?.decision.level : undefined;
+  const key = live && text.key.startsWith('companion.symptom.') ? `companion.symptom.${live}` : text.key;
+  return { text: fill(en(key), text.params), waiting: false };
 }
 
 export function LioraMessage({ blocks, thinking = false }: { blocks: ReplyBlock[]; thinking?: boolean }) {
