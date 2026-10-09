@@ -68,8 +68,69 @@ describe('planActions', () => {
     expect(plan([w], data(), 'neither').confirm).toEqual([w]);
     expect(plan([w], data(), undefined).confirm).toEqual([w]);
   });
+  it('applies a delete when a logged period covers the date, and drops it otherwise', () => {
+    const del: AgentAction = { tool: 'delete_period', date: { kind: 'yesterday' } };
+    expect(plan([del], data({ periods: [period('2026-10-08', '2026-10-12')] })).apply).toEqual([del]);
+    expect(plan([del], data({ periods: [period('2026-09-01', '2026-09-05')] }))).toEqual({ apply: [], confirm: [] });
+    expect(plan([{ tool: 'delete_period', date: { kind: 'unknown' } }], data({ periods: [period('2026-10-08', null)] }))).toEqual({ apply: [], confirm: [] });
+  });
+  it('applies a clear only when that day has the parts', () => {
+    const log: DayLog = { date: TODAY, flow: null, symptoms: ['cramps'], moods: [], activities: [] };
+    const d = data({ dayLogs: [log] });
+    const sym: AgentAction = { tool: 'clear_day', date: today, what: 'symptoms' };
+    expect(plan([sym], d).apply).toEqual([sym]);
+    expect(plan([{ tool: 'clear_day', date: today, what: 'all' }], d).apply).toHaveLength(1);
+    expect(plan([{ tool: 'clear_day', date: today, what: 'moods' }], d)).toEqual({ apply: [], confirm: [] });
+    expect(plan([sym], data())).toEqual({ apply: [], confirm: [] });
+  });
+  it('leaves undo, ask_day and open to the store', () => {
+    expect(plan([{ tool: 'undo_last' }, { tool: 'ask_day', date: today }, { tool: 'open', screen: 'calendar' }])).toEqual({ apply: [], confirm: [] });
+  });
   it('leaves read-only tools out of both lists', () => {
     expect(plan([{ tool: 'cycle_question' }, { tool: 'health_question' }, { tool: 'smalltalk' }])).toEqual({ apply: [], confirm: [] });
+  });
+});
+
+describe('applyActions: delete and clear', () => {
+  const log = (over: Partial<DayLog> = {}): DayLog => ({ date: TODAY, flow: null, symptoms: [], moods: [], activities: [], ...over });
+  it('deletes the period covering the date and its flow entries, and Undo holds the old slices', () => {
+    const p = period('2026-10-08', '2026-10-12', { '2026-10-08': 'heavy', '2026-10-09': 'light' });
+    const other = period('2026-09-01', '2026-09-05');
+    const logs = [log({ date: '2026-10-09', flow: 'light', symptoms: ['cramps'] }), log({ date: '2026-10-08', flow: 'heavy' }), log({ date: '2026-09-02', flow: 'medium' })];
+    const d = data({ periods: [other, p], dayLogs: logs });
+    const out = applyActions([{ tool: 'delete_period', date: { kind: 'yesterday' } }], d, TODAY);
+    expect(out.data.periods).toEqual([other]);
+    expect(out.data.dayLogs).toHaveLength(2);
+    expect(out.data.dayLogs).toContainEqual(log({ date: '2026-10-09', symptoms: ['cramps'] }));
+    expect(out.data.dayLogs).toContainEqual(log({ date: '2026-09-02', flow: 'medium' }));
+    expect(out.undo).toEqual({ periods: [other, p], dayLogs: logs });
+    expect(out.saved).toEqual([{ kind: 'period_deleted', date: '2026-10-09' }]);
+  });
+  it('skips a delete when no period covers the date', () => {
+    const out = applyActions([{ tool: 'delete_period', date: today }], data({ periods: [period('2026-09-01', '2026-09-05')] }), TODAY);
+    expect(out).toEqual({ data: {}, undo: {}, saved: [] });
+  });
+  it('clears chosen parts of a day and keeps the rest', () => {
+    const l = log({ flow: 'light', symptoms: ['cramps'], moods: ['calm'], note: 'hi' });
+    const out = applyActions([{ tool: 'clear_day', date: today, what: 'symptoms' }], data({ dayLogs: [l] }), TODAY);
+    expect(out.data.dayLogs).toEqual([{ ...l, symptoms: [] }]);
+    expect(out.undo).toEqual({ dayLogs: [l] });
+    expect(out.saved).toEqual([{ kind: 'day_cleared', date: TODAY, what: 'symptoms' }]);
+  });
+  it('deletes the log when clearing leaves it empty', () => {
+    const out = applyActions([{ tool: 'clear_day', date: today, what: 'moods' }], data({ dayLogs: [log({ moods: ['calm'] })] }), TODAY);
+    expect(out.data.dayLogs).toEqual([]);
+  });
+  it('clears everything for the day, including its period flow entry', () => {
+    const p = period('2026-10-08', '2026-10-12', { [TODAY]: 'heavy', '2026-10-09': 'light' });
+    const l = log({ flow: 'heavy', moods: ['calm'] });
+    const out = applyActions([{ tool: 'clear_day', date: today, what: 'all' }], data({ periods: [p], dayLogs: [l] }), TODAY);
+    expect(out.data.dayLogs).toEqual([]);
+    expect(out.data.periods).toEqual([{ ...p, flow_by_day: { '2026-10-09': 'light' } }]);
+    expect(out.undo).toEqual({ periods: [p], dayLogs: [l] });
+  });
+  it('skips a clear on a day with nothing logged', () => {
+    expect(applyActions([{ tool: 'clear_day', date: today, what: 'all' }], data(), TODAY)).toEqual({ data: {}, undo: {}, saved: [] });
   });
 });
 

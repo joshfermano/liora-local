@@ -1,6 +1,6 @@
 import { addDays, differenceInCalendarDays, format, parseISO } from 'date-fns';
 import { loggedDays, usualLength } from '../calendar';
-import { upsertDayLog } from '../daylog';
+import { isEmptyDayLog, upsertDayLog } from '../daylog';
 import type { DayLog, Flow, PeriodRecord } from '../types';
 import type { AgentData } from './types';
 
@@ -27,7 +27,24 @@ export function flowClashes(date: string, flow: Flow, data: AgentData): boolean 
   return [logged, inPeriod].some((f) => f !== null && f !== flow);
 }
 
-const union = <T>(a: T[], b: T[]): T[] => [...new Set([...a, ...b])];
+// The logged period that covers a day; one still open covers her usual length, never past today.
+export function periodCovering(date: string, data: AgentData, today: string): PeriodRecord | null {
+  const usual = usualLength(data.periods, data.cycleSettings);
+  const end = (p: PeriodRecord) => p.end ?? [shift(p.start, usual - 1), today].sort()[0]!;
+  return data.periods.find((p) => p.start <= date && date <= end(p)) ?? null;
+}
+
+export type Part = 'all' | 'flow' | 'symptoms' | 'moods' | 'activities';
+
+export function dayHas(date: string, what: Part, data: AgentData): boolean {
+  const log = data.dayLogs.find((l) => l.date === date);
+  const flow = (log !== undefined && log.flow !== null) || data.periods.some((p) => date in p.flow_by_day);
+  if (what === 'flow') return flow;
+  if (what === 'all') return flow || (log !== undefined && !isEmptyDayLog(log));
+  return (log?.[what].length ?? 0) > 0;
+}
+
+const union =<T>(a: T[], b: T[]): T[] => [...new Set([...a, ...b])];
 
 export function mergeLog(logs: DayLog[], date: string, patch: Partial<Pick<DayLog, 'flow' | 'symptoms' | 'moods' | 'activities'>>): DayLog[] {
   const old: DayLog = logs.find((l) => l.date === date) ?? { date, flow: null, symptoms: [], moods: [], activities: [] };
