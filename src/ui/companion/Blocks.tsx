@@ -1,6 +1,6 @@
 import { format, parseISO } from 'date-fns';
 import { useRouter } from 'expo-router';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Linking, View } from 'react-native';
 import Animated, { FadeOut } from 'react-native-reanimated';
 import { CARDS } from '../../content/cards';
@@ -24,6 +24,7 @@ import { Text } from '../Text';
 import { SURFACE } from '../theme';
 import { Thinking } from '../Thinking';
 import { agentStore } from './agent-store';
+import { FadingText } from './FadingText';
 import { confirmLine, savedLine } from './saved';
 
 const fill = (s: string, v: Record<string, string> = {}) => s.replace(/\{(\w+)\}/g, (_, k: string) => v[k] ?? '');
@@ -318,6 +319,9 @@ function bubbleText(blocks: ReplyBlock[]): { text: string | null; waiting: boole
 
 export function LioraMessage({ blocks, thinking = false }: { blocks: ReplyBlock[]; thinking?: boolean }) {
   const lead = bubbleText(blocks);
+  // A reply that was written while she watched fades in word by word; a finished one just shows.
+  const streamed = useRef(false);
+  if (lead?.waiting && thinking) streamed.current = true;
   const hasLogged = blocks.some((b) => b.kind === 'logged');
   const actions = [...new Set(blocks.flatMap((b) => (b.kind === 'actions' ? b.items : [])))];
   const rest = blocks.filter(
@@ -331,6 +335,8 @@ export function LioraMessage({ blocks, thinking = false }: { blocks: ReplyBlock[
             <View className="py-xxs">
               <Thinking label={en('liora.typing')} />
             </View>
+          ) : streamed.current && lead.text ? (
+            <FadingText text={lead.text} />
           ) : (
             <Text variant="body">{lead.text}</Text>
           )}
