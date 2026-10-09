@@ -3,11 +3,11 @@ import { useState } from 'react';
 import { TextInput, View } from 'react-native';
 import { en } from '../src/content/copy';
 import { useLogStore } from '../src/store/log';
-import { PROFILE_RANGES, updateProfile, useProfile, type Profile, type Status } from '../src/store/profile';
+import { BLOOD_TYPES, PROFILE_RANGES, dialable, updateProfile, useProfile, type BloodType, type Profile, type Status } from '../src/store/profile';
 import { GlassCard } from '../src/ui/Glass';
 import { confirm, tap } from '../src/ui/haptics';
 import { cleanName } from '../src/ui/name';
-import { SegmentedControl, WheelPicker } from '../src/ui/native';
+import { OptionPicker, SegmentedControl, WheelPicker } from '../src/ui/native';
 import { Divider } from '../src/ui/profile/parts';
 import { PressableSurface } from '../src/ui/PressableSurface';
 import { Screen } from '../src/ui/Screen';
@@ -15,6 +15,8 @@ import { Text } from '../src/ui/Text';
 import { TEXT_TONE } from '../src/ui/theme';
 
 type Field = 'age' | 'heightCm' | 'weightKg' | 'weeks' | 'cycle' | 'period';
+
+const bloodLabel = (b: BloodType) => (b === 'unknown' ? en('blood.unknown') : b);
 
 const RANGES: Record<Field, readonly [number, number]> = { ...PROFILE_RANGES, cycle: [15, 90], period: [1, 14] };
 const START: Partial<Record<Field, number>> = { cycle: 28, period: 5 };
@@ -36,6 +38,12 @@ export default function ProfileEdit() {
     period: cycleSettings.stated_period_length,
   });
   const [open, setOpen] = useState<Field | null>(null);
+  const [blood, setBlood] = useState<BloodType | undefined>(profile.bloodType);
+  const [bloodOpen, setBloodOpen] = useState(false);
+  const [contactName, setContactName] = useState(profile.emergency?.name ?? '');
+  const [relation, setRelation] = useState(profile.emergency?.relation ?? '');
+  const [phone, setPhone] = useState(profile.emergency?.phone ?? '');
+  const [error, setError] = useState<string | null>(null);
 
   const rows: { field: Field; label: string; unit: string }[] = [
     { field: 'age', label: en('profile.age'), unit: en('profile.unit.years') },
@@ -75,6 +83,20 @@ export default function ProfileEdit() {
       if (stated.stated_cycle_length !== cycleSettings.stated_cycle_length || stated.stated_period_length !== cycleSettings.stated_period_length) {
         useLogStore.getState().setCycleSettings({ ...cycleSettings, ...stated });
       }
+    }
+    if (blood !== profile.bloodType) next.bloodType = blood;
+    const cName = cleanName(contactName);
+    const cRelation = relation.trim();
+    const cPhone = phone.trim();
+    if (!cName && !cRelation && !cPhone) {
+      if (profile.emergency) next.emergency = undefined;
+    } else {
+      const digits = dialable(cPhone).replace(/^\+/, '').length;
+      if (digits < 7 || digits > 15) return setError(en('em.phone_error'));
+      if (!cName) return setError(en('em.name_error'));
+      const contact = cRelation ? { name: cName, relation: cRelation, phone: cPhone } : { name: cName, phone: cPhone };
+      const was = profile.emergency;
+      if (!was || was.name !== contact.name || was.phone !== contact.phone || (was.relation ?? '') !== (cRelation || '')) next.emergency = contact;
     }
     if (Object.keys(next).length > 0) {
       confirm();
@@ -163,6 +185,94 @@ export default function ProfileEdit() {
         </View>
 
         {renderRows(rows)}
+
+        <GlassCard>
+          <PressableSurface
+            label={`${en('blood.title')}, ${blood ? bloodLabel(blood) : en('profile.edit.not_set')}`}
+            onPress={() => {
+              tap();
+              setBloodOpen((o) => !o);
+            }}
+            pressScale={0.98}
+            surfaceClassName="min-h-choice flex-row items-center justify-between gap-md px-md"
+          >
+            <Text variant="body">{en('blood.title')}</Text>
+            <Text variant="body" tone={bloodOpen ? 'tint' : 'secondary'}>
+              {blood ? bloodLabel(blood) : en('profile.edit.not_set')}
+            </Text>
+          </PressableSurface>
+          {bloodOpen ? (
+            <OptionPicker
+              label={en('blood.title')}
+              options={BLOOD_TYPES.map((b) => ({ value: b, label: bloodLabel(b) }))}
+              value={blood}
+              onChange={(v) => setBlood(v as BloodType)}
+            />
+          ) : null}
+        </GlassCard>
+
+        <View className="gap-xs">
+          <Text variant="footnote" tone="secondary" className="px-md uppercase" accessibilityRole="header">
+            {en('em.title')}
+          </Text>
+          <GlassCard>
+            <View className="min-h-choice flex-row items-center justify-between gap-md px-md">
+              <Text variant="body">{en('em.name')}</Text>
+              <TextInput
+                value={contactName}
+                onChangeText={(t) => {
+                  setContactName(t);
+                  setError(null);
+                }}
+                accessibilityLabel={en('em.name')}
+                autoCapitalize="words"
+                textContentType="name"
+                returnKeyType="next"
+                maxLength={40}
+                className={`min-h-tap flex-1 text-right text-body ${TEXT_TONE.tint}`}
+              />
+            </View>
+            <Divider />
+            <View className="min-h-choice flex-row items-center justify-between gap-md px-md">
+              <Text variant="body">{en('em.relation')}</Text>
+              <TextInput
+                value={relation}
+                onChangeText={setRelation}
+                accessibilityLabel={en('em.relation')}
+                autoCapitalize="words"
+                returnKeyType="next"
+                maxLength={30}
+                className={`min-h-tap flex-1 text-right text-body ${TEXT_TONE.tint}`}
+              />
+            </View>
+            <Divider />
+            <View className="min-h-choice flex-row items-center justify-between gap-md px-md">
+              <Text variant="body">{en('em.phone')}</Text>
+              <TextInput
+                value={phone}
+                onChangeText={(t) => {
+                  setPhone(t);
+                  setError(null);
+                }}
+                accessibilityLabel={en('em.phone')}
+                keyboardType="phone-pad"
+                textContentType="telephoneNumber"
+                autoComplete="tel"
+                returnKeyType="done"
+                maxLength={24}
+                className={`min-h-tap flex-1 text-right text-body ${TEXT_TONE.tint}`}
+              />
+            </View>
+          </GlassCard>
+          {error ? (
+            <Text variant="footnote" tone="urgent" accessibilityRole="alert" className="px-md">
+              {error}
+            </Text>
+          ) : null}
+          <Text variant="footnote" tone="secondary" className="px-md">
+            {en('em.footer')}
+          </Text>
+        </View>
 
         {cycleRows.length > 0 ? (
           <View className="gap-xs">

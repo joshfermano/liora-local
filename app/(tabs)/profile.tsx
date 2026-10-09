@@ -84,6 +84,29 @@ export default function Profile() {
             <ValueRow label={en('profile.edit.height')} value={profile.heightCm} unit={en('profile.unit.cm')} onPress={openEditor} />
             <Divider />
             <ValueRow label={en('profile.edit.weight')} value={profile.weightKg} unit={en('profile.unit.kg')} onPress={openEditor} />
+            <Divider />
+            <ValueRow label={en('blood.title')} value={profile.bloodType === 'unknown' ? en('blood.unknown') : profile.bloodType} onPress={openEditor} />
+          </Section>
+          <Section title={en('em.title')} footer={en('em.footer')}>
+            {profile.emergency ? (
+              <>
+                <ValueRow label={en('em.name')} value={profile.emergency.name} onPress={openEditor} />
+                {profile.emergency.relation ? (
+                  <>
+                    <Divider />
+                    <ValueRow label={en('em.relation')} value={profile.emergency.relation} onPress={openEditor} />
+                  </>
+                ) : null}
+                <Divider />
+                <ValueRow label={en('em.phone')} value={profile.emergency.phone} onPress={openEditor} />
+              </>
+            ) : (
+              <PressableSurface label={en('em.add')} onPress={openEditor} role="link" pressScale={0.98} surfaceClassName="min-h-choice justify-center px-md">
+                <Text variant="body" tone="tint">
+                  {en('em.add')}
+                </Text>
+              </PressableSurface>
+            )}
           </Section>
           <MemorySection />
         </Fade>
