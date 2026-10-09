@@ -20,6 +20,7 @@ const WAV_16K: RecordingOptions = {
   sampleRate: 16000,
   numberOfChannels: 1,
   bitRate: 256000,
+  isMeteringEnabled: true,
   android: { outputFormat: 'default', audioEncoder: 'default' },
   ios: {
     extension: '.wav',
@@ -37,7 +38,7 @@ const message = (e: unknown) => (e instanceof Error ? e.message : String(e));
 
 export function useVoiceNote(): VoiceNote {
   const recorder = useAudioRecorder(WAV_16K);
-  const status = useAudioRecorderState(recorder, 250);
+  const status = useAudioRecorderState(recorder, 100);
   const [state, setState] = useState<VoiceNoteState>('idle');
   const [error, setError] = useState<string | null>(null);
 
@@ -87,5 +88,23 @@ export function useVoiceNote(): VoiceNote {
     }
   }
 
-  return { state, seconds: Math.floor((status.durationMillis ?? 0) / 1000), error, start, stop };
+  async function cancel() {
+    if (state !== 'recording') return;
+    const left = recorder.uri;
+    try {
+      await recorder.stop();
+      await setAudioModeAsync({ allowsRecording: false, playsInSilentMode: true });
+    } catch {}
+    setState('idle');
+    if (left) {
+      try {
+        new File(left).delete();
+      } catch {}
+    }
+  }
+
+  // Metering is in dBFS; about -55 is a quiet room and -5 is close, clear speech.
+  const level = state === 'recording' ? Math.min(1, Math.max(0, ((status.metering ?? -160) + 55) / 50)) : 0;
+
+  return { state, seconds: Math.floor((status.durationMillis ?? 0) / 1000), level, error, start, stop, cancel };
 }
