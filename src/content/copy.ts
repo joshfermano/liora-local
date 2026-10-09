@@ -673,6 +673,8 @@ export const COPY = {
   'handoff.share': ui('Share as PDF'),
   'handoff.footer': ui('Made on her phone by Tell Liora from what she reported and the WHO danger-sign rules. Not a diagnosis.'),
   'handoff.summary': ui('Health summary'),
+  // handoff ui (LUM-61)
+  'handoff.share.error': ui('Could not make the PDF. Try again.'),
 } as const satisfies Record<string, Entry>;
 
 export type CopyKey = keyof typeof COPY;

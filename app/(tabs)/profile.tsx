@@ -123,6 +123,11 @@ export default function Profile() {
                 <Symbol name="chevron.right" fallback="chevronRight" tone="tertiary" size={14} />
               </View>
             </PressableSurface>
+            <Divider />
+            <PressableSurface label={en('handoff.summary')} onPress={() => router.push('/summary')} role="link" pressScale={0.98} surfaceClassName="min-h-choice flex-row items-center justify-between gap-md px-md">
+              <Text variant="body">{en('handoff.summary')}</Text>
+              <Symbol name="chevron.right" fallback="chevronRight" tone="tertiary" size={14} />
+            </PressableSurface>
           </Section>
 
           {confirming ? (
