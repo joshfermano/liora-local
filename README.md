@@ -36,7 +36,7 @@ Context, from checked sources:
 | Step | What happens |
 | --- | --- |
 | **Listen** | She types, or speaks for up to 30 seconds. Gemma 4's own audio encoder writes down her words, and she can fix them before sending. |
-| **Understand** | Readers turn her words into danger-sign codes: a Taglish word list, and Gemma 4 answering fixed, typed questions ("Does the message say she has bleeding from the vagina?") with a confidence for each answer. An embedding matcher (EmbeddingGemma 2) is planned. |
+| **Understand** | Readers turn her words into danger-sign codes: a Taglish word list, and Gemma 4 answering fixed, typed questions ("Does the message say she has bleeding from the vagina?") with a confidence for each answer. On a calm answer, EmbeddingGemma finds the reviewed source card closest in meaning. |
 | **Decide** | A deterministic decision model built from WHO and DOH warning-sign tables makes the call: go to the hospital now, one fixed follow-up question, or a calm answer. |
 | **Explain** | Fixed, pre-written screens; a card to show the nurse; and the WHO or DOH passage behind the answer, shown word for word. |
 | **Remember** | Her log, a cycle calendar and an explained next-period estimate, stored only on her phone. |
@@ -59,7 +59,8 @@ reported.
 - **The AI never decides.** Every "go now", follow-up and calm outcome comes from rule tables, each
   with a WHO or DOH source.
 - **Caution only goes up.** A danger sign found by any reader counts. Skipping the follow-up
-  question counts as the serious case.
+  question counts as the serious case. The AI can never talk her out of a follow-up on its own: its
+  "mild" reading counts only when her own words say so ("medyo", "konti").
 - **No AI-written medical text.** The "go now" and crisis screens use fixed copy. The urgent lines
   quote approved WHO passages word for word, and source cards are shown verbatim, never paraphrased.
   Gemma never writes a reply: it only answers yes/no questions with probabilities.
@@ -90,7 +91,7 @@ reported.
 | AI-off checklist | built |
 | "How Liora decided": what each reader found, which rule fired, which models ran | built |
 | Cycle calendar and explained next-period estimate | built |
-| Source-card search by meaning (EmbeddingGemma 2) | planned |
+| Source-card search by meaning (EmbeddingGemma, on the phone) | built |
 | Stretch: read blood pressure and weeks from a photo of the check-up record | stretch |
 
 ## Why does this product benefit from running AI locally?
@@ -124,6 +125,10 @@ copied into memory. Sizes are Hugging Face file sizes, not our measurements.
 | --- | --- | --- | --- |
 | Typed decisions on her words | [Gemma 4 E2B instruct, Q4_0](https://huggingface.co/ggml-org/gemma-4-E2B-it-GGUF) | Apache-2.0 | 2,709 MiB |
 | Speech to text | Gemma 4 E2B audio encoder (projector, Q8_0) from the same repository | Apache-2.0 | 531 MiB |
+| Finding the source card closest in meaning | [EmbeddingGemma 300M, QAT Q4_0](https://huggingface.co/ggml-org/embeddinggemma-300M-qat-q4_0-GGUF) | Apache-2.0 | 264 MiB |
+
+EmbeddingGemma 2 was the plan, but llama.rn 0.13.0-rc.7 runs EmbeddingGemma 300M and not version 2
+yet, so the phone uses 300M. Retrieval only chooses which reviewed card to show; it never decides.
 
 We started in Safari with [Transformers.js](https://github.com/huggingface/transformers.js). It
 could not hold Gemma 4 E2B in one tab: iPhone WebGPU caps a buffer at 1,024 MB while Gemma 4's token
@@ -178,7 +183,8 @@ asks only for Increased Memory Limit. `npx expo export -p web` builds the web ve
 | [PHQ-9](https://www.phqscreeners.com/) (Spitzer, Williams, Kroenke and colleagues): "No permission required to reproduce, translate, display or distribute" | The mood check, items word for word; cut-off 10 (Kroenke, Spitzer and Williams 2001) |
 | [WHO Philippines and DOH, 10 September 2020](https://www.who.int/philippines/news/detail/10-09-2020-doh-and-who-promote-holistic-mental-health-wellness-in-light-of-world-suicide-prevention-day) | The NCMH Crisis Hotline (1553) on the crisis screen |
 
-Every source card was checked by a team member against its page before it shipped. No rule or card
+Every source card was compared with its page by a team member; each verdict is recorded in
+`sources/review.md` (the fact-check commit is 14b0e94), and only approved cards ship. No rule or card
 ships without a cited source.
 
 ## Disclosures
@@ -186,8 +192,8 @@ ships without a cited source.
 - **Models:** listed above. All run on the device.
 - **Technologies:** listed under Tech stack.
 - **APIs and cloud services:** none at runtime. Setup downloads the model files from Hugging Face.
-- **Runs locally:** speech to text, typed decisions, the rule-based decision model, the mood check,
-  and storage. **Needs internet:** the first model download only.
+- **Runs locally:** speech to text, typed decisions, source-card search, the rule-based decision
+  model, the mood check, and storage. **Needs internet:** the first model download only.
 - **Existing code and assets:** no existing code; every source file was written during the
   hackathon. WHO and DOH passages and the PHQ-9 are cited third-party content. The typed-decision
   method follows TypeSafe AI's public description of Jev and
