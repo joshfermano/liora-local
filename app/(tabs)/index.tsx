@@ -1,20 +1,20 @@
 import { Link, useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { KeyboardAvoidingView, Platform, Pressable, View } from 'react-native';
-import { useVoiceNote } from '../src/ai/use-voice-note';
-import { en, fil } from '../src/content/copy';
-import { useLogStore } from '../src/store/log';
-import { useTellStore } from '../src/store/tell';
-import { CapsuleButton } from '../src/ui/CapsuleButton';
-import { Icon } from '../src/ui/Icon';
-import { InlineError } from '../src/ui/InlineError';
-import { MicButton } from '../src/ui/MicButton';
-import { Pair } from '../src/ui/Pair';
-import { Screen } from '../src/ui/Screen';
-import { useAiStatus, useOffline } from '../src/ui/status';
-import { TellField } from '../src/ui/TellField';
-import { useName } from '../src/ui/name';
-import { Text } from '../src/ui/Text';
+import { useVoiceNote } from '../../src/ai/use-voice-note';
+import { en, fil } from '../../src/content/copy';
+import { useLogStore } from '../../src/store/log';
+import { useTellStore } from '../../src/store/tell';
+import { CapsuleButton } from '../../src/ui/CapsuleButton';
+import { Icon } from '../../src/ui/Icon';
+import { InlineError } from '../../src/ui/InlineError';
+import { MicButton } from '../../src/ui/MicButton';
+import { Pair } from '../../src/ui/Pair';
+import { Screen } from '../../src/ui/Screen';
+import { useAiStatus, useOffline } from '../../src/ui/status';
+import { TellField } from '../../src/ui/TellField';
+import { useName } from '../../src/ui/name';
+import { Text } from '../../src/ui/Text';
 
 const RECORD_LIMIT_S = 30;
 

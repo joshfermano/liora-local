@@ -1,0 +1,13 @@
+import { Screen } from '../../src/ui/Screen';
+import { Text } from '../../src/ui/Text';
+import { en } from '../../src/content/copy';
+
+export default function Liora() {
+  return (
+    <Screen>
+      <Text variant="displayTitle" accessibilityRole="header">
+        {en('tabs.liora')}
+      </Text>
+    </Screen>
+  );
+}
