@@ -9,12 +9,15 @@ export function useMargin(): number {
   return useWindowDimensions().width >= 414 ? 20 : 16;
 }
 
+const TAB_BAR_CLEARANCE = 64;
+
 export function Screen({
   children,
   field = true,
   raised = false,
   scroll = true,
   topInset = true,
+  tabBar = false,
   footer,
 }: {
   children: ReactNode;
@@ -22,11 +25,14 @@ export function Screen({
   raised?: boolean;
   scroll?: boolean;
   topInset?: boolean;
+  // Tab screens keep their last content and footer clear of the floating tab bar.
+  tabBar?: boolean;
   // Pinned under the content, above the bottom inset.
   footer?: ReactNode;
 }) {
   const insets = useSafeAreaInsets();
   const margin = useMargin();
+  const bottom = insets.bottom + (tabBar ? TAB_BAR_CLEARANCE : 0);
   const body = (
     <View
       className="w-full max-w-column self-center flex-1"
@@ -41,7 +47,7 @@ export function Screen({
       {scroll ? (
         <ScrollView
           className="flex-1"
-          contentContainerStyle={{ flexGrow: 1, paddingBottom: footer ? 0 : insets.bottom + 24 }}
+          contentContainerStyle={{ flexGrow: 1, paddingBottom: footer ? 0 : bottom + 24 }}
           keyboardShouldPersistTaps="handled"
           contentInsetAdjustmentBehavior="never"
         >
@@ -53,7 +59,7 @@ export function Screen({
       {footer ? (
         <View
           className="w-full max-w-column self-center"
-          style={{ paddingHorizontal: margin, paddingBottom: insets.bottom + 12, paddingTop: 8 }}
+          style={{ paddingHorizontal: margin, paddingBottom: bottom + 12, paddingTop: 8 }}
         >
           {footer}
         </View>

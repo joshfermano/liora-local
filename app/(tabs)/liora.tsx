@@ -47,7 +47,7 @@ export default function Liora() {
 
   return (
     <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} className="flex-1">
-      <Screen scroll={false} footer={<Composer text={text} setText={setText} />}>
+      <Screen tabBar scroll={false} footer={<Composer text={text} setText={setText} />}>
         <Text variant="displayTitle" accessibilityRole="header" className="pb-sm pt-lg">
           {en('tabs.liora')}
         </Text>

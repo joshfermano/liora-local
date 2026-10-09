@@ -25,15 +25,15 @@ export default function RootLayout() {
       <Stack screenOptions={{ headerShown: false, animation: 'fade' }}>
         <Stack.Screen
           name="period"
-          options={{ presentation: 'formSheet', animation: 'default', sheetGrabberVisible: true, sheetAllowedDetents: [0.7, 1] }}
+          options={{ presentation: 'modal', animation: 'default' }}
         />
         <Stack.Screen
           name="profile-edit"
-          options={{ presentation: 'formSheet', animation: 'default', sheetGrabberVisible: true, sheetAllowedDetents: [0.85, 1] }}
+          options={{ presentation: 'modal', animation: 'default' }}
         />
         <Stack.Screen
           name="log-day"
-          options={{ presentation: 'formSheet', animation: 'default', sheetGrabberVisible: true, sheetAllowedDetents: [0.7, 1] }}
+          options={{ presentation: 'modal', animation: 'default' }}
         />
       </Stack>
     </>

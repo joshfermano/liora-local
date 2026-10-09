@@ -39,7 +39,7 @@ export default function Profile() {
   };
 
   return (
-    <Screen>
+    <Screen tabBar>
       <View className="gap-xl pb-xl pt-md">
         <View className="items-center gap-sm">
           <LinearGradient

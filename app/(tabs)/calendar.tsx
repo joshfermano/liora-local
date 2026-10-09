@@ -147,7 +147,7 @@ function Calendar() {
   const openSheet = (params?: { id?: string; date?: string }) => router.push({ pathname: '/period', params });
 
   return (
-    <Screen>
+    <Screen tabBar>
       <View className="gap-lg pt-xl pb-xl">
         <Text variant="displayHeading" accessibilityRole="header">
           {en('calendar.title')}
