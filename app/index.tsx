@@ -114,7 +114,8 @@ export default function Home() {
               </Text>
             </Link>
           )}
-          {Platform.OS === 'web' ? null : (
+          {/* Test builds set EXPO_PUBLIC_SHOW_DEV=1 for on-phone measurements; the demo build leaves it off. */}
+          {Platform.OS === 'web' || process.env.EXPO_PUBLIC_SHOW_DEV !== '1' ? null : (
             <Link href="/dev/native" className="self-start">
               <Text variant="footnote" tone="secondary">
                 {en('home.dev_native')}
