@@ -1,9 +1,9 @@
 import { File, Paths } from 'expo-file-system';
 import { initLlama } from 'llama.rn';
-import { GEMMA_GGUF, type NativeGemma } from './gemma-native';
+import { GEMMA_GGUF, type NativeGemma } from './gemma-model';
 import { logScoresFromTopProbs, optionTokenIds, promptFor, QUESTIONS, restrictedSoftmax } from './typed-decisions';
 
-export { GEMMA_GGUF, type NativeGemma } from './gemma-native';
+export { GEMMA_GGUF, type NativeGemma } from './gemma-model';
 
 const model = () => new File(Paths.document, GEMMA_GGUF.file);
 
