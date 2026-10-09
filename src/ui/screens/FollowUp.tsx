@@ -5,6 +5,7 @@ import type { Entry } from '../../core/types';
 import { useTellStore } from '../../store/tell';
 import { CapsuleButton } from '../CapsuleButton';
 import { ChoiceCard } from '../ChoiceCard';
+import { DecidedLink } from '../DecidedLink';
 import { Pair } from '../Pair';
 import { Screen } from '../Screen';
 import { Text } from '../Text';
@@ -44,6 +45,7 @@ export function FollowUp({ entry }: { entry: Entry }) {
             </Text>
           )}
         </View>
+        <DecidedLink id={entry.id} />
       </View>
     </Screen>
   );

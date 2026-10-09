@@ -4,6 +4,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { en, fil, severityKey, signKey } from '../../content/copy';
 import type { Entry } from '../../core/types';
 import { CapsuleButton } from '../CapsuleButton';
+import { DecidedLink } from '../DecidedLink';
 import { Icon } from '../Icon';
 import { Lattice } from '../Lattice';
 import { useMargin } from '../Screen';
@@ -74,6 +75,7 @@ export function GoNow({ entry }: { entry: Entry }) {
                 <CapsuleButton variant="plain" label={en('result.why')} onPress={() => router.push(`/why/${firstRule}`)} />
               </View>
             ) : null}
+            <DecidedLink id={entry.id} />
           </View>
         </View>
       </ScrollView>

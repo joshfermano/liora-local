@@ -5,6 +5,7 @@ import { en } from '../../content/copy';
 import type { Entry } from '../../core/types';
 import { useTellStore } from '../../store/tell';
 import { CapsuleButton } from '../CapsuleButton';
+import { DecidedLink } from '../DecidedLink';
 import { Lattice } from '../Lattice';
 import { Screen } from '../Screen';
 import { SourceCard } from '../SourceCard';
@@ -34,6 +35,7 @@ export function Calm({ entry }: { entry: Entry }) {
             {en('result.ask_checkup')}
           </Text>
         )}
+        <DecidedLink id={entry.id} />
         <CapsuleButton
           variant="neutral"
           label={en('result.home')}

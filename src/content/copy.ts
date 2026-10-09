@@ -161,6 +161,21 @@ export const COPY = {
   'crisis.headline': ui('Talk to someone now.'),
   'crisis.call': ui('Call 1553'),
   'crisis.source': ui('WHO Philippines and DOH, 10 September 2020'),
+  // how liora decided (LUM-76)
+  'decided.link': ui('How Liora decided'),
+  'decided.title': ui('How Liora decided'),
+  'decided.reader.lexicon': ui('Word list'),
+  'decided.reader.embedding': ui('Meaning match'),
+  'decided.reader.llm': ui('AI typed decisions'),
+  'decided.reader.checklist': ui('Checklist'),
+  'decided.nothing': ui('Found nothing'),
+  'decided.conf.high': ui('very likely'),
+  'decided.conf.mid': ui('likely'),
+  'decided.conf.low': ui('possible'),
+  'decided.rules': ui('Rules that fired'),
+  'decided.rules.none': ui('No rule fired'),
+  'decided.models': ui('Models that ran'),
+  'decided.models.none': ui('No AI model ran; the word list and rules decided.'),
 } as const satisfies Record<string, Entry>;
 
 export type CopyKey = keyof typeof COPY;
