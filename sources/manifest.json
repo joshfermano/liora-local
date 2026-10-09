@@ -1,0 +1,45 @@
+{
+  "note": "Source documents for Tell Liora's cited source cards. The files are downloaded by scripts/fetch-sources.sh into sources/raw/ (not committed). Only short verbatim excerpts with citations, approved by a person, ship in the app.",
+  "sources": [
+    {
+      "id": "who-anc-dak",
+      "title": "WHO antenatal care recommendations for a positive pregnancy experience: digital adaptation kit",
+      "org": "WHO",
+      "year": 2021,
+      "page": "https://www.who.int/publications/i/item/9789240020306",
+      "url": "https://iris.who.int/server/api/core/bitstreams/0affb504-e80a-42db-9b53-7c442d4c72f2/content",
+      "file": "who-anc-dak.pdf",
+      "licence": "CC BY-NC-SA 3.0 IGO"
+    },
+    {
+      "id": "who-anc-dak-annex-b",
+      "title": "Digital adaptation kit, Web annex B: decision support logic (includes ANC.DT.01, ANC.DT.17)",
+      "org": "WHO",
+      "year": 2021,
+      "page": "https://www.who.int/publications/i/item/9789240020306",
+      "url": "https://apps.who.int/iris/bitstream/handle/10665/339741/WHO-SRH-21.2-eng.xlsx",
+      "file": "who-anc-dak-annex-b.xlsx",
+      "licence": "CC BY-NC-SA 3.0 IGO"
+    },
+    {
+      "id": "who-pcpnc",
+      "title": "Pregnancy, childbirth, postpartum and newborn care: a guide for essential practice, 3rd edition",
+      "org": "WHO",
+      "year": 2015,
+      "page": "https://www.who.int/publications/i/item/9789241549356",
+      "url": "https://iris.who.int/server/api/core/bitstreams/e9f751fd-6eab-42cb-9e0c-0eb86a0365bb/content",
+      "file": "who-pcpnc.pdf",
+      "licence": "Copyright WHO, all rights reserved: short quoted excerpts with citation only"
+    },
+    {
+      "id": "doh-mcb",
+      "title": "Mother and Child Book (Philippines)",
+      "org": "DOH",
+      "year": null,
+      "page": "https://www.jica.go.jp/project/philippines/0600894/04/pdf/03_MCB01.pdf",
+      "url": "https://www.jica.go.jp/project/philippines/0600894/04/pdf/03_MCB01.pdf",
+      "file": "doh-mcb.pdf",
+      "licence": "Philippine government work; edition unconfirmed (JICA-hosted copy). Check against a printed copy from a health centre before shipping excerpts."
+    }
+  ]
+}

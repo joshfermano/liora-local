@@ -19,3 +19,7 @@ public/workers/
 public/ort/
 .playwright-mcp/
 .claude/worktrees/
+
+# Downloaded source documents and their extracted text (see sources/manifest.json)
+sources/raw/
+sources/text/
