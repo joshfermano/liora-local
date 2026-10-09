@@ -62,9 +62,10 @@ export default function Liora() {
                 tap();
                 clear();
               }}
-              surfaceClassName="min-h-tap min-w-tap items-center justify-center"
             >
-              <Symbol name="arrow.counterclockwise.circle" fallback="reset" tone="tint" size={26} />
+              <GlassCard interactive className="h-tap w-tap items-center justify-center">
+                <Symbol name="arrow.counterclockwise" fallback="reset" tone="tint" size={20} />
+              </GlassCard>
             </PressableSurface>
           ) : null}
         </View>
