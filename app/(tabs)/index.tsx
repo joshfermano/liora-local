@@ -1,101 +1,63 @@
-import { Link, useRouter } from 'expo-router';
-import { useEffect, useState } from 'react';
-import { KeyboardAvoidingView, Platform, Pressable, View } from 'react-native';
-import { useVoiceNote } from '../../src/ai/use-voice-note';
-import { en, fil } from '../../src/content/copy';
+import { format } from 'date-fns';
+import { Link } from 'expo-router';
+import { useMemo } from 'react';
+import { Platform, Pressable, View } from 'react-native';
+import { en } from '../../src/content/copy';
+import { today } from '../../src/core/today';
 import { useLogStore } from '../../src/store/log';
-import { useTellStore } from '../../src/store/tell';
-import { CapsuleButton } from '../../src/ui/CapsuleButton';
+import { useProfile } from '../../src/store/profile';
 import { Icon } from '../../src/ui/Icon';
-import { InlineError } from '../../src/ui/InlineError';
-import { MicButton } from '../../src/ui/MicButton';
-import { Pair } from '../../src/ui/Pair';
 import { Screen } from '../../src/ui/Screen';
-import { useAiStatus, useOffline } from '../../src/ui/status';
-import { TellField } from '../../src/ui/TellField';
-import { useName } from '../../src/ui/name';
+import { useAiStatus } from '../../src/ui/status';
 import { Text } from '../../src/ui/Text';
-import { CardOfDay, Cycles, GlanceTiles, Noticed, useToday } from '../../src/ui/today/dashboard';
-import { Actions, Answer, CycleStrip, Header, Rise } from '../../src/ui/today/parts';
-import { predictNext } from '../../src/core/cycle';
-
-const RECORD_LIMIT_S = 30;
+import { Deeper, Rows, Stats } from '../../src/ui/today/cycles';
+import { GapQuestion, Glance } from '../../src/ui/today/glance';
+import { Actions, AnswerBlock, Header, Rise, Strip } from '../../src/ui/today/parts';
 
 export default function Home() {
-  const router = useRouter();
-  const submit = useTellStore((s) => s.submit);
-  const status = useTellStore((s) => s.status);
-  const aiOn = useAiStatus((s) => s.on);
+  const entries = useLogStore((s) => s.entries);
+  const moods = useLogStore((s) => s.moods);
+  const periods = useLogStore((s) => s.periods);
+  const cycleSettings = useLogStore((s) => s.cycleSettings);
+  const dayLogs = useLogStore((s) => s.dayLogs);
   const setupDone = useLogStore((s) => s.setup?.status != null);
-  const offline = useOffline();
-  const name = useName();
-  const t = useToday();
-  const next = t.profile.status && t.profile.status !== 'neither' ? null : predictNext(t.periods, t.cycleSettings, t.today, 'neither');
-  const [text, setText] = useState('');
-  const voice = useVoiceNote();
-  const recording = voice.state === 'recording';
-  const elapsed = voice.seconds;
-  const thinking = status === 'thinking' || voice.state === 'transcribing';
+  const aiOn = useAiStatus((s) => s.on);
+  const profile = useProfile();
+  const day = format(new Date(), 'yyyy-MM-dd');
 
-  // Her words land in the field for her to read and edit before Check (FR-3).
-  const stopAndWrite = async () => {
-    const heard = await voice.stop();
-    if (heard) setText((current) => (current.trim() ? `${current.trim()} ${heard.text}` : heard.text));
-  };
-  useEffect(() => {
-    if (recording && elapsed >= RECORD_LIMIT_S) void stopAndWrite();
-  }, [recording, elapsed]);
-
-  const toggleMic = () => {
-    if (recording) void stopAndWrite();
-    else void voice.start().catch(() => {});
-  };
-
-  const check = async () => {
-    const entry = await submit(text.trim());
-    router.push(`/result/${entry.id}`);
-  };
+  const model = useMemo(
+    () => today({ entries, moodChecks: moods, periods, cycleSettings, dayLogs, status: profile.status, today: day }),
+    [entries, moods, periods, cycleSettings, dayLogs, profile.status, day],
+  );
+  const initial = (profile.name?.trim()[0] ?? 'L').toUpperCase();
 
   return (
-    <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} className="flex-1">
-      <Screen tabBar>
-        <View className={`gap-xl ${Platform.OS === 'web' ? 'pt-[72px]' : 'pt-lg'}`}>
-          <Rise order={0}>
-            <View className="gap-md">
-              <Header name={name} />
-              <CycleStrip strip={t.glance.strip} />
-            </View>
-            <Answer
-              pregnant={t.profile.status === 'pregnant'}
-              weeks={t.profile.weeks}
-              day={t.glance.cycle?.day ?? null}
-              next={next}
-            />
-          </Rise>
-          <Rise order={1}>
-            <Actions />
-          <View accessible accessibilityLabel={`${fil('home.prompt')} ${en('home.prompt')}`} className="gap-xxs">
-            <Text variant="displayTitle">{fil('home.prompt')}</Text>
-            <Text variant="body" tone="secondary">
-              {en('home.prompt')}
-            </Text>
-          </View>
+    <Screen tabBar>
+      <View className={`gap-xl ${Platform.OS === 'web' ? 'pt-[72px]' : 'pt-lg'}`}>
+        <Rise order={0}>
           <View className="gap-md">
-            <TellField value={text} onChangeText={setText} label={en('home.field.label')} />
-            <View className="flex-row items-center gap-md">
-              <MicButton recording={recording} elapsed={elapsed} limit={RECORD_LIMIT_S} onPress={toggleMic} />
-              <CapsuleButton
-                className="flex-1"
-                label={en('home.check')}
-                disabled={text.trim().length === 0}
-                loading={thinking}
-                onPress={check}
-              />
-            </View>
-            {status === 'error' ? <InlineError message={fil('home.error')} /> : null}
-            {voice.state === 'error' && voice.error ? <InlineError message={en('home.voice.error')} /> : null}
+            <Header initial={initial} />
+            <Strip strip={model.strip} />
           </View>
-          <View className="gap-xxs" accessible accessibilityLabel={[en('home.privacy'), aiOn ? en('home.ai.on') : en('home.ai.off'), offline ? en('home.offline') : ''].join('. ')}>
+          <AnswerBlock answer={model.answer} />
+        </Rise>
+        <Rise order={1}>
+          <Actions logged={model.loggedToday} />
+          {model.gapQuestion ? <GapQuestion gap={model.gapQuestion} /> : null}
+          <Glance model={model} pregnant={profile.status === 'pregnant'} />
+        </Rise>
+        <Rise order={2}>
+          {model.cycles ? (
+            <View className="gap-sm">
+              <Text variant="footnote" tone="secondary" accessibilityRole="header" className="px-md">
+                {en('td.cycles')}
+              </Text>
+              <Stats cycles={model.cycles} />
+              {model.rows.length ? <Rows rows={model.rows} /> : null}
+            </View>
+          ) : null}
+          <Deeper model={model} />
+          <View className="gap-xs">
             <StatusRow icon="lock">{en('home.privacy')}</StatusRow>
             {aiOn ? (
               <StatusRow icon="info">{en('home.ai.on')}</StatusRow>
@@ -106,37 +68,29 @@ export default function Home() {
                 </Pressable>
               </Link>
             )}
-            {offline ? <StatusRow icon="phone">{en('home.offline')}</StatusRow> : null}
           </View>
-          </Rise>
-          <Rise order={2}>
-            <GlanceTiles g={t.glance} />
-            <Cycles g={t.glance} periods={t.periods} today={t.today} />
-            <Noticed list={t.insights} />
-            <CardOfDay today={t.today} />
-          </Rise>
-          {setupDone ? null : (
-            <Link href="/setup" className="self-start">
-              <Text variant="footnote" tone="secondary">
-                {en('home.setup')}
-              </Text>
-            </Link>
-          )}
-          {/* Test builds set EXPO_PUBLIC_SHOW_DEV=1 for on-phone measurements; the demo build leaves it off. */}
-          {Platform.OS === 'web' || process.env.EXPO_PUBLIC_SHOW_DEV !== '1' ? null : (
-            <Link href="/dev/native" className="self-start">
-              <Text variant="footnote" tone="secondary">
-                {en('home.dev_native')}
-              </Text>
-            </Link>
-          )}
-        </View>
-      </Screen>
-    </KeyboardAvoidingView>
+        </Rise>
+        {setupDone ? null : (
+          <Link href="/setup" className="self-start">
+            <Text variant="footnote" tone="secondary">
+              {en('home.setup')}
+            </Text>
+          </Link>
+        )}
+        {/* Test builds set EXPO_PUBLIC_SHOW_DEV=1 for on-phone measurements; the demo build leaves it off. */}
+        {Platform.OS === 'web' || process.env.EXPO_PUBLIC_SHOW_DEV !== '1' ? null : (
+          <Link href="/dev/native" className="self-start">
+            <Text variant="footnote" tone="secondary">
+              {en('home.dev_native')}
+            </Text>
+          </Link>
+        )}
+      </View>
+    </Screen>
   );
 }
 
-function StatusRow({ icon, children }: { icon: 'lock' | 'info' | 'phone'; children: string }) {
+function StatusRow({ icon, children }: { icon: 'lock' | 'info'; children: string }) {
   return (
     <View className="flex-row items-center gap-xs">
       <Icon name={icon} tone="secondary" size={16} />
