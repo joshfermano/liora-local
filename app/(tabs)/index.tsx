@@ -11,6 +11,7 @@ import { Screen } from '../../src/ui/Screen';
 import { useAiStatus } from '../../src/ui/status';
 import { Text } from '../../src/ui/Text';
 import { EDGE, SEPARATOR, SURFACE } from '../../src/ui/theme';
+import { TellBar } from '../../src/ui/today/TellBar';
 import { Deeper, Rows, Stats } from '../../src/ui/today/cycles';
 import { GapQuestion, Glance } from '../../src/ui/today/glance';
 import { Actions, AnswerBlock, Header, Rise, Strip } from '../../src/ui/today/parts';
@@ -44,6 +45,7 @@ export default function Home() {
         </Rise>
         <Rise order={1}>
           <Actions logged={model.loggedToday} />
+          <TellBar />
           {model.gapQuestion ? <GapQuestion gap={model.gapQuestion} /> : null}
           <Glance model={model} pregnant={profile.status === 'pregnant'} />
         </Rise>

@@ -16,3 +16,9 @@ export type VoiceNote = {
   // Resolves to her words as text, or null when nothing could be heard or transcribed.
   stop(): Promise<{ text: string; ms: number } | null>;
 };
+
+export type VoiceNoteOptions = {
+  // Stop by itself when she goes quiet; the result then goes to onHeard.
+  autoStop?: boolean;
+  onHeard?: (heard: { text: string; ms: number } | null) => void;
+};

@@ -1,10 +1,10 @@
-import type { VoiceNote } from './voice-note-types';
+import type { VoiceNote, VoiceNoteOptions } from './voice-note-types';
 
-export { MIC_DENIED, type VoiceNote, type VoiceNoteState } from './voice-note-types';
+export { MIC_DENIED, type VoiceNote, type VoiceNoteOptions, type VoiceNoteState } from './voice-note-types';
 
 const unavailable = 'Voice works in the iPhone app';
 
-export function useVoiceNote(): VoiceNote {
+export function useVoiceNote(_options: VoiceNoteOptions = {}): VoiceNote {
   return {
     state: 'error',
     seconds: 0,
