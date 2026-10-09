@@ -35,6 +35,7 @@ export default function RootLayout() {
           name="log-day"
           options={{ presentation: 'modal', animation: 'default' }}
         />
+        <Stack.Screen name="day" options={{ presentation: 'modal', animation: 'default' }} />
       </Stack>
     </>
   );

@@ -1,39 +1,23 @@
-import { addDays, addMonths, format, getDay, getDaysInMonth, parseISO, startOfMonth } from 'date-fns';
 import { useRouter } from 'expo-router';
-import { useMemo, useState } from 'react';
-import { View } from 'react-native';
+import { useCallback, useMemo, useRef, useState } from 'react';
+import { FlatList, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { en } from '../../src/content/copy';
-import { cycleDay, cycleHistory, cycleLengths, periodLength, predictNext, resolvePeriodDate } from '../../src/core/cycle';
-import type { PeriodRecord } from '../../src/core/types';
+import { loggedDays, periodsFromDays, toggleDay, usualLength } from '../../src/core/calendar';
 import { useLogStore } from '../../src/store/log';
-import { useProfile } from '../../src/store/profile';
-import { useTellStore } from '../../src/store/tell';
-import { CapsuleButton } from '../../src/ui/CapsuleButton';
-import { History } from '../../src/ui/calendar/History';
-import { SummaryCard } from '../../src/ui/calendar/SummaryCard';
-import { Chip } from '../../src/ui/Chip';
-import { CycleDay } from '../../src/ui/CycleDay';
-import { EntryRow, entryDay } from '../../src/ui/EntryRow';
+import { MonthList } from '../../src/ui/calendar/MonthList';
+import { fill, monthRange, useCalendarInput } from '../../src/ui/calendar/shared';
+import { YearView } from '../../src/ui/calendar/YearView';
 import { GlassCard } from '../../src/ui/Glass';
-import { confirm, tap, warn } from '../../src/ui/haptics';
+import { confirm, tap } from '../../src/ui/haptics';
 import { LockGate } from '../../src/ui/LockGate';
+import { SegmentedControl } from '../../src/ui/native/SegmentedControl';
 import { PressableSurface } from '../../src/ui/PressableSurface';
-import { Screen } from '../../src/ui/Screen';
-import { Symbol } from '../../src/ui/Symbol';
 import { Text } from '../../src/ui/Text';
-import { SEPARATOR } from '../../src/ui/theme';
+import { SEPARATOR, SURFACE } from '../../src/ui/theme';
 
-const ymd = (d: Date) => format(d, 'yyyy-MM-dd');
-const fill = (s: string, v: Record<string, string>) => s.replace(/\{(\w+)\}/g, (_, k: string) => v[k] ?? '');
-const short = (s: string) => format(parseISO(s), 'MMM d');
 const WEEKDAYS = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
-const DEFAULT_CYCLE = 28;
-
-function range(from: string, to: string): string[] {
-  const out: string[] = [];
-  for (let d = parseISO(from); ymd(d) <= to && out.length < 62; d = addDays(d, 1)) out.push(ymd(d));
-  return out;
-}
+const TAB_BAR_CLEARANCE = 64;
 
 export default function CalendarRoute() {
   return (
@@ -45,262 +29,163 @@ export default function CalendarRoute() {
 
 function Calendar() {
   const router = useRouter();
-  const entries = useLogStore((s) => s.entries);
-  const periods = useLogStore((s) => s.periods);
-  const dayLogs = useLogStore((s) => s.dayLogs);
-  const moods = useLogStore((s) => s.moods);
-  const settings = useLogStore((s) => s.cycleSettings);
-  const status = useTellStore((s) => s.context.status);
-  const profile = useProfile();
-  const today = ymd(new Date());
-  const [month, setMonth] = useState(() => startOfMonth(new Date()));
-  const [selected, setSelected] = useState(today);
+  const insets = useSafeAreaInsets();
+  const input = useCalendarInput();
+  const { today, periods, cycleSettings, status } = input;
+  const thisMonth = today.slice(0, 7);
+  const months = useMemo(() => monthRange(new Date()), []);
+  const usual = useMemo(() => usualLength(periods, cycleSettings), [periods, cycleSettings]);
+  const listRef = useRef<FlatList<string>>(null);
 
-  const len = periodLength(periods, settings);
-  const prediction = useMemo(() => predictNext(periods, settings, today, status), [periods, settings, today, status]);
-  const spans = useMemo(() => cycleHistory(periods), [periods]);
-  const day = status === 'neither' ? cycleDay(periods, today) : null;
-  const avg = useMemo(() => {
-    const l = cycleLengths(periods);
-    return l.length > 0 ? Math.round(l.reduce((a, b) => a + b, 0) / l.length) : (settings.stated_cycle_length ?? DEFAULT_CYCLE);
-  }, [periods, settings]);
+  const [view, setView] = useState<'month' | 'year'>('month');
+  const [focus, setFocus] = useState(thisMonth);
+  const [away, setAway] = useState(false);
+  const [days, setDays] = useState<string[] | null>(null);
+  const picked = useMemo(() => (days ? new Set(days) : null), [days]);
+  const editing = days !== null;
 
-  const spanOf = (p: PeriodRecord) => {
-    const guess = ymd(addDays(parseISO(p.start), len - 1));
-    return range(p.start, p.end ?? (guess < today ? guess : today));
-  };
-  const logged = useMemo(() => {
-    const set = new Set<string>();
-    for (const p of periods) for (const d of spanOf(p)) set.add(d);
-    return set;
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [periods, len, today]);
-  const estimated = useMemo(() => {
-    if (!prediction) return new Set<string>();
-    const from = prediction.window.from < prediction.next_start ? prediction.window.from : prediction.next_start;
-    return new Set(range(from, prediction.window.to));
-  }, [prediction]);
-  const dots = useMemo(() => {
-    const symptom = new Set<string>();
-    const mood = new Set<string>();
-    for (const e of entries) {
-      const d = entryDay(e);
-      if (e.findings.length > 0 || (e.extraction?.symptoms.length ?? 0) > 0) symptom.add(d);
-      if ((e.extraction?.moods.length ?? 0) > 0) mood.add(d);
-    }
-    for (const m of moods) mood.add(format(parseISO(m.created_at), 'yyyy-MM-dd'));
-    return { symptom, mood };
-  }, [entries, moods]);
-
-  const cells: (number | null)[] = [
-    ...Array<null>(getDay(month)).fill(null),
-    ...Array.from({ length: getDaysInMonth(month) }, (_, i) => i + 1),
-  ];
-  while (cells.length % 7 !== 0) cells.push(null);
-  const rows = Array.from({ length: cells.length / 7 }, (_, r) => cells.slice(r * 7, r * 7 + 7));
-
-  const writePeriods = (next: PeriodRecord[]) => useLogStore.getState().setPeriods(next);
-  const markStart = (d: string) => {
-    const rest = useLogStore.getState().periods.filter((p) => p.start !== d);
-    writePeriods([...rest, { id: `cal-${d}`, start: d, end: null, flow_by_day: {}, source: 'calendar' }]);
-    confirm();
-  };
-  const markEnd = (d: string) => {
-    const target = [...useLogStore.getState().periods]
-      .filter((p) => p.start <= d)
-      .sort((a, b) => b.start.localeCompare(a.start))[0];
-    if (!target) return;
-    writePeriods(useLogStore.getState().periods.map((p) => (p.id === target.id ? { ...p, end: d } : p)));
-    confirm();
-  };
-  const remove = (id: string) => {
-    writePeriods(useLogStore.getState().periods.filter((p) => p.id !== id));
-    warn();
-  };
-
-  const dayPeriod = periods.find((p) => spanOf(p).includes(selected));
-  const dayLog = dayLogs.find((l) => l.date === selected);
-  const dayChips = dayLog
-    ? [
-        ...dayLog.symptoms.map((x) => en(`symptom.${x}`)),
-        ...dayLog.moods.map((x) => en(`feeling.${x}`)),
-        ...dayLog.activities.map((x) => en(`activity.${x}`)),
-      ]
-    : [];
-  const dayEntries = entries.filter((e) => entryDay(e) === selected);
-  const flowOfDay = dayPeriod ? (dayPeriod.flow_by_day[selected] ?? Object.values(dayPeriod.flow_by_day)[0]) : undefined;
-  const dayLabel = (d: string, n: number) =>
-    [
-      format(parseISO(d), 'MMMM d'),
-      logged.has(d) ? en('calendar.day.logged') : estimated.has(d) ? en('calendar.day.estimated') : null,
-      d === today ? en('calendar.day.today') : null,
-      dots.symptom.has(d) ? en('calendar.day.symptoms') : null,
-      dots.mood.has(d) ? en('calendar.day.mood') : null,
-    ]
-      .filter(Boolean)
-      .join(', ') || String(n);
-
-  const step = (n: number) => {
+  const onDay = useCallback(
+    (date: string) => {
+      tap();
+      if (days) setDays(toggleDay(days, date, usual, today));
+      else router.push({ pathname: '/day', params: { date } });
+    },
+    [days, usual, today, router],
+  );
+  const startEdit = () => {
     tap();
-    setMonth(addMonths(month, n));
+    setDays(loggedDays(periods, usual, today));
   };
-  const openSheet = (params?: { id?: string; date?: string }) => router.push({ pathname: '/period', params });
+  const save = () => {
+    if (!days) return;
+    useLogStore.getState().setPeriods(periodsFromDays(days, periods));
+    confirm();
+    setDays(null);
+  };
+  const cancel = () => {
+    tap();
+    setDays(null);
+  };
+  const backToToday = () => {
+    tap();
+    listRef.current?.scrollToIndex({ index: months.indexOf(thisMonth), animated: true });
+  };
+  const openMonth = (m: string) => {
+    tap();
+    setFocus(m);
+    setView('month');
+    setAway(m !== thisMonth);
+  };
+
+  const floatBottom = insets.bottom + TAB_BAR_CLEARANCE + 12;
+  const listPad = floatBottom + 80;
 
   return (
-    <Screen tabBar>
-      <View className="gap-lg pt-xl pb-xl">
-        <Text variant="displayHeading" accessibilityRole="header">
-          {en('calendar.title')}
-        </Text>
-
-        <SummaryCard status={status} weeks={profile.weeks} day={day} length={avg} prediction={prediction} />
-
-        {status !== 'pregnant' ? (
-          <CapsuleButton label={en('cal.log_period')} onPress={() => openSheet({ date: selected })} />
-        ) : null}
-
-        <GlassCard className="p-xs">
-          <View className="flex-row items-center justify-between">
-            <PressableSurface
-              label={en('calendar.prev')}
-              onPress={() => step(-1)}
-              surfaceClassName="min-h-tap min-w-tap items-center justify-center"
-            >
-              <Symbol name="chevron.left" fallback="chevronLeft" tone="tint" size={20} />
-            </PressableSurface>
-            <Text variant="headline" accessibilityRole="header">
-              {format(month, 'MMMM yyyy')}
+    <View className={`flex-1 ${SURFACE.ground}`}>
+      <View style={{ paddingTop: insets.top + 8 }} className={`border-b border-separator pb-xs dark:border-separator-dark ${SURFACE.ground}`}>
+        {editing ? (
+          <View className="items-center gap-xxs px-md pb-xs pt-xs">
+            <Text variant="headline" className="text-center" accessibilityRole="header">
+              {en('cal2.edit.title')}
             </Text>
-            <PressableSurface
-              label={en('calendar.next')}
-              onPress={() => step(1)}
-              surfaceClassName="min-h-tap min-w-tap items-center justify-center"
-            >
-              <Symbol name="chevron.right" fallback="chevronRight" tone="tint" size={20} />
-            </PressableSurface>
+            <Text variant="footnote" tone="secondary" className="text-center">
+              {fill(en('cal2.edit.sub'), { n: usual })}
+            </Text>
           </View>
-          <View className="flex-row">
+        ) : (
+          <View className="px-md">
+            <SegmentedControl
+              label={en('calendar.title')}
+              options={[
+                { label: en('cal2.month'), value: 'month' },
+                { label: en('cal2.year'), value: 'year' },
+              ]}
+              value={view}
+              onChange={(v) => {
+                setFocus(thisMonth);
+                setAway(false);
+                setView(v as 'month' | 'year');
+              }}
+            />
+          </View>
+        )}
+        {view === 'month' ? (
+          <View className="flex-row px-xs pt-xs">
             {WEEKDAYS.map((w, i) => (
-              <View key={i} className="flex-1 items-center pb-xxs">
+              <View key={i} className="flex-1 items-center" importantForAccessibility="no-hide-descendants">
                 <Text variant="caption1" tone="secondary">
                   {w}
                 </Text>
               </View>
             ))}
           </View>
-          {rows.map((row, r) => (
-            <View key={r} className="flex-row">
-              {row.map((n, i) => {
-                if (n === null) return <View key={i} className="flex-1" />;
-                const d = ymd(addDays(month, n - 1));
-                return (
-                  <CycleDay
-                    key={i}
-                    num={n}
-                    label={dayLabel(d, n)}
-                    logged={logged.has(d)}
-                    estimated={estimated.has(d)}
-                    today={d === today}
-                    selected={d === selected}
-                    symptom={dots.symptom.has(d)}
-                    mood={dots.mood.has(d)}
-                    onPress={() => {
-                      tap();
-                      setSelected(d);
-                    }}
-                  />
-                );
-              })}
-            </View>
-          ))}
-        </GlassCard>
-        <Text variant="footnote" tone="secondary">
-          {en('calendar.legend')}
-        </Text>
-
-        <View className="gap-xs">
-          <Text variant="title3" accessibilityRole="header">
-            {format(parseISO(selected), 'EEEE, MMMM d')}
-          </Text>
-          <GlassCard className="px-md py-xs">
-            {dayPeriod ? (
-              <View className="py-sm gap-xs">
-                <View className="flex-row items-center gap-xs">
-                  <Symbol name="drop.fill" fallback="info" tone="tint" size={18} />
-                  <Text variant="headline">{en('cal.day.period')}</Text>
-                </View>
-                <Text variant="subheadline" tone="secondary">
-                  {dayPeriod.end
-                    ? fill(en('cal.day.period_range'), { from: short(dayPeriod.start), to: short(dayPeriod.end) })
-                    : fill(en('cal.day.ongoing'), { from: short(dayPeriod.start) })}
-                  {flowOfDay ? `. ${fill(en('cal.day.flow'), { flow: en(`cal.flow.${flowOfDay}`) })}` : ''}
-                </Text>
-                <View className="flex-row gap-xs">
-                  <Chip label={en('cal.day.edit')} onPress={() => openSheet({ id: dayPeriod.id })} />
-                  <Chip label={en('cal.day.delete')} onPress={() => remove(dayPeriod.id)} />
-                </View>
-              </View>
-            ) : null}
-            {dayPeriod && (dayChips.length > 0 || dayEntries.length > 0) ? <View className={`h-px ${SEPARATOR}`} /> : null}
-            {dayLog && (dayChips.length > 0 || dayLog.note) ? (
-              <View className="py-sm gap-xs">
-                <Text variant="headline">{en('daylog.shown')}</Text>
-                {dayChips.length > 0 ? (
-                  <View className="flex-row flex-wrap gap-xs">
-                    {dayChips.map((c, i) => (
-                      <Chip key={`${c}-${i}`} label={c} chosen />
-                    ))}
-                  </View>
-                ) : null}
-                {dayLog.note ? (
-                  <Text variant="subheadline" tone="secondary">
-                    {dayLog.note}
-                  </Text>
-                ) : null}
-              </View>
-            ) : null}
-            {dayEntries.length === 0 && !dayPeriod && !dayLog ? (
-              <Text variant="body" tone="secondary" className="py-sm">
-                {en('calendar.no_entries')}
-              </Text>
-            ) : null}
-            {dayEntries.map((e) => {
-              const p = e.extraction?.period;
-              const date = p ? resolvePeriodDate(p, entryDay(e)) : null;
-              return (
-                <View key={e.id} className="py-sm gap-xs">
-                  <PressableSurface
-                    label={`${en('cal.day.open')}: ${e.text}`}
-                    role="link"
-                    onPress={() => router.push({ pathname: '/result/[id]', params: { id: e.id } })}
-                    surfaceClassName="flex-row items-center gap-xs min-h-tap"
-                  >
-                    <EntryRow entry={e} />
-                    <Symbol name="chevron.right" fallback="chevronRight" tone="tertiary" size={14} />
-                  </PressableSurface>
-                  {p && date && (p.event === 'started' || p.event === 'ended') ? (
-                    <View className="flex-row">
-                      <Chip
-                        label={fill(en(p.event === 'started' ? 'calendar.confirm_start' : 'calendar.confirm_end'), {
-                          date: short(date),
-                        })}
-                        onPress={() => (p.event === 'started' ? markStart(date) : markEnd(date))}
-                      />
-                    </View>
-                  ) : null}
-                </View>
-              );
-            })}
-          </GlassCard>
-          <CapsuleButton
-            variant="neutral"
-            label={en(dayLog ? 'daylog.edit_button' : 'daylog.button')}
-            onPress={() => router.push({ pathname: '/log-day', params: { date: selected } })}
-          />
-        </View>
-
-        <History spans={spans} />
+        ) : null}
       </View>
-    </Screen>
+
+      {status === 'pregnant' && !editing ? (
+        <Text variant="footnote" tone="secondary" className="px-md pt-xs text-center">
+          {en('cal2.pregnant')}
+        </Text>
+      ) : null}
+
+      <View className="flex-1">
+        {view === 'month' ? (
+          <MonthList
+            months={months}
+            focus={focus}
+            input={input}
+            picked={picked}
+            onDay={onDay}
+            thisMonth={thisMonth}
+            onAway={setAway}
+            listRef={listRef}
+            bottomPad={listPad}
+          />
+        ) : (
+          <YearView input={input} thisMonth={thisMonth} onOpen={openMonth} bottomPad={listPad} />
+        )}
+
+        {view === 'month' && away && !editing ? (
+          <View pointerEvents="box-none" className="absolute inset-x-0 top-xs items-center">
+            <GlassCard interactive>
+              <PressableSurface label={en('cal2.back_today')} onPress={backToToday} surfaceClassName="min-h-tap items-center justify-center px-md">
+                <Text variant="subheadline" tone="tint" className="font-semibold">
+                  {en('cal2.back_today')}
+                </Text>
+              </PressableSurface>
+            </GlassCard>
+          </View>
+        ) : null}
+      </View>
+
+      {view === 'month' ? (
+        <View pointerEvents="box-none" className="absolute inset-x-0 items-center" style={{ bottom: floatBottom }}>
+          <GlassCard interactive style={{ borderRadius: 25 }}>
+            {editing ? (
+              <View className="flex-row items-center">
+                <PressableSurface label={en('cal2.cancel')} onPress={cancel} surfaceClassName="min-h-capsule min-w-[112px] items-center justify-center px-lg">
+                  <Text variant="headline" tone="secondary">
+                    {en('cal2.cancel')}
+                  </Text>
+                </PressableSurface>
+                <View className={`h-6 w-px ${SEPARATOR}`} />
+                <PressableSurface label={en('cal2.save')} onPress={save} surfaceClassName="min-h-capsule min-w-[112px] items-center justify-center px-lg">
+                  <Text variant="headline" tone="tint">
+                    {en('cal2.save')}
+                  </Text>
+                </PressableSurface>
+              </View>
+            ) : (
+              <PressableSurface label={en('cal2.edit')} onPress={startEdit} surfaceClassName="min-h-capsule items-center justify-center px-xl">
+                <Text variant="headline" tone="tint">
+                  {en('cal2.edit')}
+                </Text>
+              </PressableSurface>
+            )}
+          </GlassCard>
+        </View>
+      ) : null}
+    </View>
   );
 }
+
