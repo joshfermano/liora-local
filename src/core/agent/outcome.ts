@@ -104,6 +104,8 @@ function factLine(item: SavedItem, today: string): string {
       return `set to ${item.weeks} weeks pregnant`;
     case 'status':
       return item.status === 'neither' ? 'profile updated: not pregnant' : `profile updated: ${item.status}`;
+    case 'name':
+      return `her name updated to ${item.name}`;
     case 'period_deleted':
       return item.end ? `removed the period from ${when(item.date)} to ${when(item.end)}` : `removed the period that started ${when(item.date)}`;
     case 'day_cleared':

@@ -96,22 +96,6 @@ export async function runTurn(
       noModel: true,
     };
   }
-  // Who Liora is, that she has no internet, and what she cannot do: a fixed answer, never a model's,
-  // unless the same message carries a danger sign, which the usual turn handles first.
-  const about = aboutLiora(text);
-  // Off topic only when the rules found nothing of hers in it: nothing to log and no sign.
-  // (Small talk counts as nothing: the reader files a general question as chat.)
-  const unrelated = about === 'offtopic' && read.actions.every((a) => a.tool === 'smalltalk') && entry.findings.length === 0;
-  if (about && (about !== 'offtopic' || unrelated) && read.purpose !== 'urgent' && entry.decision.level === 'ok') {
-    noteTurn({ tools: [] });
-    return {
-      attachments: about === 'call' ? [{ kind: 'contact' }] : [{ kind: 'actions', items: [...HOME] }],
-      fallback: { key: about === 'call' ? 'reply.contact' : `reply.about.${about}` },
-      request: { text: '', pack: '', facts: {}, allowed: {}, thread: [] },
-      undoneId: null,
-      noModel: true,
-    };
-  }
   // A question her notes answer ("sino OB ko?"): her own words back, quoted, and no model.
   const notes = useMemoryStore.getState().notes;
   const recalled = read.purpose !== 'urgent' && entry.decision.level === 'ok' && entry.findings.length === 0 ? recall(text, notes) : null;
@@ -120,6 +104,34 @@ export async function runTurn(
     return {
       attachments: [{ kind: 'steps', steps: [{ kind: 'read' }, { kind: 'recalled', count: recalled.length }] }],
       fallback: recalled.length > 0 ? { key: 'reply.recall', params: { notes: recalled.map((n) => `“${n}”`).join(', ') } } : { key: 'reply.recall.none' },
+      request: { text: '', pack: '', facts: {}, allowed: {}, thread: [] },
+      undoneId: null,
+      noModel: true,
+    };
+  }
+  // Who Liora is, that she has no internet, and what she cannot do: a fixed answer, never a model's,
+  // unless the same message carries a danger sign, which the usual turn handles first.
+  const about = aboutLiora(text);
+  // Off topic only when the rules found nothing of hers in it: nothing to log and no sign.
+  // (Small talk counts as nothing: the reader files a general question as chat.)
+  const nothingElse = read.actions.every((a) => a.tool === 'smalltalk' || a.tool === 'health_question') && entry.findings.length === 0;
+  const unrelated = about === 'offtopic' && read.actions.every((a) => a.tool === 'smalltalk') && entry.findings.length === 0;
+  // Talk about Liora herself ("kumusta ka?", "mahal kita") only answers alone; with a log in it, the log comes first.
+  const social = about === 'name' || about === 'love' || about === 'sorry' || about === 'howareyou' || about === 'language';
+  if (about && (about !== 'offtopic' || unrelated) && (!social || nothingElse) && read.purpose !== 'urgent' && entry.decision.level === 'ok') {
+    noteTurn({ tools: [] });
+    const name = readProfile(useLogStore.getState().setup).name;
+    const fallback: Fallback =
+      about === 'call'
+        ? { key: 'reply.contact' }
+        : about === 'name'
+          ? name ? { key: 'reply.name', params: { name } } : { key: 'reply.name.none' }
+          : about === 'love' || about === 'sorry' || about === 'howareyou'
+            ? { key: `reply.${about}` }
+            : { key: `reply.about.${about}` };
+    return {
+      attachments: about === 'call' ? [{ kind: 'contact' }] : about === 'love' || about === 'howareyou' || about === 'name' || about === 'language' ? [] : [{ kind: 'actions', items: [...HOME] }],
+      fallback,
       request: { text: '', pack: '', facts: {}, allowed: {}, thread: [] },
       undoneId: null,
       noModel: true,
@@ -214,14 +226,21 @@ export async function runTurn(
     if (outcome.smalltalk === 'greeting') attachments.push({ kind: 'actions', items: [...HOME] });
   }
 
-  if (entry.findings.length > 0 && dangerRulesApply(contextFrom(profile), entry.input, text)) {
+  // A question about a sign ("normal ba sumakit likod?") gets no decision card unless the rules raised it.
+  const reported = actions.some((a) => a.tool === 'symptoms') || entry.decision.level !== 'ok';
+  if (entry.findings.length > 0 && reported && dangerRulesApply(contextFrom(profile), entry.input, text)) {
     attachments.push({ kind: 'decision', entryId: entry.id, level: entry.decision.level });
   }
 
   const tone = toneOf(text, entry);
-  const { facts, fallback, style } = replyPlan(outcome, { name: profile.name, tone, today: day, moods: moodsOn(data.dayLogs, day), said: pick(actions, 'moods')?.moods, hurting: Boolean(pick(actions, 'symptoms')) || entry.findings.length > 0,
+  const { facts, fallback: planned, style } = replyPlan(outcome, { name: profile.name, tone, today: day, moods: moodsOn(data.dayLogs, day), said: pick(actions, 'moods')?.moods, hurting: Boolean(pick(actions, 'symptoms')) || entry.findings.length > 0,
     hurtingToday: (data.dayLogs.find((l) => l.date === day)?.symptoms.length ?? 0) > 0,
   });
+  // Low moods while pregnant or after birth: the mood check is one tap away, and the line says so.
+  const low = outcome.saved.some((i) => i.kind === 'moods' && i.values.some((m) => m === 'sad' || m === 'anxious' || m === 'stressed'));
+  const offerCheck = low && profile.status !== 'neither' && profile.status !== undefined;
+  if (offerCheck) attachments.push({ kind: 'actions', items: ['mood_check'] });
+  const fallback = offerCheck && planned.key.startsWith('reply.saved') ? { key: 'reply.saved.mood_check' } : planned;
   if (attachments.length === 0) {
     if (asksAboutHerData) attachments.push({ kind: 'actions', items: ['calendar'] });
     else if (facts.no_action_taken === true) attachments.push({ kind: 'actions', items: [...HOME] });

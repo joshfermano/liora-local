@@ -11,6 +11,7 @@ const ENDED = /\b(?:natapos|tapos\s+na|ended|stopped|huminto|tumigil|wala\s+na)\
 const UNDO =
   /^\s*(?:burahin|tanggalin|alisin|i-?delete|delete|remove|undo|cancel|bawiin|ibalik)(?:\s+(?:mo|na|po|that|it|yan|iyan|yun|iyon|lang|nalang|please))*[\s.!]*$/i;
 const SHORT = 8;
+const AGAIN_PERIOD = /\b(?:nagsimula|niregla|nagka-?regla|dumating|started|came|got\s+it)\s+(?:na\s+)?(?:ulit|uli|again)\b/i;
 
 const at = (date: string): DateWord => ({ kind: 'date', date });
 
@@ -37,6 +38,17 @@ function moved(item: SavedItem, date: string): AgentAction | null {
   return again(item, date);
 }
 
+const BARE_DATE = /^\s*(?:(?:noong|nung|last|since|mula|simula)\s+)?(?:kahapon|yesterday|ngayon|today|kanina|kaninang\s+umaga|this\s+morning|\d+\s+(?:days?|araw)\s+(?:ago|na(?:ng)?\s+nakaraan|na)|(?:jan|feb|mar|apr|may|jun|jul|aug|sep|sept|oct|nov|dec)\w*\.?\s+\d{1,2}|\d{4}-\d{2}-\d{2})(?:\s+(?:po|lang|pa))*[\s.!]*$/i;
+
+// "Kahapon" right after Liora asked which day: the logs she was waiting on, now with that date.
+export function dateAnswer(text: string, waiting: AgentAction[], today: string): AgentAction[] | null {
+  if (waiting.length === 0 || !BARE_DATE.test(text)) return null;
+  const date = resolveDate(dateWord(text, { kind: 'unknown' }, today), today);
+  if (!date) return null;
+  const filled = waiting.map((a) => ('date' in a && a.date.kind === 'unknown' ? { ...a, date: at(date) } : a));
+  return filled.some((a, i) => a !== waiting[i]) ? filled : null;
+}
+
 // What a short follow-on means, given the items Liora saved in her last reply; null when it means nothing.
 export function carryOver(text: string, last: SavedItem[], today: string): AgentAction[] | null {
   if (last.length === 0 || text.trim().split(/\s+/).length > SHORT || text.includes('?')) return null;
@@ -46,6 +58,9 @@ export function carryOver(text: string, last: SavedItem[], today: string): Agent
   const date = resolveDate(word, today);
   if (ENDED.test(text) && last.some((i) => i.kind === 'period_start' || i.kind === 'flow')) {
     return [{ tool: 'period_end', date: at(date ?? today) }];
+  }
+  if (AGAIN_PERIOD.test(text) && last.some((i) => i.kind === 'period_start')) {
+    return [{ tool: 'period_start', date: at(date ?? today), flow: null }];
   }
   if (!date) return null;
   if (MOVE.test(text)) {

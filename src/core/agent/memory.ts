@@ -88,6 +88,8 @@ export function recall(text: string, notes: string[]): string[] | null {
   if (ALL_NOTES.test(text)) return notes;
   if (!ASKS.test(text)) return null;
   const want = new Set(words(text));
-  const found = notes.filter((n) => words(n).some((t) => want.has(t)));
+  // Same stem counts: "allergy" finds "allergic".
+  const stems = new Set([...want].map((t) => t.slice(0, 5)));
+  const found = notes.filter((n) => words(n).some((t) => want.has(t) || (t.length >= 5 && stems.has(t.slice(0, 5)))));
   return found.length > 0 ? found : null;
 }

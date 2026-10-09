@@ -19,18 +19,18 @@ const CLAUSE = /[,.;!?]|\b(?:pero|but)\b/i;
 
 const FLOW: { pattern: RegExp; flow: Flow; alone: boolean }[] = [
   { pattern: /spotting|patak/i, flow: 'spotting', alone: true },
-  { pattern: /malakas|\bheavy\b/i, flow: 'heavy', alone: false },
+  { pattern: /malakas|mabigat|\bheavy\b/i, flow: 'heavy', alone: false },
   { pattern: /katamtaman|\bmedium\b/i, flow: 'medium', alone: false },
   { pattern: /mahina|konti|\blight\b/i, flow: 'light', alone: false },
 ];
 
 const ACTIVITY: Record<Activity, RegExp> = {
   walk: /\b(?:naglakad|lakad|nag-?walk|walk(?:ed|ing)?|went\s+for\s+a\s+walk)\b/i,
-  exercise: /ehersisyo|nag-?exercise|\bexercis(?:e|ed|ing)\b|work-?out|\bnag-?yoga\b|\byoga\b|\bpilates\b|\bswimming\b|\bnag-?swimming\b|\bstretch(?:ing|ed)?\b|\bnag-?zumba\b/i,
+  exercise: /ehersisyo|nag-?exercise|\bnag-?jogging\b|\bjog(?:ged|ging)?\b|\btumakbo\b|\bnagtakbo\b|\bran\b|\brunning\b|\bwent\s+for\s+a\s+run\b|\bnag-?gym\b|\bexercis(?:e|ed|ing)\b|work-?out|\bnag-?yoga\b|\byoga\b|\bpilates\b|\bswimming\b|\bnag-?swimming\b|\bstretch(?:ing|ed)?\b|\bnag-?zumba\b/i,
   rest: /pahinga|\brest(?:ed)?\b/i,
   water: /uminom\s+(?:ako\s+)?ng\s+(?:maraming\s+)?tubig|\bdr(?:ank|ink|inking)\s+(?:a\s+lot\s+of\s+)?water\b|\bwater\s+intake\b/i,
   slept_well: /nakatulog\s+(?:ako\s+)?(?:nang|ng)\s+maayos|slept\s+well|good\s+(?:night'?s\s+)?sleep|maayos\s+ang\s+tulog/i,
-  checkup_visit: /nagpa-?check-?up|prenatal|\bcheck-?up\b/i,
+  checkup_visit: /nagpa-?check[-\s]?up|nag-?check[-\s]?up|prenatal\s+(?:visit|check)|\bcheck[-\s]?up\s+(?:ako|ko|kanina|today|kahapon)\b|\bhad\s+(?:my|a)\s+check-?up\b|\bwent\s+to\s+(?:my|the)\s+(?:check-?up|ob)\b/i,
   medicine_taken: /gamot\s+na\s+reseta|took\s+my\s+prescribed|prescribed\s+(?:medicine|meds|vitamins)|ininom\s+ko\s+ang\s+reseta/i,
 };
 
@@ -43,10 +43,20 @@ const CONTACT =
 // A question with none of these words is chat ("Nag tatagalog ka ba?"), not a health question.
 const HEALTH =
   /sakit|pain|hurt|ache|dugo|bleed|blood|buntis|pregnan|baby|sanggol|gamot|medicine|vitamin|normal|safe|delikado|danger|kain|\beat|food|pagkain|inom|drink|exercis|ehersisyo|lagnat|fever|suka|vomit|nause|hilo|dizz|cramp|puson|tiyan|ulo|discharge|ihi|\bpee|urin|contraction|hilab|labou?r|panganak|birth|ovulat|obul|fertile|regla|period|mens|cycle|check-?up|doctor|doktor|\bob\b|clinic|ospital|hospital|symptom|sintomas|breast|dede|gatas|milk|tulog|sleep|stress|anxi|weight|timbang|\bsex|contracep|\bpills?\b|condom|trimester|weeks?\b|linggo|swell|manas|maga|headache|bloat|kabag|kirot|hapdi|pagod|tired|manganak|pahinga|\brest\b|ihanda|prepar|tubig|water|kalinisan|hygien|maligo|\bbath|kape|coffee|caffeine|alak|alcohol|beer|wine|yosi|smok|\b(?:pwede|puwede)\s+ba\b|\bcan\s+i\b|\bshould\s+i\b|\bbawal\b|\bok(?:ay)?\s+lang\s+ba\b/i;
+const WORRY = /\b(?:kulang|konti|kaunti|walang|wala|problema|problem|worried|worry|nag-?aalala|ayaw|hindi|di|baka|maybe|parang|bakit|mahina|low|not\s+enough|trouble|hirap)\b/i;
+const ACK = /^\s*(?:ok(?:ay)?|okie|k|sige(?:\s+po)?|noted|got\s+it|alright|cool|nice|ayos|g|oo\s+sige|buti\s+naman|mabuti\s+naman|good|great|good\s+to\s+know|i\s+see|ah+\s+okay|gets)[\s.!]*$/i;
+const ASKING = /\?\s*$|\bba\b|^\s*(?:ano|bakit|paano|puwede|pwede|is\s+it|is\s+this|is\s+that|can\s+i|should\s+i|what|why|how)\b/i;
+
+// Her message without its question clauses: what she says is happening, not what she asks about.
+function statements(text: string): string {
+  const clauses = text.match(/[^,.;!?]+[,.;!?]*/g) ?? [];
+  return clauses.filter((c) => !ASKING.test(c.trim())).join(' ');
+}
+const SINCE_BIRTH = /nanganak|panganak|since\s+(?:i\s+)?(?:gave\s+birth|birth|delivery|giving\s+birth)|after\s+(?:birth|delivery|giving\s+birth)|postpartum|\bold\b|gulang|\bpo?st-?partum\b|c-?section|\bcs\b/i;
 const YESTERDAY = /\b(?:kahapon|yesterday)\b/i;
 const BOTH_DAYS = /\b(?:kahapon|yesterday)\b.*\b(?:at|and|pati|tsaka|saka|hanggang|until)\s+(?:ngayon|today|kanina)\b|\b(?:ngayon|today)\s+(?:at|and|pati|tsaka|saka)\s+(?:kahapon|yesterday)\b/i;
 const CYCLE_QUESTION =
-  /^\s*(?:delayed|late|delay)\s+(?:na\s+)?(?:ako|po|ako\s+po)\s*[.!?]*\s*$|\b(?:late|delayed|delay)\s+(?:na\s+)?(?:ang\s+|yung\s+)?(?:regla|period|mens|dalaw)|(?:regla|period|mens|dalaw)\s+(?:ko\s+)?(?:is\s+)?(?:late|delayed)|\baverage\s+(?:na\s+)?cycle\b|\bcycle\s+(?:length\s+)?ko\b|\bgaano\s+kahaba\s+(?:ang\s+)?(?:cycle|regla)\b|\bkailan\b.*(?:regla|period|mens|dalaw|fertile|obul|ovulat)|(?:regla|period|mens|dalaw).*\bkailan\b|\bwhen\b.*(?:period|next|fertile|ovulat)|next\s+(?:period|regla)|\bmy\s+fertile|fertile\s+(?:window\s+)?ko\b/i;
+  /\bilang\s+araw\s+(?:ang\s+|ba\s+ang\s+)?(?:regla|period|mens|dalaw)|\bhow\s+long\s+(?:is|does|do|will)\s+my\s+(?:period|cycle)|\bgaano\s+katagal\s+(?:ang\s+)?(?:regla|period|mens)|\b(?:delayed|late|delay)\s+(?:na\s+)?(?:ako|po)\b|\b(?:late|delayed|delay)\s+(?:na\s+)?(?:ang\s+|yung\s+)?(?:regla|period|mens|dalaw)|(?:regla|period|mens|dalaw)\s+(?:ko\s+)?(?:is\s+)?(?:late|delayed)|\baverage\s+(?:na\s+)?cycle\b|\bcycle\s+(?:length\s+)?ko\b|\bgaano\s+kahaba\s+(?:ang\s+)?(?:cycle|regla)\b|\bkailan\b.*(?:regla|period|mens|dalaw|fertile|obul|ovulat)|(?:regla|period|mens|dalaw).*\bkailan\b|\bwhen\b.*(?:period|next|fertile|ovulat)|next\s+(?:period|regla)|\bmy\s+fertile|fertile\s+(?:window\s+)?ko\b/i;
 
 
 
@@ -62,17 +72,29 @@ function activitiesOf(text: string): Activity[] {
 }
 
 const NOT_PREGNANT = /\b(?:hindi|di)\s+(?:na\s+)?(?:ako\s+)?buntis\b|\b(?:i'?m|i\s+am)\s+not\s+pregnant\b|\bnegative\s+(?:ang\s+)?(?:pt|pregnancy\s+test)|\b(?:pt|pregnancy\s+test)\s+(?:ko\s+)?(?:ay\s+)?negative\b/i;
+const UNSURE = /\b(?:baka|siguro|maybe|might\s+be|parang|kung)\s+(?:(?:na|ay)\s+)?(?:buntis|pregnant)\b/i;
 const PREGNANT = /\bbuntis\s+(?:na\s+)?ako\b|\bako\s+(?:ay\s+)?buntis\b|\bnagdadalang-?tao\s+(?:na\s+)?ako\b|\b(?:i'?m|i\s+am)\s+pregnant\b|\bpositive\s+(?:ang\s+)?(?:pt|pregnancy\s+test)|\b(?:pt|pregnancy\s+test)\s+(?:ko\s+)?(?:ay\s+)?positive\b/i;
 const GAVE_BIRTH = /\bnanganak\s+na\s+ako\b|\bkaka-?panganak\s+ko\s+lang\b|\bkapapanganak\s+ko\s+lang\b|\bi\s+(?:just\s+)?gave\s+birth\b|\bi\s+(?:just\s+)?had\s+(?:my|the)\s+baby\b/i;
 
 function statusOf(text: string): 'pregnant' | 'postpartum' | 'neither' | null {
   if (NOT_PREGNANT.test(text)) return 'neither';
   if (GAVE_BIRTH.test(text)) return 'postpartum';
-  if (PREGNANT.test(text)) return 'pregnant';
+  if (PREGNANT.test(text) && !UNSURE.test(text)) return 'pregnant';
   return null;
 }
 
+const RENAME =
+  /^\s*(?:(?:please|pls|liora,?)\s+)*(?:(?:change|update|set)\s+my\s+name\s+(?:to|as|into)|call\s+me|my\s+name\s+is|tawagin\s+mo\s+(?:akong|ako\s+na|na\s+lang\s+akong)|palitan\s+mo\s+(?:ang\s+)?pangalan\s+ko\s+(?:ng|sa|to|into)|(?:ang\s+)?pangalan\s+ko\s+ay)\s+([\p{L}][\p{L}' .-]{0,38}?)(?:\s+(?:po|na\s+lang|nalang|please|instead))*[\s.!]*$/iu;
+
+// "Call me Bea": her new name, as she wrote it, or null.
+export function readRename(text: string): string | null {
+  const name = RENAME.exec(text)?.[1]?.trim();
+  return name && name.split(/\s+/).length <= 3 ? name : null;
+}
+
 export function readActions(text: string, today: string): AgentAction[] {
+  const rename = readRename(text);
+  if (rename) return [{ tool: 'set_name', name: rename }];
   if (GREETING_ONLY.test(text) && text.trim()) return [{ tool: 'smalltalk' }];
   const memory = readMemory(text);
   if (memory) return memory;
@@ -93,18 +115,21 @@ export function readActions(text: string, today: string): AgentAction[] {
     else if (flow) out.push({ tool: 'flow', date: dateWord(text, now, today), flow });
   }
 
-  const symptoms = unique(readText(text).map((f) => f.code)).filter((c): c is Symptom => (SYMPTOMS as readonly string[]).includes(c));
+  // "Normal ba sumakit likod pag buntis?": a question about a symptom is not a log of it.
+  const told = statements(text);
+  const symptoms = unique(readText(told).map((f) => f.code)).filter((c): c is Symptom => (SYMPTOMS as readonly string[]).includes(c));
   if (symptoms.length) out.push({ tool: 'symptoms', date: dateWord(text, now, today), symptoms });
   // Her own statement of where she is: never a question, and the planner always asks before changing it.
   const stated = question ? null : statusOf(text);
   if (stated) out.push({ tool: 'set_status', status: stated });
   const discharge = question ? null : readDischarge(text);
   if (discharge) out.push({ tool: 'discharge', date: dateWord(text, now, today), discharge });
-  const moods = readMoods(text);
+  const moods = readMoods(told);
   if (moods.length) out.push({ tool: 'moods', date: dateWord(text, now, today), moods });
   const activities = question ? [] : activitiesOf(text);
   if (activities.length) out.push({ tool: 'activities', date: dateWord(text, now, today), activities });
-  const weeks = readWeeks(text);
+  // "2 weeks na mula nanganak ako" counts time since birth, not weeks pregnant.
+  const weeks = SINCE_BIRTH.test(text) ? null : readWeeks(text);
   if (weeks !== null) out.push({ tool: 'weeks', weeks });
 
   // "Kahapon at ngayon": the same log on both days.
@@ -122,7 +147,9 @@ export function readActions(text: string, today: string): AgentAction[] {
   if (CONTACT.test(text)) out.push({ tool: 'contact' });
   else if (cycleQuestion) out.push({ tool: 'cycle_question' });
   else if (question) out.push(HEALTH.test(text) || out.length > 0 ? { tool: 'health_question' } : { tool: 'smalltalk' });
-  if (out.length === 0 && THANKS.test(text)) out.push({ tool: 'smalltalk' });
+  if (out.length === 0 && (THANKS.test(text) || ACK.test(text))) out.push({ tool: 'smalltalk' });
+  // "Kulang ang gatas ko", "baka buntis ako": about her health, with nothing to log, so a card is looked for.
+  else if (out.length === 0 && HEALTH.test(text) && WORRY.test(text) && readText(text).length === 0) out.push({ tool: 'health_question' });
   return out;
 }
 

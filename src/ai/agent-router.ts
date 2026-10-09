@@ -86,8 +86,9 @@ function toAction(item: Item): AgentAction | null {
       const symptoms = some(item.symptoms);
       return symptoms ? { tool: 'symptoms', date: dateOf(item), symptoms } : null;
     }
-    // The word rules read discharge; Gemma's routes never carry it.
+    // The word rules read discharge and her name; Gemma's routes never carry them.
     case 'discharge':
+    case 'set_name':
       return null;
     case 'moods': {
       const moods = some(item.moods);

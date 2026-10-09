@@ -13,8 +13,18 @@ export function severityOnly(text: string): boolean {
   return CANNOT_BEAR.test(text) || WORSE.test(text) || ((SEVERE_CUE.test(text) || /\bso\s+much\b/i.test(text)) && PAIN.test(text));
 }
 
+const EMOTION =
+  /lungkot|malungkot|\bsad\b|umiiyak|naiiyak|\bcrying\b|bigat\s+(?:ng\s+)?(?:pakiramdam|loob|kalooban)|hopeless|overwhelm\w*|depress\w*|natatakot|takot\s+ako|kinakabahan|\bscared\b|\banxious\b|\bstress\w*|pagod\s+na\s+(?:ako\s+)?sa\s+lahat|alagaan\s+(?:si\s+|ang\s+)?(?:baby|anak)|can'?t\s+cope|mag-?isa\s+(?:lang\s+)?ako|\balone\b/i;
+
+// Feelings that are too much ("sobrang lungkot ko, hindi ko kaya"), with no pain in them: a caring
+// line, the mood check and her contact, never the pain reply.
+export function heavyHeart(text: string): boolean {
+  return (CANNOT_BEAR.test(text) || SEVERE_CUE.test(text)) && EMOTION.test(text) && !PAIN.test(text);
+}
+
 // She says the pain is more than she can bear: a fixed caring line and her contact, never chit-chat.
 export function painTooMuch(text: string): boolean {
+  if (heavyHeart(text)) return false;
   return CANNOT_BEAR.test(text) || (SEVERE_CUE.test(text) && PAIN.test(text));
 }
 
@@ -24,7 +34,10 @@ const NO_ANSWER =
   /^\s*(?:(?:hindi|di)(?:\s+(?:naman|po))*(?:\s+(?:masyado|gaano|ganun|ganoon|ganon))?(?:\s+(?:po|lang))?|no|nope|not\s+really|not\s+(?:that|too|so)\s+bad|konti\s+lang|medyo\s+lang|okay\s+lang(?:\s+naman)?)[\s.!]*$/i;
 const YES_ANSWER = /^\s*(?:oo|opo|oo\s+po|yes|yup|yeah|oo\s+sobra|sobra|sobra\s+po|grabe|very)[\s.!]*$/i;
 
-export function followUpAnswer(text: string): 'yes' | 'no' | null {
+const SKIP_ANSWER = /^\s*(?:skip|laktawan|pass|next|ayoko\s+(?:sumagot|sagutin)|i\s+don'?t\s+know|hindi\s+ko\s+alam|di\s+ko\s+alam)[\s.!]*$/i;
+
+export function followUpAnswer(text: string): 'yes' | 'no' | 'skip' | null {
+  if (SKIP_ANSWER.test(text)) return 'skip';
   if (NO_ANSWER.test(text)) return 'no';
   if (YES_ANSWER.test(text)) return 'yes';
   return null;
