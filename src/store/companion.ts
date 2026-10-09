@@ -20,8 +20,28 @@ export interface ThreadMessage {
   at: string;
 }
 
+// A conversation she cleared, kept on this phone so she can read it again.
+export interface PastChat {
+  id: string;
+  startedAt: string;
+  endedAt: string;
+  messages: ThreadMessage[];
+}
+
+const HISTORY_MAX = 50;
+
+// Only a conversation with her own words is worth keeping.
+function archived(messages: ThreadMessage[], history: PastChat[]): PastChat[] {
+  if (!messages.some((m) => m.role === 'her')) return history;
+  // An unanswered save question is dropped: a yes tapped days later would save stale data.
+  const kept = dropBlock(messages, (b) => b.kind === 'confirm');
+  const chat: PastChat = { id: newId(), startedAt: messages[0]!.at, endedAt: messages[messages.length - 1]!.at, messages: kept };
+  return [chat, ...history].slice(0, HISTORY_MAX);
+}
+
 interface CompanionState {
   messages: ThreadMessage[];
+  history: PastChat[];
   thinking: boolean;
   send(text: string, input?: 'text' | 'voice'): Promise<void>;
   // Puts back what a `logged` block saved. False when a newer change has since touched the same data
@@ -29,7 +49,13 @@ interface CompanionState {
   undo(undoId: string): boolean;
   // Her tap on a `confirm` block: yes saves those actions, no drops them.
   confirm(confirmId: string, yes: boolean): void;
+  // Starts a fresh conversation; the one she leaves goes to history.
   clear(): void;
+  // Brings a past conversation back; the current one goes to history.
+  open(id: string): void;
+  forget(id: string): void;
+  // Delete everything: the thread and all of history.
+  wipe(): void;
 }
 
 const newId = () => `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
@@ -59,7 +85,16 @@ export const useCompanionStore = create<CompanionState>()(
     (set, get) => ({
       messages: [],
       thinking: false,
-      clear: () => set({ messages: [], thinking: false }),
+      history: [],
+      clear: () => set((s) => ({ messages: [], thinking: false, history: archived(s.messages, s.history) })),
+      open: (id) =>
+        set((s) => {
+          const chat = s.history.find((c) => c.id === id);
+          if (!chat) return {};
+          return { messages: chat.messages, thinking: false, history: archived(s.messages, s.history.filter((c) => c.id !== id)) };
+        }),
+      forget: (id) => set((s) => ({ history: s.history.filter((c) => c.id !== id) })),
+      wipe: () => set({ messages: [], history: [], thinking: false }),
       undo: (undoId) => {
         if (!revert(undoId)) return false;
         set((s) => ({ messages: dropBlock(s.messages, (b) => b.kind === 'logged' && b.undoId === undoId) }));
@@ -164,7 +199,7 @@ export const useCompanionStore = create<CompanionState>()(
     {
       name: 'tell-liora-thread',
       storage: createJSONStorage(() => storage),
-      partialize: ({ messages }) => ({ messages }),
+      partialize: ({ messages, history }) => ({ messages, history }),
     },
   ),
 );
@@ -173,5 +208,5 @@ export const useCompanionStore = create<CompanionState>()(
 useLogStore.subscribe((now, before) => {
   const hadData = before.entries.length > 0 || before.setup !== null || before.periods.length > 0;
   const empty = now.entries.length === 0 && now.setup === null && now.periods.length === 0 && now.moods.length === 0;
-  if (hadData && empty) useCompanionStore.getState().clear();
+  if (hadData && empty) useCompanionStore.getState().wipe();
 });
