@@ -1,6 +1,7 @@
 import { Link, useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { KeyboardAvoidingView, Platform, Pressable, View } from 'react-native';
+import { useVoiceNote } from '../src/ai/use-voice-note';
 import { en, fil } from '../src/content/copy';
 import { useLogStore } from '../src/store/log';
 import { useTellStore } from '../src/store/tell';
@@ -24,23 +25,23 @@ export default function Home() {
   const setupDone = useLogStore((s) => s.setup !== null);
   const offline = useOffline();
   const [text, setText] = useState('');
-  const [recording, setRecording] = useState(false);
-  const [elapsed, setElapsed] = useState(0);
-  const thinking = status === 'thinking';
+  const voice = useVoiceNote();
+  const recording = voice.state === 'recording';
+  const elapsed = voice.seconds;
+  const thinking = status === 'thinking' || voice.state === 'transcribing';
 
-  // Visual only for now: recording itself arrives with FR-3.
+  // Her words land in the field for her to read and edit before Check (FR-3).
+  const stopAndWrite = async () => {
+    const heard = await voice.stop();
+    if (heard) setText((current) => (current.trim() ? `${current.trim()} ${heard.text}` : heard.text));
+  };
   useEffect(() => {
-    if (!recording) return;
-    const timer = setInterval(() => setElapsed((s) => s + 1), 1000);
-    return () => clearInterval(timer);
-  }, [recording]);
-  useEffect(() => {
-    if (elapsed >= RECORD_LIMIT_S) setRecording(false);
-  }, [elapsed]);
+    if (recording && elapsed >= RECORD_LIMIT_S) void stopAndWrite();
+  }, [recording, elapsed]);
 
   const toggleMic = () => {
-    setElapsed(0);
-    setRecording((r) => !r);
+    if (recording) void stopAndWrite();
+    else void voice.start().catch(() => {});
   };
 
   const check = async () => {
@@ -74,6 +75,7 @@ export default function Home() {
               />
             </View>
             {status === 'error' ? <InlineError message={fil('home.error')} /> : null}
+            {voice.state === 'error' && voice.error ? <InlineError message={en('home.voice.error')} /> : null}
           </View>
           <View className="gap-xxs" accessible accessibilityLabel={[en('home.privacy'), aiOn ? en('home.ai.on') : en('home.ai.off'), offline ? en('home.offline') : ''].join('. ')}>
             <StatusRow icon="lock">{en('home.privacy')}</StatusRow>
