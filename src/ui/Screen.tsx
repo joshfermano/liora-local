@@ -62,6 +62,9 @@ export function Screen({
           contentContainerStyle={{ flexGrow: 1, paddingBottom: footer ? 0 : bottom + 24 }}
           keyboardShouldPersistTaps="handled"
           contentInsetAdjustmentBehavior="never"
+          // iOS makes room for the keyboard and scrolls the focused field (a day's note, a profile field) into view.
+          automaticallyAdjustKeyboardInsets
+          keyboardDismissMode="interactive"
         >
           {body}
         </ScrollView>

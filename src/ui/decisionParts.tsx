@@ -6,6 +6,8 @@ import { Icon } from './Icon';
 import { Lattice } from './Lattice';
 import { PressableSurface } from './PressableSurface';
 import { Text } from './Text';
+import type { SFSymbol } from 'expo-symbols';
+import { Symbol } from './Symbol';
 
 // A label on the left, its value on the right; the value wraps instead of pushing past the edge.
 export function FactRow({ label, value, danger }: { label: string; value?: string; danger?: boolean }) {
@@ -30,7 +32,7 @@ export function FactRow({ label, value, danger }: { label: string; value?: strin
   );
 }
 
-export function LinkRow({ label, href }: { label: string; href: string }) {
+export function LinkRow({ label, href, icon }: { label: string; href: string; icon?: SFSymbol }) {
   const router = useRouter();
   return (
     <PressableSurface
@@ -38,8 +40,9 @@ export function LinkRow({ label, href }: { label: string; href: string }) {
       role="link"
       pressScale={0.98}
       onPress={() => router.push(href as never)}
-      surfaceClassName="min-h-choice flex-row items-center justify-between gap-md px-md"
+      surfaceClassName="min-h-choice flex-row items-center justify-between gap-sm px-md"
     >
+      {icon ? <Symbol name={icon} fallback="info" tone="tint" size={18} /> : null}
       <Text variant="body" tone="tint" className="flex-1">
         {label}
       </Text>
@@ -51,7 +54,7 @@ export function LinkRow({ label, href }: { label: string; href: string }) {
 // "Why?" (when a rule fired) and "How Liora decided", together in one lattice.
 export function ExplainLinks({ id, ruleId }: { id: string; ruleId?: string }) {
   const rows: ReactNode[] = [];
-  if (ruleId) rows.push(<LinkRow key="why" label={en('result.why')} href={`/why/${ruleId}`} />);
-  rows.push(<LinkRow key="decided" label={en('decided.link')} href={`/decided/${id}`} />);
+  if (ruleId) rows.push(<LinkRow key="why" label={en('result.why')} href={`/why/${ruleId}`} icon="questionmark.circle" />);
+  rows.push(<LinkRow key="decided" label={en('decided.link')} href={`/decided/${id}`} icon="list.bullet.rectangle" />);
   return <Lattice>{Children.toArray(rows)}</Lattice>;
 }

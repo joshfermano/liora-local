@@ -9,10 +9,10 @@ import { ExplainLinks } from '../decisionParts';
 import { EmergencyButtons } from '../EmergencyButtons';
 import { warn } from '../haptics';
 import { Icon } from '../Icon';
-import { Lattice } from '../Lattice';
 import { useMargin } from '../Screen';
+import { Symbol } from '../Symbol';
 import { Text } from '../Text';
-import { SURFACE } from '../theme';
+import { EDGE, SEPARATOR, SURFACE } from '../theme';
 import { sourceFor, sourceLine } from '../ruleSource';
 
 // Fixed copy only, in the system face, with no entrance animation (FR-5, SR-4).
@@ -56,29 +56,70 @@ export function GoNow({ entry }: { entry: Entry }) {
         </View>
 
         <View className="w-full max-w-column self-center gap-xl pt-xl" style={{ paddingHorizontal: margin }}>
-          <Lattice header={fil('go.signs.header')}>
-            {codes.map((code) => {
-              const finding = entry.findings.find((f) => f.code === code);
-              return (
-                <View key={code} className="min-h-tap flex-row items-center gap-sm px-md py-sm">
-                  <Icon name="danger" tone="urgent" />
-                  <Text variant="body" className="flex-1">
-                    {fil(signKey(code))}
-                    {finding ? ` · ${fil(severityKey(finding.severity))}` : ''}
-                  </Text>
-                </View>
-              );
-            })}
-          </Lattice>
+          <View className="gap-sm">
+            <View className="flex-row items-center gap-xs px-xs" accessibilityRole="header">
+              <Symbol name="exclamationmark.triangle.fill" fallback="danger" tone="urgent" size={16} />
+              <Text variant="headline" className="flex-1">
+                {fil('go.signs.header')}
+              </Text>
+            </View>
+            <View className={`${SURFACE.surface} ${EDGE} rounded-pane overflow-hidden`}>
+              {codes.map((code, i) => {
+                const finding = entry.findings.find((f) => f.code === code);
+                return (
+                  <View key={code}>
+                    {i > 0 ? <View className={`ml-[60px] h-px ${SEPARATOR}`} /> : null}
+                    <View
+                      accessible
+                      accessibilityLabel={finding ? `${fil(signKey(code))}, ${fil(severityKey(finding.severity))}` : fil(signKey(code))}
+                      className="min-h-choice flex-row items-center gap-sm px-md py-sm"
+                    >
+                      <View className="h-8 w-8 items-center justify-center rounded-full bg-urgent-fill">
+                        <Symbol name="exclamationmark" fallback="danger" tone="onUrgent" size={14} />
+                      </View>
+                      <Text variant="headline" className="flex-1">
+                        {fil(signKey(code))}
+                      </Text>
+                      {finding ? (
+                        <View className="rounded-full border border-urgent px-sm py-0.5 dark:border-urgent-dark">
+                          <Text variant="caption1" tone="urgent" className="font-semibold">
+                            {fil(severityKey(finding.severity))}
+                          </Text>
+                        </View>
+                      ) : null}
+                    </View>
+                  </View>
+                );
+              })}
+            </View>
+          </View>
 
           {sources.length > 0 ? (
-            <Lattice header={en('go.source.header')}>
+            <View className="gap-sm">
+              <Text variant="headline" accessibilityRole="header" className="px-xs">
+                {en('go.source.header')}
+              </Text>
               {sources.map((src, i) => (
-                <View key={i} className="min-h-tap justify-center px-md py-sm">
-                  <Text variant="body">{sourceLine(src)}</Text>
+                <View
+                  key={i}
+                  accessible
+                  accessibilityLabel={`${src.title}. ${sourceLine(src)}`}
+                  className={`${SURFACE.surface} ${EDGE} rounded-pane flex-row gap-sm p-md`}
+                >
+                  <View className="pt-0.5">
+                    <Symbol name="book.closed.fill" fallback="list" tone="tintSoftInk" size={16} />
+                  </View>
+                  <View className="flex-1 gap-xxs">
+                    <Text variant="subheadline" className="font-semibold">
+                      {src.title}
+                    </Text>
+                    <Text variant="footnote" tone="secondary">
+                      {sourceLine(src)}
+                    </Text>
+                  </View>
                 </View>
               ))}
-            </Lattice>
+            </View>
           ) : null}
 
           <ExplainLinks id={entry.id} ruleId={firstRule} />
