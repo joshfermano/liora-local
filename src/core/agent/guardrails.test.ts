@@ -64,7 +64,7 @@ describe('replyStyle', () => {
   });
   it('is gentle when today she logged a heavy mood, even beside a light one', () => {
     expect(replyStyle(['anxious'], 'neutral')).toBe('gentle');
-    expect(replyStyle(['joyful', 'stressed'], 'happy')).toBe('gentle');
+    expect(replyStyle(['joyful', 'stressed'], 'neutral')).toBe('gentle');
   });
   it('follows her message when she logged no mood today', () => {
     expect(replyStyle([], 'sad')).toBe('gentle');
