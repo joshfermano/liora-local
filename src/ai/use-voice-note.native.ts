@@ -45,6 +45,8 @@ export function useVoiceNote({ autoStop = false, onHeard }: VoiceNoteOptions = {
   const [state, setState] = useState<VoiceNoteState>('idle');
   const [error, setError] = useState<string | null>(null);
   const startedAt = useRef(0);
+  // Kept from start() because cancel() can run after the screen has gone and the recorder is freed.
+  const recordingUri = useRef<string | null>(null);
   const vad = useRef(createVad());
   const autoStopping = useRef(false);
   const stopLatest = useRef<() => Promise<{ text: string; ms: number } | null>>(() => Promise.resolve(null));
@@ -63,6 +65,7 @@ export function useVoiceNote({ autoStop = false, onHeard }: VoiceNoteOptions = {
     autoStopping.current = false;
     await setAudioModeAsync({ allowsRecording: true, playsInSilentMode: true });
     await recorder.prepareToRecordAsync();
+    recordingUri.current = recorder.uri;
     recorder.record();
     startedAt.current = Date.now();
     setState('recording');
@@ -110,12 +113,16 @@ export function useVoiceNote({ autoStop = false, onHeard }: VoiceNoteOptions = {
 
   async function cancel() {
     if (state !== 'recording') return;
-    const left = recorder.uri;
+    const left = recordingUri.current;
+    recordingUri.current = null;
     try {
       await recorder.stop();
+    } catch {}
+    try {
       await setAudioModeAsync({ allowsRecording: false, playsInSilentMode: true });
     } catch {}
     setState('idle');
+    // Her voice is deleted even when the recorder was already freed.
     if (left) {
       try {
         new File(left).delete();
