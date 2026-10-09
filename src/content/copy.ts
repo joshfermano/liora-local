@@ -337,6 +337,17 @@ export const COPY = {
   'symptom.appetite': ui('Appetite'),
   'symptom.nausea': ui('Nausea'),
   'symptom.pelvic_pain': ui('Pelvic pain'),
+  // today page (LUM-60)
+  'today.log': ui('Log today'),
+  'today.weeks_title': ui('{n} weeks pregnant'),
+  'today.cycle_title': ui('Cycle day {n}'),
+  'today.next_around': ui('Next period around {date}'),
+  'today.window': ui('Most likely {from} to {to}'),
+  'today.invite': ui('Your cycle starts here'),
+  'today.invite_note': ui('Log a period and Liora will count your days from it.'),
+  'today.cycles_title': ui('Your cycles'),
+  'today.now': ui('Now'),
+  'today.profile_hint': ui('Open your profile'),
 } as const satisfies Record<string, Entry>;
 
 export type CopyKey = keyof typeof COPY;

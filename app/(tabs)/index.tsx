@@ -1,7 +1,6 @@
 import { Link, useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { KeyboardAvoidingView, Platform, Pressable, View } from 'react-native';
-import { format } from 'date-fns';
 import { useVoiceNote } from '../../src/ai/use-voice-note';
 import { en, fil } from '../../src/content/copy';
 import { useLogStore } from '../../src/store/log';
@@ -16,8 +15,9 @@ import { useAiStatus, useOffline } from '../../src/ui/status';
 import { TellField } from '../../src/ui/TellField';
 import { useName } from '../../src/ui/name';
 import { Text } from '../../src/ui/Text';
-import { TodayDashboard } from '../../src/ui/today/dashboard';
-import { QuickActions, StatusCard } from '../../src/ui/today/parts';
+import { CardOfDay, Cycles, GlanceTiles, Noticed, useToday } from '../../src/ui/today/dashboard';
+import { Actions, Answer, CycleStrip, Header, Rise } from '../../src/ui/today/parts';
+import { predictNext } from '../../src/core/cycle';
 
 const RECORD_LIMIT_S = 30;
 
@@ -29,6 +29,8 @@ export default function Home() {
   const setupDone = useLogStore((s) => s.setup?.status != null);
   const offline = useOffline();
   const name = useName();
+  const t = useToday();
+  const next = t.profile.status && t.profile.status !== 'neither' ? null : predictNext(t.periods, t.cycleSettings, t.today, 'neither');
   const [text, setText] = useState('');
   const voice = useVoiceNote();
   const recording = voice.state === 'recording';
@@ -58,15 +60,20 @@ export default function Home() {
     <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} className="flex-1">
       <Screen>
         <View className="gap-xl pt-lg">
-          <View className="gap-xxs">
-            <Text variant="footnote" tone="secondary" className="uppercase">
-              {format(new Date(), 'EEEE, d MMMM')}
-            </Text>
-            <Text variant="displayTitle" accessibilityRole="header">
-              {name ? en('home.greeting').replace('{name}', name) : 'Liora'}
-            </Text>
-          </View>
-          <StatusCard />
+          <Rise order={0}>
+            <View className="gap-md">
+              <Header name={name} />
+              <CycleStrip strip={t.glance.strip} />
+            </View>
+            <Answer
+              pregnant={t.profile.status === 'pregnant'}
+              weeks={t.profile.weeks}
+              day={t.glance.cycle?.day ?? null}
+              next={next}
+            />
+          </Rise>
+          <Rise order={1}>
+            <Actions />
           <View accessible accessibilityLabel={`${fil('home.prompt')} ${en('home.prompt')}`} className="gap-xxs">
             <Text variant="displayTitle">{fil('home.prompt')}</Text>
             <Text variant="body" tone="secondary">
@@ -101,8 +108,13 @@ export default function Home() {
             )}
             {offline ? <StatusRow icon="phone">{en('home.offline')}</StatusRow> : null}
           </View>
-          <QuickActions />
-          <TodayDashboard />
+          </Rise>
+          <Rise order={2}>
+            <GlanceTiles g={t.glance} />
+            <Cycles g={t.glance} periods={t.periods} today={t.today} />
+            <Noticed list={t.insights} />
+            <CardOfDay today={t.today} />
+          </Rise>
           {setupDone ? null : (
             <Link href="/setup" className="self-start">
               <Text variant="footnote" tone="secondary">
