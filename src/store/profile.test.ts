@@ -27,3 +27,13 @@ describe('her profile', () => {
     expect(contextFrom({ lock: false })).toEqual({ status: 'pregnant' });
   });
 });
+
+describe('numbers saved as text', () => {
+  it('reads a number the native wheel saved as text', () => {
+    expect(readProfile({ weightKg: '55', heightCm: '157', age: '22' })).toMatchObject({ weightKg: 55, heightCm: 157, age: 22 });
+  });
+
+  it('still drops text that is not a number in range', () => {
+    expect(readProfile({ weightKg: 'heavy', heightCm: '9000' })).toEqual({ lock: false });
+  });
+});

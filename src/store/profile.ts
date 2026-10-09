@@ -20,8 +20,11 @@ export interface Profile {
 
 const RANGES = { age: [10, 60], heightCm: [100, 220], weightKg: [25, 250], weeks: [1, 45], daysSinceBirth: [0, 365] } as const;
 
-const inRange = (value: unknown, [min, max]: readonly [number, number]): number | undefined =>
-  typeof value === 'number' && Number.isFinite(value) && value >= min && value <= max ? value : undefined;
+// The native wheel can hand its value back as text, so "55" reads as 55; anything else is dropped.
+const inRange = (value: unknown, [min, max]: readonly [number, number]): number | undefined => {
+  const n = typeof value === 'string' && /^\d+(?:\.\d+)?$/.test(value.trim()) ? Number(value) : value;
+  return typeof n === 'number' && Number.isFinite(n) && n >= min && n <= max ? n : undefined;
+};
 
 export function readProfile(setup: SetupAnswers | null): Profile {
   const s = setup ?? {};

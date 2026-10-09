@@ -20,10 +20,13 @@ const WHEEL_HEIGHT = 160;
 
 export function WheelPicker({ label, value, onChange, min = 0, max = 0, options, unit }: WheelPickerProps) {
   const items = options ?? Array.from({ length: Math.max(0, max - min + 1) }, (_, i) => ({ label: String(min + i), value: min + i }));
+  // The native picker can report its value as text; hand back the exact value that was offered.
   const change = (next: WheelValue | null) => {
-    if (next === null || next === value) return;
+    if (next === null) return;
+    const picked = items.find((it) => String(it.value) === String(next))?.value;
+    if (picked === undefined || picked === value) return;
     tap();
-    onChange(next);
+    onChange(picked);
   };
 
   if (Platform.OS === 'ios') {
