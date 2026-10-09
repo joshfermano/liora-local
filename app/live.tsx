@@ -1,4 +1,4 @@
-import { useAudioPlayer } from 'expo-audio';
+import { setAudioModeAsync, useAudioPlayer, useAudioPlayerStatus } from 'expo-audio';
 import { useRouter } from 'expo-router';
 import { useEffect, useRef } from 'react';
 import { useWindowDimensions, View } from 'react-native';
@@ -44,11 +44,18 @@ export default function Live() {
   const glow = useSharedValue(0);
   const chrome = useSharedValue(0);
 
-  // The chime lands as the orb starts to grow.
+  const chimeStatus = useAudioPlayerStatus(chime);
+  const chimed = useRef(false);
+
+  // Live is a voice space, so it speaks through the silent switch; play() before the file loads is dropped.
   useEffect(() => {
-    const t = setTimeout(() => chime.play(), 120);
-    return () => clearTimeout(t);
-  }, [chime]);
+    void setAudioModeAsync({ playsInSilentMode: true }).catch(() => {});
+  }, []);
+  useEffect(() => {
+    if (!chimeStatus.isLoaded || chimed.current) return;
+    chimed.current = true;
+    chime.play();
+  }, [chimeStatus.isLoaded, chime]);
 
   useEffect(() => {
     glow.value = withDelay(120, withTiming(1, { duration: 300 }));
