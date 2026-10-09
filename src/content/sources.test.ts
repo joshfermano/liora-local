@@ -3,6 +3,11 @@ import { CARDS } from './cards';
 import { groupSources, parseCardTitle, passageLabel, SOURCES } from './sources';
 
 describe('sources', () => {
+  it('lists the WHO PCPNC guide as a source of decision rules too', () => {
+    const pcpnc = SOURCES.find((s) => s.url === 'https://www.who.int/publications/i/item/9789241549356');
+    expect(pcpnc?.rules).toContain('M2, p. 163');
+  });
+
   it('splits a WHO card title into organisation, document, year and place', () => {
     expect(
       parseCardTitle('WHO, Pregnancy, childbirth, postpartum and newborn care: a guide for essential practice, 3rd edition (2015), M2, p. 163'),

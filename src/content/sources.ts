@@ -1,3 +1,4 @@
+import { RULES } from '../core/rules';
 import { DT01_SOURCE, DT17_SOURCE } from '../core/rules/who';
 import { CARDS, type CardData } from './cards';
 
@@ -33,6 +34,9 @@ const idOf = (url: string) =>
     .replace(/^-|-$/g, '')
     .toLowerCase();
 
+// The decision rules that cite a document, by their place in it.
+const rulesFrom = (url: string) => [...new Set(RULES.filter((r) => r.source.url === url).map((r) => r.source.ref))];
+
 export function groupSources(cards: CardData[]): SourceDoc[] {
   const byUrl = new Map<string, SourceDoc>();
   byUrl.set(DT01_SOURCE.url, {
@@ -51,7 +55,7 @@ export function groupSources(cards: CardData[]): SourceDoc[] {
       continue;
     }
     const { org, title, year } = parseCardTitle(card.title);
-    byUrl.set(card.source, { id: idOf(card.source), org, title, year, url: card.source, cards: [card], rules: [] });
+    byUrl.set(card.source, { id: idOf(card.source), org, title, year, url: card.source, cards: [card], rules: rulesFrom(card.source) });
   }
   return [...byUrl.values()];
 }
