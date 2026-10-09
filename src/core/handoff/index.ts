@@ -1,6 +1,7 @@
 import { format, parseISO, subDays } from 'date-fns';
-import type { DayLog, Entry, PeriodRecord } from '../types';
+import type { DayLog, Discharge, Entry, PeriodRecord } from '../types';
 import { DANGER_CODES } from '../vocabulary';
+import { hasDischarge } from '../daylog';
 
 // The handoff report she shows or sends to a nurse, BHW or doctor: who she is, what is happening
 // now in her own words with the rule that fired, and what she logged this week. Data only; the
@@ -42,7 +43,7 @@ export interface HandoffReport {
     rules: string[];
     fired: { rule_id: string; codes: string[] }[];
   } | null;
-  recent: { date: string; flow: DayLog['flow']; symptoms: string[]; moods: string[] }[];
+  recent: { date: string; flow: DayLog['flow']; symptoms: string[]; moods: string[]; discharge?: Discharge }[];
   emergency?: { name: string; relation?: string; phone: string };
 }
 
@@ -85,7 +86,7 @@ export function handoffReport({ patient, emergency, entry, entries, dayLogs, per
       }
     : null;
 
-  const days = new Map<string, { flow: DayLog['flow']; symptoms: Set<string>; moods: Set<string> }>();
+  const days = new Map<string, { flow: DayLog['flow']; symptoms: Set<string>; moods: Set<string>; discharge?: Discharge }>();
   const at = (date: string) => {
     if (!days.has(date)) days.set(date, { flow: null, symptoms: new Set(), moods: new Set() });
     return days.get(date)!;
@@ -96,6 +97,7 @@ export function handoffReport({ patient, emergency, entry, entries, dayLogs, per
     d.flow = l.flow ?? d.flow;
     l.symptoms.forEach((s) => d.symptoms.add(s));
     l.moods.forEach((m) => d.moods.add(m));
+    if (hasDischarge(l.discharge)) d.discharge = l.discharge;
   }
   for (const e of entries) {
     const date = dayOf(e.created_at);
@@ -106,7 +108,13 @@ export function handoffReport({ patient, emergency, entry, entries, dayLogs, per
   }
   const recent = [...days]
     .sort(([a], [b]) => b.localeCompare(a))
-    .map(([date, d]) => ({ date, flow: d.flow, symptoms: [...d.symptoms].sort(dangerFirst), moods: [...d.moods].sort() }));
+    .map(([date, d]) => ({
+      date,
+      flow: d.flow,
+      symptoms: [...d.symptoms].sort(dangerFirst),
+      moods: [...d.moods].sort(),
+      ...(d.discharge ? { discharge: d.discharge } : {}),
+    }));
 
   return defined({
     madeAt: now.toISOString(),

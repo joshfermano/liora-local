@@ -4,12 +4,13 @@ import { useRef, useState } from 'react';
 import { Keyboard, ScrollView, TextInput, View } from 'react-native';
 import Animated, { FadeIn, useReducedMotion } from 'react-native-reanimated';
 import { en } from '../src/content/copy';
-import { applyFlow } from '../src/core/daylog';
+import { applyFlow, hasDischarge } from '../src/core/daylog';
 import type { Activity, DayLog, Flow, Mood, Symptom } from '../src/core/types';
 import { ACTIVITIES, MOODS, SYMPTOMS } from '../src/core/vocabulary';
 import { useLogStore } from '../src/store/log';
 import type { LogMarkName } from '../src/ui/art';
 import { ChipSection } from '../src/ui/daylog/ChipGrid';
+import { DischargeSection } from '../src/ui/daylog/Discharge';
 import { WeekStrip } from '../src/ui/daylog/WeekStrip';
 import { PressableSurface } from '../src/ui/PressableSurface';
 import { Screen } from '../src/ui/Screen';
@@ -181,6 +182,8 @@ export default function LogDaySheet() {
             chosen={log.symptoms}
             onToggle={(id) => commit({ ...log, symptoms: toggle(log.symptoms, id) })}
           />
+
+          <DischargeSection value={log.discharge} onChange={(discharge) => commit({ ...log, discharge: hasDischarge(discharge) ? discharge : undefined })} />
 
           <ChipSection<Mood>
             title={en('daylog.moods')}

@@ -55,6 +55,18 @@ describe('the handoff report for a nurse, BHW or doctor', () => {
     expect(concern?.fired).toEqual([{ rule_id: 'ANC.DT.01.headache', codes: ['severe_headache'] }]);
   });
 
+  it('carries a logged discharge into the day it was logged', () => {
+    const dayLogs = [log('2026-10-08', { discharge: { color: 'white', texture: 'creamy' } })];
+    const { recent } = handoffReport(input({ dayLogs, entries: [] }));
+    expect(recent.find((d) => d.date === '2026-10-08')).toEqual({
+      date: '2026-10-08',
+      flow: null,
+      symptoms: [],
+      moods: [],
+      discharge: { color: 'white', texture: 'creamy' },
+    });
+  });
+
   it('lists the last seven days she logged, newest first, and nothing older', () => {
     const { recent } = handoffReport(input());
     expect(recent.map((d) => d.date)).toEqual(['2026-10-10', '2026-10-09']);

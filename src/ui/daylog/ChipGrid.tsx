@@ -1,7 +1,9 @@
 import { View } from 'react-native';
-import { Icon } from '../Icon';
+import type { SFSymbol } from 'expo-symbols';
+import { Icon, type IconName } from '../Icon';
 import { PressableSurface } from '../PressableSurface';
 import { LogMark, type LogMarkName } from '../art';
+import { Symbol } from '../Symbol';
 import { Text } from '../Text';
 import { EDGE, SURFACE } from '../theme';
 import { tap } from '../haptics';
@@ -9,18 +11,30 @@ import { tap } from '../haptics';
 export interface ChipOption<T extends string> {
   id: T;
   label: string;
-  mark: LogMarkName;
+  // A drawn mark, or for a colour a small swatch of it; neither leaves a plain text chip.
+  mark?: LogMarkName;
+  swatch?: string;
 }
 
-function Chip({
+// An SF Symbol for a chip with no drawn mark, and the drawn icon the web shows instead.
+export interface ChipSymbol {
+  sf: SFSymbol;
+  fallback: IconName;
+}
+
+export function Chip({
   label,
   mark,
+  swatch,
+  symbol,
   chosen,
   role,
   onPress,
 }: {
   label: string;
-  mark: LogMarkName;
+  mark?: LogMarkName;
+  swatch?: string;
+  symbol?: ChipSymbol;
   chosen: boolean;
   role: 'checkbox' | 'radio';
   onPress: () => void;
@@ -38,7 +52,9 @@ function Chip({
       }}
       surfaceClassName={`${chosen ? SURFACE.tintSoft : SURFACE.surface} ${EDGE} rounded-full h-tap pl-md pr-sm flex-row items-center gap-xs`}
     >
-      <LogMark name={mark} chosen={chosen} size={20} />
+      {mark ? <LogMark name={mark} chosen={chosen} size={20} /> : null}
+      {swatch ? <View style={{ backgroundColor: swatch }} className={`h-4 w-4 rounded-full ${EDGE}`} /> : null}
+      {symbol ? <Symbol name={symbol.sf} fallback={symbol.fallback} tone={chosen ? 'tintSoftInk' : 'secondary'} size={17} /> : null}
       <Text variant="subheadline" tone={tone} className="shrink" numberOfLines={1}>
         {label}
       </Text>
@@ -73,6 +89,7 @@ export function ChipSection<T extends string>({
             key={o.id}
             label={o.label}
             mark={o.mark}
+            swatch={o.swatch}
             chosen={chosen.includes(o.id)}
             role={single ? 'radio' : 'checkbox'}
             onPress={() => onToggle(o.id)}

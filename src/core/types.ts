@@ -1,5 +1,17 @@
 import { z } from 'zod';
-import { ACTIVITIES, DANGER_CODES, FINDING_SOURCES, FLOWS, MOODS, SEVERITIES, SYMPTOMS } from './vocabulary';
+import {
+  ACTIVITIES,
+  DANGER_CODES,
+  DISCHARGE_AMOUNTS,
+  DISCHARGE_COLORS,
+  DISCHARGE_SMELLS,
+  DISCHARGE_TEXTURES,
+  FINDING_SOURCES,
+  FLOWS,
+  MOODS,
+  SEVERITIES,
+  SYMPTOMS,
+} from './vocabulary';
 
 const ymd = z.string().regex(/^\d{4}-\d{2}-\d{2}$/);
 
@@ -89,12 +101,21 @@ export const PeriodRecordSchema = z.object({
   source: z.enum(['tell', 'calendar', 'setup']),
 });
 
+export const DischargeSchema = z.object({
+  color: z.enum(DISCHARGE_COLORS).optional(),
+  texture: z.enum(DISCHARGE_TEXTURES).optional(),
+  amount: z.enum(DISCHARGE_AMOUNTS).optional(),
+  smell: z.enum(DISCHARGE_SMELLS).optional(),
+});
+
 export const DayLogSchema = z.object({
   date: ymd,
   flow: FlowSchema.nullable(),
   symptoms: z.array(SymptomSchema),
   moods: z.array(MoodSchema),
   activities: z.array(ActivitySchema),
+  // Older saved days have none; every detail is optional.
+  discharge: DischargeSchema.optional(),
   note: z.string().optional(),
 });
 
@@ -124,6 +145,7 @@ export type Flow = z.infer<typeof FlowSchema>;
 export type Symptom = z.infer<typeof SymptomSchema>;
 export type Activity = z.infer<typeof ActivitySchema>;
 export type DayLog = z.infer<typeof DayLogSchema>;
+export type Discharge = z.infer<typeof DischargeSchema>;
 export type Mood = z.infer<typeof MoodSchema>;
 export type DangerCode = z.infer<typeof DangerCodeSchema>;
 export type Severity = z.infer<typeof SeveritySchema>;
