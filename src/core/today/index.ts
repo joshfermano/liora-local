@@ -1,4 +1,5 @@
 import { addDays, differenceInCalendarDays, format, parseISO, startOfWeek } from 'date-fns';
+import { estimatedPeriods } from '../calendar';
 import { cycleDay, cycleHistory, periodLength, predictNext } from '../cycle';
 import { insights, loggedOn, periodDays, recentLengths, type Insight, type InsightInput } from '../insights';
 import type { DayLog, Prediction } from '../types';
@@ -88,7 +89,9 @@ export function today(input: TodayInput): TodayModel {
   })();
 
   const sunday = fmt(startOfWeek(parseISO(now), { weekStartsOn: 0 }));
-  const estimated = (date: string) => prediction !== null && prediction.window.from <= date && date <= prediction.window.to;
+  // The same dashed days as the calendar: her likely period days, not the whole window.
+  const ahead = tracking ? estimatedPeriods(input) : [];
+  const estimated = (date: string) => ahead.some((e) => e.start <= date && date <= e.end);
   const strip = Array.from({ length: 14 }, (_, i) => {
     const date = shift(sunday, i);
     const logged = loggedOn(periods, usual, date, now);

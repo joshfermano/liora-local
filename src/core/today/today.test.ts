@@ -71,10 +71,10 @@ describe('the two-week strip', () => {
     expect(strip.filter((d) => d.isToday).map((d) => d.date)).toEqual([TODAY]);
   });
 
-  it('marks logged and estimated period days', () => {
+  it('marks logged days and the same estimated days as the calendar', () => {
     const strip = today(input({ periods: PERIODS, today: '2026-10-18' })).strip;
     const marked = strip.filter((d) => d.period === 'estimated').map((d) => d.date);
-    expect(marked).toEqual(['2026-10-21', '2026-10-22', '2026-10-23', '2026-10-24', '2026-10-25']);
+    expect(marked).toEqual(['2026-10-23', '2026-10-24', '2026-10-25', '2026-10-26', '2026-10-27']);
   });
 });
 
@@ -111,7 +111,8 @@ describe('your cycles', () => {
     const current = rows[0]!.dots;
     expect(current[15]).toBe('day');
     expect(current[16]).toBe('ahead');
-    expect(current.at(-1)).toBe('estimated');
+    expect(current.at(-1)).toBe('ahead');
+    expect(current).toHaveLength(28);
   });
 
   it('counts the cycles she has logged', () => {
