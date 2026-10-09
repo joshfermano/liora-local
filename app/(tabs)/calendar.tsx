@@ -97,7 +97,7 @@ function Calendar() {
     tap();
     setFocus(m);
     setView('month');
-    setAway(m !== thisMonth);
+    setAway(m > thisMonth);
   };
 
   const listPad = insets.bottom + TAB_BAR_CLEARANCE + 92;

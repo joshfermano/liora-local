@@ -91,9 +91,9 @@ export function MonthList({ months, focus, input, picked, onDay, thisMonth, onAw
   const onScroll = useCallback(
     (e: NativeSyntheticEvent<NativeScrollEvent>) => {
       const y = e.nativeEvent.contentOffset.y;
-      const h = e.nativeEvent.layoutMeasurement.height;
       const start = offsets[thisIndex] ?? 0;
-      const gone = y > start + heightOf(thisMonth) - 40 || y + h < start + 40;
+      // Only scrolling down past this month offers the way back; looking back stays quiet.
+      const gone = y > start + heightOf(thisMonth) - 40;
       if (gone !== away.current) {
         away.current = gone;
         onAway(gone);
