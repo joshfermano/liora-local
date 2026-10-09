@@ -1,6 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import { DANGER_CODES } from '../core/vocabulary';
 import {
+  followUpQuestions,
+  PRESENCE,
   QUESTIONS,
   logScoresFromTopProbs,
   optionTokenIds,
@@ -86,14 +88,23 @@ describe('splitPrefix', () => {
 });
 
 describe('the question set', () => {
-  it('asks one yes/no question per WHO danger code', () => {
-    const codes = QUESTIONS.filter((q) => q.kind === 'yesno').map((q) => q.code);
-    expect(codes).toEqual([...DANGER_CODES]);
+  it('asks one presence question per WHO danger code', () => {
+    expect(PRESENCE.map((q) => q.code)).toEqual([...DANGER_CODES]);
   });
 
-  it('asks how bad it is for every code that needs a severe answer', () => {
-    const codes = QUESTIONS.filter((q) => q.kind === 'score').map((q) => q.code);
-    expect(codes).toEqual(DANGER_CODES.filter((c) => c.startsWith('severe_')));
+  it('asks "very bad?" and "only mild or moderate?" for every code that needs a severe answer', () => {
+    const severe = DANGER_CODES.filter((c) => c.startsWith('severe_'));
+    expect(QUESTIONS.filter((q) => q.id.startsWith('severe.')).map((q) => q.code)).toEqual(severe);
+    expect(QUESTIONS.filter((q) => q.id.startsWith('mild.')).map((q) => q.code)).toEqual(severe);
+  });
+
+  it('asks only yes/no questions', () => {
+    expect(QUESTIONS.every((q) => q.options.join() === 'yes,no')).toBe(true);
+  });
+
+  // On the phone, "masakit ulo ko" got yes 0.60 to "looks or feels very ill".
+  it('asks whether the message itself says she is very ill, not whether anything hurts', () => {
+    expect(PRESENCE.find((q) => q.code === 'looks_very_ill')?.text).toMatch(/not just that something hurts/);
   });
 
   it('gives every question its own id', () => {
@@ -107,10 +118,21 @@ describe('the question set', () => {
   });
 });
 
+describe('followUpQuestions', () => {
+  const yes = (p: number) => [p, 1 - p];
+
+  it('asks how bad it is only for the signs her message mentions', () => {
+    const ids = followUpQuestions({ 'yesno.severe_headache': yes(0.9), 'yesno.severe_pain': yes(0.1) }, T).map((q) => q.id);
+    expect(ids).toEqual(['severe.severe_headache', 'mild.severe_headache']);
+  });
+
+  it('asks nothing more when no sign that needs a severity is mentioned', () => {
+    expect(followUpQuestions({ 'yesno.fever': yes(0.95) }, T)).toEqual([]);
+  });
+});
+
 describe('toFindings', () => {
   const yes = (p: number) => [p, 1 - p];
-  // mild, moderate, severe, unsure
-  const score = (mild: number, moderate: number, severe: number, unsure: number) => [mild, moderate, severe, unsure];
 
   it('adds a presence-only danger code when the answer is a confident yes', () => {
     expect(toFindings({ 'yesno.vaginal_bleeding': yes(0.9) }, T)).toEqual([
@@ -122,28 +144,28 @@ describe('toFindings', () => {
     expect(toFindings({ 'yesno.vaginal_bleeding': yes(0.1) }, T)).toEqual([]);
   });
 
-  it('takes a confident severe score', () => {
-    const found = toFindings({ 'yesno.severe_headache': yes(0.9), 'score.severe_headache': score(0.05, 0.05, 0.8, 0.1) }, T);
+  it('takes a confident "very bad" as severe', () => {
+    const found = toFindings({ 'yesno.severe_headache': yes(0.9), 'severe.severe_headache': yes(0.8), 'mild.severe_headache': yes(0.1) }, T);
     expect(found[0]?.severity).toBe('severe');
   });
 
-  it('takes a confident mild score', () => {
-    const found = toFindings({ 'yesno.severe_pain': yes(0.8), 'score.severe_pain': score(0.9, 0.05, 0.02, 0.03) }, T);
-    expect(found[0]?.severity).toBe('mild');
+  it('takes a confident "only mild or moderate" as moderate', () => {
+    const found = toFindings({ 'yesno.severe_pain': yes(0.97), 'severe.severe_pain': yes(0.05), 'mild.severe_pain': yes(0.9) }, T);
+    expect(found[0]?.severity).toBe('moderate');
   });
 
   it('asks when the message does not say how bad it is', () => {
-    const found = toFindings({ 'yesno.severe_headache': yes(0.9), 'score.severe_headache': score(0.1, 0.1, 0.1, 0.7) }, T);
+    const found = toFindings({ 'yesno.severe_headache': yes(0.99), 'severe.severe_headache': yes(0.05), 'mild.severe_headache': yes(0.1) }, T);
     expect(found[0]?.severity).toBe('unknown');
   });
 
-  it('asks when severe is possible but not the top answer', () => {
-    const found = toFindings({ 'yesno.severe_headache': yes(0.9), 'score.severe_headache': score(0.6, 0.05, 0.3, 0.05) }, T);
+  it('asks when "very bad" is possible, even if "mild" is likely', () => {
+    const found = toFindings({ 'yesno.severe_headache': yes(0.9), 'severe.severe_headache': yes(0.3), 'mild.severe_headache': yes(0.9) }, T);
     expect(found[0]?.severity).toBe('unknown');
   });
 
   it('asks when the yes itself is uncertain', () => {
-    const found = toFindings({ 'yesno.severe_headache': yes(0.4), 'score.severe_headache': score(0, 0, 1, 0) }, T);
+    const found = toFindings({ 'yesno.severe_headache': yes(0.4), 'severe.severe_headache': yes(1), 'mild.severe_headache': yes(0) }, T);
     expect(found[0]?.severity).toBe('unknown');
   });
 });

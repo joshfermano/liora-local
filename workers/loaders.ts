@@ -1,6 +1,7 @@
 import { AutoConfig, AutoModel, AutoTokenizer, Gemma4ForCausalLM } from '@huggingface/transformers';
 import type { ProgressEvent } from '../src/ai/protocol';
-import { QUESTIONS } from '../src/ai/typed-decisions';
+import { followUpQuestions, PRESENCE } from '../src/ai/typed-decisions';
+import { PROVISIONAL_THRESHOLDS } from '../src/core/merge';
 import { answerQuestions } from './decide';
 import type { Loaders } from './host';
 
@@ -32,8 +33,13 @@ export const loaders: Loaders = {
         };
         return { detail: `generated 1 token; output shape [${output.dims.join(', ')}]` };
       },
-      decide(message) {
-        return answerQuestions(model as never, tokenizer as never, message, QUESTIONS, () => performance.now());
+      async decide(message) {
+        const now = () => performance.now();
+        const first = await answerQuestions(model as never, tokenizer as never, message, PRESENCE, now);
+        const more = followUpQuestions(first.answers, PROVISIONAL_THRESHOLDS);
+        if (more.length === 0) return first;
+        const second = await answerQuestions(model as never, tokenizer as never, message, more, now);
+        return { ...first, answers: { ...first.answers, ...second.answers }, prefixMs: first.prefixMs + second.prefixMs };
       },
       async dispose() {
         await model.dispose();

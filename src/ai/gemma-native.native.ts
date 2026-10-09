@@ -1,7 +1,17 @@
 import { File, Paths } from 'expo-file-system';
 import { initLlama } from 'llama.rn';
 import { GEMMA_GGUF, type NativeGemma } from './gemma-model';
-import { logScoresFromTopProbs, optionTokenIds, promptFor, QUESTIONS, restrictedSoftmax } from './typed-decisions';
+import { PROVISIONAL_THRESHOLDS } from '../core/merge';
+import {
+  followUpQuestions,
+  logScoresFromTopProbs,
+  optionTokenIds,
+  PRESENCE,
+  promptFor,
+  QUESTIONS,
+  restrictedSoftmax,
+  type Question,
+} from './typed-decisions';
 
 export { GEMMA_GGUF, type NativeGemma } from './gemma-model';
 
@@ -50,7 +60,7 @@ export async function loadGemma(): Promise<NativeGemma> {
       const t = Date.now();
       const answers: Record<string, number[]> = {};
       const skipped: string[] = [];
-      for (const q of QUESTIONS) {
+      const ask = async (q: Question) => {
         const chat = await ctx.getFormattedChat([{ role: 'user', content: promptFor(message, q) }], null, {
           jinja: true,
           add_generation_prompt: true,
@@ -69,7 +79,9 @@ export async function loadGemma(): Promise<NativeGemma> {
         } catch {
           skipped.push(q.id);
         }
-      }
+      };
+      for (const q of PRESENCE) await ask(q);
+      for (const q of followUpQuestions(answers, PROVISIONAL_THRESHOLDS)) await ask(q);
       return { answers, skipped, ms: Date.now() - t };
     },
     release: () => ctx.release(),

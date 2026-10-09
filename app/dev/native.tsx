@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { Pressable, ScrollView, Share, Text } from 'react-native';
-import { DEMO_PHRASES } from '../../src/ai/demo-phrases';
+import { CHECK_PHRASES, DEMO_PHRASES } from '../../src/ai/demo-phrases';
 import { downloadModel, loadGemma, modelBytesOnDisk, type NativeGemma } from '../../src/ai/gemma-native';
 import { toFindings } from '../../src/ai/typed-decisions';
 import { PROVISIONAL_THRESHOLDS } from '../../src/core/merge';
@@ -64,10 +64,10 @@ export default function NativeModelTest() {
       record({ step: 'load', ok: true, ms: loadMs, gpu, reasonNoGPU });
     });
 
-  const answer = () =>
-    run('answer the demo phrases', async () => {
+  const answer = (label: string, phrases: readonly string[]) =>
+    run(label, async () => {
       if (!gemma.current) throw new Error('Load Gemma 4 first');
-      for (const message of DEMO_PHRASES) {
+      for (const message of phrases) {
         setStatus(`answering "${message}"`);
         const { answers, skipped, ms } = await gemma.current.decide(message);
         const findings = toFindings(answers, PROVISIONAL_THRESHOLDS);
@@ -93,7 +93,8 @@ export default function NativeModelTest() {
       <Text>Gemma 4 E2B Q4_0 on this phone: {onDisk ? MB(onDisk) : 'not downloaded'}</Text>
       <Button disabled={busy} title="1. Download Gemma 4 E2B (about 2.8 GB, Wi-Fi)" onPress={download} />
       <Button disabled={busy} title="2. Load Gemma 4 on this iPhone" onPress={load} />
-      <Button disabled={busy} title="3. Answer the 3 demo phrases" onPress={answer} />
+      <Button disabled={busy} title="3. Answer the 3 demo phrases" onPress={() => answer('demo phrases', DEMO_PHRASES)} />
+      <Button disabled={busy} title="4. Answer 5 more phrases" onPress={() => answer('more phrases', CHECK_PHRASES)} />
       <Text>{status}</Text>
       <Button title="Share results" onPress={() => Share.share({ message: report })} />
       <Text selectable>{report}</Text>
