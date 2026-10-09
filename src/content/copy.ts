@@ -566,6 +566,25 @@ export const COPY = {
   'agent.confirm.replace': ui('This changes a period you already logged.'),
   'agent.tell.placeholder': ui('Tell Liora, like "Niregla ako today"'),
   'agent.tell.send': ui('Tell Liora'),
+  // the agent's fixed fallback replies when Gemma has none (LUM-84); bright, never medical
+  'reply.saved': ui('Done! I saved that for you.'),
+  'reply.deleted': ui('Done, I removed it.'),
+  'reply.undone': ui('Okay, I undid that.'),
+  'reply.nothing_to_undo': ui('There is nothing to undo right now.'),
+  'reply.not_found': ui('I could not find that on your calendar.'),
+  'reply.cycle': ui('Here is how your cycle looks.'),
+  'reply.day': ui('Here is what you logged that day.'),
+  'reply.day_empty': ui('Nothing is logged for that day yet.'),
+  'reply.card': ui('Here is what a reviewed source says.'),
+  'reply.no_card': ui('I do not have a reviewed source for that. You can ask at your check-up.'),
+  'reply.open': ui('Opening it for you.'),
+  'reply.greeting': ui('Hi, {name}! What would you like to log or ask today?'),
+  'reply.greeting.anon': ui('Hi! What would you like to log or ask today?'),
+  'reply.thanks': ui('Anytime! I am here whenever you need me.'),
+  'reply.other': ui('I can log your period, symptoms, moods and activities, answer questions about your cycle, or find a reviewed source. What would you like?'),
+  'reply.confirm': ui('Just checking before I save it.'),
+  'companion.action.profile': ui('Profile'),
+  'companion.action.log_day': ui('Log your day'),
 } as const satisfies Record<string, Entry>;
 
 export type CopyKey = keyof typeof COPY;

@@ -17,12 +17,24 @@ export type AgentAction =
   | { tool: 'moods'; date: DateWord; moods: Mood[] }
   | { tool: 'activities'; date: DateWord; activities: Activity[] }
   | { tool: 'weeks'; weeks: number }
+  | { tool: 'delete_period'; date: DateWord }
+  | { tool: 'clear_day'; date: DateWord; what: 'all' | 'flow' | 'symptoms' | 'moods' | 'activities' }
+  | { tool: 'undo_last' }
+  | { tool: 'ask_day'; date: DateWord }
+  | { tool: 'open'; screen: Screen }
   | { tool: 'cycle_question' }
   | { tool: 'health_question' }
   | { tool: 'smalltalk' };
 
+export type Screen = 'calendar' | 'mood_check' | 'checklist' | 'profile' | 'log_day';
+
 export type Tool = AgentAction['tool'];
-export const WRITE_TOOLS = ['period_start', 'period_end', 'flow', 'symptoms', 'moods', 'activities', 'weeks'] as const;
+export const WRITE_TOOLS = [
+  'period_start', 'period_end', 'flow', 'symptoms', 'moods', 'activities', 'weeks', 'delete_period', 'clear_day',
+] as const;
+
+// Plain data the responder may use; every number in Gemma's reply must appear here.
+export type Facts = Record<string, string | number | boolean | string[] | null>;
 
 // The parts of her data an action may touch.
 export interface AgentData {
@@ -46,7 +58,9 @@ export type SavedItem =
   | { kind: 'symptoms'; date: string; values: Symptom[] }
   | { kind: 'moods'; date: string; values: Mood[] }
   | { kind: 'activities'; date: string; values: Activity[] }
-  | { kind: 'weeks'; weeks: number };
+  | { kind: 'weeks'; weeks: number }
+  | { kind: 'period_deleted'; date: string }
+  | { kind: 'day_cleared'; date: string; what: 'all' | 'flow' | 'symptoms' | 'moods' | 'activities' };
 
 // The slices as they were before an apply, so Undo can put them back exactly.
 export interface Undo {

@@ -9,6 +9,11 @@ function verdict(a: AgentAction, data: AgentData, status: string | undefined, to
     case 'cycle_question':
     case 'health_question':
     case 'smalltalk':
+    case 'undo_last':
+    case 'ask_day':
+    case 'open':
+    case 'delete_period':
+    case 'clear_day':
       return 'skip';
     case 'weeks':
       return status === 'pregnant' ? 'apply' : 'confirm';

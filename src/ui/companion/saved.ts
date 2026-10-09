@@ -30,6 +30,9 @@ export function savedLine(item: SavedItem): string {
       return fill(en('agent.logged.activities'), { list: list('activity', item.values), date: dayWord(item.date) });
     case 'weeks':
       return fill(en('agent.logged.weeks'), { n: String(item.weeks) });
+    case 'period_deleted':
+    case 'day_cleared':
+      return fill(en('reply.deleted'), { date: dayWord(item.date) });
   }
 }
 

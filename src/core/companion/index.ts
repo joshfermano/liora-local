@@ -7,7 +7,7 @@ import type { AgentAction, SavedItem, Tone } from '../agent/types';
 // The companion never writes medical text: every reply is fixed copy, her own data, a quoted card
 // or the rules' decision. What she meant only chooses which of those to show.
 export type Intent = 'symptom' | 'period' | 'mood' | 'cycle_question' | 'health_question' | 'greeting' | 'other';
-export type QuickAction = 'checklist' | 'mood_check' | 'calendar' | 'log_period';
+export type QuickAction = 'checklist' | 'mood_check' | 'calendar' | 'log_period' | 'profile' | 'log_day';
 
 export type ReplyBlock =
   | { kind: 'text'; key: string; params?: Record<string, string> }
@@ -19,6 +19,8 @@ export type ReplyBlock =
   | { kind: 'actions'; items: QuickAction[] }
   // The agent's turn: one guarded warm line, what it saved (with Undo), what it asks to save.
   | { kind: 'warm'; text: string | null; tone: Tone }
+  // The agent's one reply: Gemma's guarded words, or the fixed fallback when it has none.
+  | { kind: 'reply'; text: string | null; fallback: { key: string; params?: Record<string, string> } }
   | { kind: 'logged'; items: SavedItem[]; undoId: string }
   | { kind: 'confirm'; actions: AgentAction[]; confirmId: string };
 

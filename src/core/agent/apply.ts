@@ -10,6 +10,7 @@ function step(a: AgentAction, cur: AgentData, today: string): Step {
     return { data: { setup: { ...(cur.setup ?? {}), status: 'pregnant', weeks: a.weeks } }, saved: [{ kind: 'weeks', weeks: a.weeks }] };
   }
   if (a.tool === 'cycle_question' || a.tool === 'health_question' || a.tool === 'smalltalk') return null;
+  if (a.tool === 'delete_period' || a.tool === 'clear_day' || a.tool === 'undo_last' || a.tool === 'ask_day' || a.tool === 'open') return null;
   const date = resolveDate(a.date, today);
   if (!date) return null;
   switch (a.tool) {

@@ -23,7 +23,9 @@ const fill = (s: string, v: Record<string, string> = {}) => s.replace(/\{(\w+)\}
 const short = (s: string) => format(parseISO(s), 'MMM d');
 const ymd = (d: Date) => format(d, 'yyyy-MM-dd');
 
-const ACTION: Record<QuickAction, { href: '/checklist' | '/mood' | '/calendar'; sf: string }> = {
+const ACTION: Record<QuickAction, { href: '/checklist' | '/mood' | '/calendar' | '/profile' | '/log-day'; sf: string }> = {
+  profile: { href: '/profile', sf: 'person.crop.circle' },
+  log_day: { href: '/log-day', sf: 'plus.circle' },
   checklist: { href: '/checklist', sf: 'checklist' },
   mood_check: { href: '/mood', sf: 'face.smiling' },
   calendar: { href: '/calendar', sf: 'calendar' },

@@ -88,8 +88,12 @@ function toAction(item: Item): AgentAction | null {
     }
     case 'weeks':
       return item.weeks === undefined ? null : { tool: 'weeks', weeks: item.weeks };
-    default:
+    case 'cycle_question':
+    case 'health_question':
+    case 'smalltalk':
       return { tool: item.tool };
+    default:
+      return null;
   }
 }
 
