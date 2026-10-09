@@ -51,7 +51,7 @@ const within = (iso: string, today: string, days: number) => {
 const isDanger = (code: string) => (DANGER_CODES as readonly string[]).includes(code);
 const average = (xs: number[]) => Math.round(xs.reduce((a, b) => a + b, 0) / xs.length);
 
-function periodDays(periods: PeriodRecord[]): number[] {
+export function periodDays(periods: PeriodRecord[]): number[] {
   return periods
     .filter((p): p is PeriodRecord & { end: string } => p.end !== null)
     .map((p) => differenceInCalendarDays(parseISO(p.end), parseISO(p.start)) + 1)
@@ -59,7 +59,7 @@ function periodDays(periods: PeriodRecord[]): number[] {
 }
 
 // A period with no end yet is drawn for her usual length, never past today.
-function loggedOn(periods: PeriodRecord[], usual: number, day: string, today: string): boolean {
+export function loggedOn(periods: PeriodRecord[], usual: number, day: string, today: string): boolean {
   return periods.some((p) => {
     const end = p.end ?? [shift(p.start, usual - 1), today].sort()[0]!;
     return p.start <= day && day <= end;
@@ -67,7 +67,7 @@ function loggedOn(periods: PeriodRecord[], usual: number, day: string, today: st
 }
 
 // Newest first; only cycles with both ends logged.
-const recentLengths = (periods: PeriodRecord[]) =>
+export const recentLengths = (periods: PeriodRecord[]) =>
   cycleHistory(periods)
     .map((c) => c.length)
     .filter((n): n is number => n !== null)
