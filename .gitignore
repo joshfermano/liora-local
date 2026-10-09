@@ -16,3 +16,5 @@ dist/
 web-build/
 public/workers/
 *.tsbuildinfo
+public/ort/
+.playwright-mcp/

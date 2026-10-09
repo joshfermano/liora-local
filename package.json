@@ -8,12 +8,15 @@
     "web": "expo start --web",
     "export": "expo export -p web",
     "test": "vitest run",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "build:workers": "node scripts/build-workers.mjs",
+    "build": "pnpm build:workers && expo export -p web"
   },
   "packageManager": "pnpm@9.15.0",
   "dependencies": {
     "@expo-google-fonts/marcellus": "^0.4.1",
     "@expo/metro-runtime": "~57.0.16",
+    "@huggingface/transformers": "4.3.1",
     "date-fns": "^4",
     "expo": "~57.0.27",
     "expo-constants": "~57.0.21",
