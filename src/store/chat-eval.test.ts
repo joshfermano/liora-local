@@ -37,6 +37,7 @@ function summary(blocks: ReplyBlock[]): string {
         case 'card':
           return `card:${b.cardId}`;
         case 'crisis':
+        case 'cycle_answer':
         case 'contact':
           return b.kind;
         default:
@@ -301,6 +302,15 @@ describe('following on from what Liora just did', () => {
     [['masakit ulo ko kahapon at ngayon'], 'reply.saved.gentle | logged:symptoms+symptoms'],
   ] as [string[], string][])('%j', async (texts, expected) => {
     expect(await talk('neither', texts)).toBe(expected);
+  });
+
+  it.each([
+    ['when is my next ovulation?', 'reply.cycle.ovulation'],
+    ['kailan ako mag-ovulate?', 'reply.cycle.ovulation'],
+    ['when is my fertile window?', 'reply.cycle.fertile'],
+    ['kailan next period ko?', 'reply.cycle.next'],
+  ])('answers "%s" directly from three logged periods', async (question, key) => {
+    expect(await talk('neither', ['nagsimula regla ko noong Aug 14', 'nagsimula regla ko noong Sept 12', 'nagsimula regla ko noong Oct 9', question])).toBe(`${key} | cycle_answer`);
   });
 
   it('replaces the mood she takes back', async () => {

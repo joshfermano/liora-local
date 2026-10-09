@@ -1,3 +1,4 @@
+import { fertileWindows, type FertileWindow } from '../calendar';
 import { predictNext } from '../cycle';
 import { readMoods } from '../lexicon';
 import type { Context, CycleSettings, Decision, Entry, Extraction, Mood, PeriodRecord, Prediction } from '../types';
@@ -15,7 +16,8 @@ export type ReplyBlock =
   | { kind: 'decision'; entryId: string; level: Decision['level'] }
   | { kind: 'period_confirm'; period: NonNullable<Extraction['period']>; date: string | null }
   | { kind: 'mood_noted'; moods: Mood[] }
-  | { kind: 'cycle_answer'; prediction: Prediction; lastStart: string }
+  // `fertile` is the next fertile window with its ovulation days, when her cycles are steady enough to estimate.
+  | { kind: 'cycle_answer'; prediction: Prediction; lastStart: string; fertile?: FertileWindow | null }
   | { kind: 'card'; cardId: string }
   | { kind: 'contact' }
   | { kind: 'actions'; items: QuickAction[] }
@@ -83,9 +85,10 @@ export function composeReply({ intent, entry, context, periods, cycleSettings, t
       const prediction = predictNext(periods, cycleSettings, today, context.status);
       const lastStart = periods.map((p) => p.start).sort().at(-1);
       if (!prediction || !lastStart) {
-        return [{ kind: 'text', key: 'companion.cycle.no_data' }, { kind: 'actions', items: ['log_period', 'calendar'] }];
+        return [{ kind: 'text', key: 'companion.cycle.no_data' }, { kind: 'actions', items: ['log_period', 'profile'] }];
       }
-      return [{ kind: 'cycle_answer', prediction, lastStart }];
+      const fertile = fertileWindows({ periods, cycleSettings, status: 'neither', today, dayLogs: [], entries: [] }).find((f) => f.to >= today) ?? null;
+      return [{ kind: 'cycle_answer', prediction, lastStart, fertile }];
     }
     case 'health_question':
       return cardId

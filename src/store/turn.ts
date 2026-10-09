@@ -1,3 +1,4 @@
+import { format, parseISO } from 'date-fns';
 import {
   contextPack,
   cycleFacts,
@@ -10,10 +11,12 @@ import {
   resolveDate,
   recall,
   smalltalkKind,
+  cycleTopic,
   stepsOf,
   toneOf,
   withoutMemory,
   type AgentAction,
+  type CycleTopic,
   type AgentData,
   type ContextInput,
   type Fallback,
@@ -71,6 +74,22 @@ export const packFor = lastResult(
   },
 );
 const HOME = ['checklist', 'mood_check', 'calendar'] as const;
+
+const day = (iso: string) => format(parseISO(iso), 'MMM d');
+
+// The cycle answer in words, for the question she asked: ovulation, fertile window or next period.
+function cycleFallback(topic: CycleTopic, answer: Extract<ReplyBlock, { kind: 'cycle_answer' }>): Fallback {
+  const { prediction, fertile } = answer;
+  if (topic === 'ovulation') {
+    return fertile
+      ? { key: 'reply.cycle.ovulation', params: { from: day(fertile.ovulation.from), to: day(fertile.ovulation.to) } }
+      : { key: 'reply.cycle.ovulation.none' };
+  }
+  if (topic === 'fertile') {
+    return fertile ? { key: 'reply.cycle.fertile', params: { from: day(fertile.from), to: day(fertile.to) } } : { key: 'reply.cycle.ovulation.none' };
+  }
+  return { key: 'reply.cycle.next', params: { date: day(prediction.next_start), from: day(prediction.window.from), to: day(prediction.window.to) } };
+}
 
 function pick<T extends AgentAction['tool']>(actions: AgentAction[], tool: T): Extract<AgentAction, { tool: T }> | undefined {
   return actions.find((a): a is Extract<AgentAction, { tool: T }> => a.tool === tool);
@@ -188,6 +207,7 @@ export async function runTurn(
     attachments.push({ kind: 'actions', items: ['calendar'] });
   }
 
+  let cycleReply: Fallback | null = null;
   if (pick(actions, 'cycle_question')) {
     const composed = composeReply({
       intent: 'cycle_question',
@@ -200,6 +220,8 @@ export async function runTurn(
       name: profile.name,
     });
     const words = composed.find((b) => b.kind === 'text');
+    const answer = composed.find((b) => b.kind === 'cycle_answer');
+    if (answer?.kind === 'cycle_answer') cycleReply = cycleFallback(cycleTopic(text), answer);
     outcome.cycle = { facts: cycleFacts(data, profile.status, day), textKey: words?.kind === 'text' ? words.key : null };
     attachments.push(...composed.filter((b) => b.kind === 'cycle_answer' || b.kind === 'actions'));
   }
@@ -243,7 +265,7 @@ export async function runTurn(
   const low = outcome.saved.some((i) => i.kind === 'moods' && i.values.some((m) => m === 'sad' || m === 'anxious' || m === 'stressed'));
   const offerCheck = low && profile.status !== 'neither' && profile.status !== undefined;
   if (offerCheck) attachments.push({ kind: 'actions', items: ['mood_check'] });
-  const fallback = sameStatus ? { key: 'reply.status.same' } : offerCheck && planned.key.startsWith('reply.saved') ? { key: 'reply.saved.mood_check' } : planned;
+  const fallback = cycleReply && planned.key === 'reply.cycle' ? cycleReply : sameStatus ? { key: 'reply.status.same' } : offerCheck && planned.key.startsWith('reply.saved') ? { key: 'reply.saved.mood_check' } : planned;
   if (attachments.length === 0) {
     if (asksAboutHerData) attachments.push({ kind: 'actions', items: ['calendar'] });
     else if (facts.no_action_taken === true) attachments.push({ kind: 'actions', items: [...HOME] });

@@ -32,6 +32,7 @@ export function cycleFacts(data: AgentData, status: string | undefined, today: s
     next_period: coming ? range(coming.window.from, coming.window.to) : null,
     next_period_confidence: coming?.confidence ?? null,
     fertile_window: fertile ? range(fertile.from, fertile.to) : null,
+    ovulation: fertile ? range(fertile.ovulation.from, fertile.ovulation.to) : null,
     cycles_logged: data.periods.length,
   };
 }

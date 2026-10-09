@@ -406,6 +406,9 @@ export function Block({ block }: { block: ReplyBlock }) {
           <Text variant="subheadline">
             {fill(en('calendar.window'), { from: short(block.prediction.window.from), to: short(block.prediction.window.to) })}
           </Text>
+          {block.fertile ? (
+            <Text variant="subheadline">{fill(en('calendar.ovulation'), { from: short(block.fertile.ovulation.from), to: short(block.fertile.ovulation.to) })}</Text>
+          ) : null}
           <Text variant="footnote" tone="secondary">
             {en(`calendar.basis.${block.prediction.basis}`)}. {en(`calendar.confidence.${block.prediction.confidence}`)}
           </Text>
