@@ -1,9 +1,10 @@
 import * as LocalAuthentication from 'expo-local-authentication';
 import { useEffect } from 'react';
-import { Platform } from 'react-native';
+import { AppState, Platform, type AppStateStatus } from 'react-native';
 import { create } from 'zustand';
 import { en } from '../content/copy';
 import { useLogStore } from '../store/log';
+import { lockOnChange } from './lock-state';
 
 // In memory only: the phone forgets it when the app closes.
 interface Session {
@@ -53,4 +54,24 @@ export function useUnlock(): {
     return ok;
   };
   return { available: available === true, enabled, locked: enabled && available !== false && !unlocked, unlock };
+}
+
+const lockedNow = () => {
+  const { available, unlocked } = useSession.getState();
+  return useLogStore.getState().setup?.lockPrivate === true && available !== false && !unlocked;
+};
+
+// The whole app locks again in the background and asks for Face ID when she comes back.
+export function useRelock(unlock: () => Promise<boolean>, on: boolean): void {
+  useEffect(() => {
+    if (!on) return;
+    let prev: AppStateStatus = AppState.currentState;
+    const sub = AppState.addEventListener('change', (next) => {
+      const { relock, prompt } = lockOnChange(prev, next);
+      prev = next;
+      if (relock) useSession.setState({ unlocked: false });
+      if (prompt && lockedNow()) void unlock();
+    });
+    return () => sub.remove();
+  }, [unlock, on]);
 }

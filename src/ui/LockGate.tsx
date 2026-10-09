@@ -4,14 +4,17 @@ import { View } from 'react-native';
 import { en } from '../content/copy';
 import { CapsuleButton } from './CapsuleButton';
 import { Icon } from './Icon';
-import { useUnlock } from './lock';
+import { useRelock, useUnlock } from './lock';
 import { Screen } from './Screen';
 import { Text } from './Text';
 
-// Only /log, /mood, /calendar and /history use this. Help paths must never be gated.
-export function LockGate({ children }: { children: ReactNode }) {
+// Wraps the tabs (Today, Calendar, Liora, Profile) and the private screens. Help is never gated:
+// the lock screen opens the danger-sign checklist without Face ID.
+// Only the outermost gate (the tabs) listens for the app going to the background.
+export function LockGate({ children, root = false }: { children: ReactNode; root?: boolean }) {
   const router = useRouter();
   const { locked, unlock } = useUnlock();
+  useRelock(unlock, root);
   useEffect(() => {
     if (locked) void unlock();
     // Ask once when the screen opens; the button asks again.
@@ -29,7 +32,8 @@ export function LockGate({ children }: { children: ReactNode }) {
           {en('lock.body')}
         </Text>
         <CapsuleButton label={en('lock.button')} onPress={() => void unlock()} />
-        <CapsuleButton variant="plain" label={en('result.back')} onPress={() => (router.canGoBack() ? router.back() : router.replace('/'))} />
+        <CapsuleButton variant="plain" label={en('lock.help')} onPress={() => router.push('/checklist')} />
+        {router.canGoBack() ? <CapsuleButton variant="plain" label={en('result.back')} onPress={() => router.back()} /> : null}
       </View>
     </Screen>
   );
