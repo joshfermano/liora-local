@@ -279,5 +279,13 @@ describe('companion thread with the real rules and no model', () => {
     expect(useCompanionStore.getState().thinking).toBe(false);
     expect(useLogStore.getState().entries).toEqual([]);
   });
+
+  it("shows the DOH warning-signs card when she says her baby is not moving", async () => {
+    useLogStore.setState({ setup: { status: 'pregnant', weeks: 30 } });
+    await useCompanionStore.getState().send('hindi gumagalaw si baby');
+    const blocks = useCompanionStore.getState().messages.at(-1)!.blocks ?? [];
+    expect(blocks[0]).toEqual({ kind: 'reply', text: null, fallback: { key: 'reply.card' } });
+    expect(blocks).toContainEqual({ kind: 'card', cardId: 'mcb-p4-warning-signs' });
+  });
 });
 

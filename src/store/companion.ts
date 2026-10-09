@@ -15,6 +15,7 @@ import { toTrace, useTraceStore } from './trace';
 import { CONVERSATION_MS, isNewConversation, recentTurns } from './thread';
 import { runTurn, type AgentTurn } from './turn';
 import { mentionsSelfHarm } from '../core/agent/crisis';
+import { warningSignsCard } from '../core/agent/warning';
 
 export interface ThreadMessage {
   id: string;
@@ -244,6 +245,13 @@ export const useCompanionStore = create<CompanionState>()(
           // Pain she cannot bear gets a fixed caring line and her own Call and Text buttons, no model words.
           if (painTooMuch(text)) {
             add([{ kind: 'text', key: 'companion.pain.strong' }, ...kept, { kind: 'contact' }]);
+            return;
+          }
+          // A sign on the DOH warning-signs list that the WHO rules do not cover (her baby not moving,
+          // swelling, dizziness…): that cited card, verbatim, under a fixed line, and no model words.
+          const warning = profile.status !== 'neither' && profile.status !== 'postpartum' ? warningSignsCard(ruleText) : null;
+          if (warning && !turn.attachments.some((b) => b.kind === 'card')) {
+            add([{ kind: 'reply', text: null, fallback: { key: 'reply.card' } }, ...kept, { kind: 'card', cardId: warning }]);
             return;
           }
           const id = add([{ kind: 'reply', text: null, fallback: turn.fallback }, ...turn.attachments]);
