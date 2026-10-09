@@ -77,6 +77,15 @@ export default function Live() {
   return (
     <View className={`flex-1 ${SURFACE.ground}`}>
       <LightField />
+      <View pointerEvents="none" className="absolute inset-0 items-center justify-center">
+        <Animated.View style={orbStyle}>
+          <CloudOrb
+            size={size}
+            colors={colors}
+            dom={{ style: { width: size, height: size, backgroundColor: 'transparent' }, scrollEnabled: false, contentInsetAdjustmentBehavior: 'never' }}
+          />
+        </Animated.View>
+      </View>
       <Animated.View style={[{ paddingTop: insets.top + 8 }, chromeStyle]} className="flex-row items-center justify-between px-md">
         <Text variant="displayHeading" accessibilityRole="header">
           {en('liora.live')}
@@ -87,15 +96,6 @@ export default function Live() {
           </GlassCard>
         </PressableSurface>
       </Animated.View>
-      <View className="flex-1 items-center justify-center" style={{ paddingBottom: insets.bottom + 44 }}>
-        <Animated.View style={orbStyle}>
-          <CloudOrb
-            size={size}
-            colors={colors}
-            dom={{ style: { width: size, height: size, backgroundColor: 'transparent' }, scrollEnabled: false }}
-          />
-        </Animated.View>
-      </View>
     </View>
   );
 }

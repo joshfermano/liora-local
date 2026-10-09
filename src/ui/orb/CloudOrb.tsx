@@ -12,7 +12,7 @@ export default function CloudOrb({ size, colors }: { size: number; colors: Cloud
     document.body.style.margin = '0';
   }, []);
   return (
-    <div style={{ width: size, height: size, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+    <div style={{ position: 'fixed', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
       <Orb theme={{ name: 'cloud', appearance: colors }} state="listening" size={size} interactive={false} aria-hidden />
     </div>
   );
