@@ -93,6 +93,8 @@ const CASES: [Status, string, string][] = [
   ['neither', 'I want to kill myself', CRISIS],
   ['postpartum', "I don't want to live anymore", CRISIS],
   ['pregnant', 'wala nang saysay ang buhay ko', CRISIS],
+  ['postpartum', 'sobrang lungkot ko gusto ko na lang mawala', CRISIS],
+  ['postpartum', 'sana hindi na ako magising', CRISIS],
   // Signs on the cited DOH warning list that the WHO rules do not cover: that card, verbatim.
   ['pregnant', 'hindi gumagalaw si baby', DOH],
   ['pregnant', 'my baby is not kicking', DOH],
@@ -198,6 +200,10 @@ const CASES: [Status, string, string][] = [
   ['neither', 'tired and moody today', 'reply.saved.gentle | logged:symptoms+moods'],
   ['neither', 'ok', 'reply.chat'],
   ['neither', 'sige', 'reply.chat'],
+  // Loop round five.
+  ['neither', 'last day ng regla ko ngayon', 'reply.confirm | confirm:period_end'],
+  ['neither', 'nag-pt ako, positive!', 'reply.confirm | confirm:status=pregnant'],
+  ['neither', 'nag-pt ako, negative', 'reply.status.same'],
   // Loop round four.
   ['pregnant', 'msakit ulo q', FOLLOW],
   ['pregnant', 'masakit din tiyan ko', FOLLOW],

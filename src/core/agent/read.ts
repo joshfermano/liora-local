@@ -12,7 +12,7 @@ const PERIOD_WORD = /regla|\bmens\b|\bperiod\b|dalaw/i;
 // Speech-to-text spells "niregla" many ways: "na regla", "naregla", "nagregla", "nire-regla".
 const START =
   /ni(?:re)?-?regla|(?<!tapos\s)\bna\s+regla\s+(?:na\s+)?ako\b|\bnaregla|\bnagregla|nagka-?regla|nag-?mens|dinatnan|dinalaw|nagkaroon\s+(?:ako\s+)?(?:na\s+)?ng\s+regla|may\s+regla\s+na|dumating\s+na\s+(?:ang\s+)?regla|regla\s+(?:ko\s+)?(?:ay\s+)?(?:nagsimula|dumating)|(?:got|have|had)\s+my\s+period|(?:my\s+)?period\s+(?:has\s+)?(?:started|began|came)|\blog\s+(?:my\s+)?period\b|\bi-?log\s+(?:mo\s+)?(?:ang\s+|yung\s+)?(?:regla|period)|\bmag-?log\s+(?:ng\s+)?(?:regla|period)|nag-?(?:simula|start)\s+(?:na\s+)?(?:ang\s+)?(?:regla|mens|period)|started\s+my\s+period|nagkaroon\s+(?:(?:na|ako)\s+){1,2}ng\s+(?:regla|mens|period)|dumating\s+na\s+(?:ang\s+|yung\s+)?(?:regla|mens|period|dalaw)|\bmay\s+(?:regla|mens|period)\s+(?:na|ako)\b|nagka-?(?:period|mens)|\b(?:first|unang)\s+(?:day|araw)\s+(?:ng|of)\s+(?:my\s+)?(?:regla|mens|period)|\bday\s*1\s+(?:ng|of)\s+(?:my\s+)?(?:regla|mens|period)|\b(?:i'?m|i\s+am)\s+on\s+my\s+period|^\s*(?:(?:regla|mens|dalaw|period)\s+ko|may\s+(?:regla|mens|dalaw)\s+(?:na\s+)?ako)\s+(?:na\s+)?(?:ngayon|today|kanina|kahapon|na)?\s*[.!]*\s*$|\bmay\s+dalaw\s+(?:na|ako)\b/i;
-const END = /natapos|tapos\s+na|wala\s+na|huminto|\b(?:ended|stopped|finished)\b/i;
+const END = /natapos|tapos\s+na|wala\s+na|huminto|\b(?:ended|stopped|finished)\b|\b(?:last|huling)\s+(?:day|araw)\s+(?:ng|of)\b/i;
 const NOT_YET = /(?:hindi|di|wala)\s+pa\b|\bnot\s+yet\b|haven'?t/i;
 const NEGATED = /\b(?:hindi|di|walang|ayaw|didn'?t|did\s+not|not|never|no)\b/i;
 const CLAUSE = /[,.;!?]|\b(?:pero|but)\b/i;
@@ -71,9 +71,9 @@ function activitiesOf(text: string): Activity[] {
   return ACTIVITIES.filter((a) => done.some((c) => ACTIVITY[a].test(c)));
 }
 
-const NOT_PREGNANT = /\b(?:hindi|di)\s+(?:na\s+)?(?:ako\s+)?buntis\b|\b(?:i'?m|i\s+am)\s+not\s+pregnant\b|\bnegative\s+(?:ang\s+)?(?:pt|pregnancy\s+test)|\b(?:pt|pregnancy\s+test)\s+(?:ko\s+)?(?:ay\s+)?negative\b/i;
+const NOT_PREGNANT = /\b(?:nag-?)?(?:pt|pregnancy\s+test)\b[^.?]*\bnegative\b|\b(?:hindi|di)\s+(?:na\s+)?(?:ako\s+)?buntis\b|\b(?:i'?m|i\s+am)\s+not\s+pregnant\b|\bnegative\s+(?:ang\s+)?(?:pt|pregnancy\s+test)|\b(?:pt|pregnancy\s+test)\s+(?:ko\s+)?(?:ay\s+)?negative\b/i;
 const UNSURE = /\b(?:baka|siguro|maybe|might\s+be|parang|kung)\s+(?:(?:na|ay)\s+)?(?:buntis|pregnant)\b/i;
-const PREGNANT = /\bbuntis\s+(?:na\s+)?ako\b|\bako\s+(?:ay\s+)?buntis\b|\bnagdadalang-?tao\s+(?:na\s+)?ako\b|\b(?:i'?m|i\s+am)\s+pregnant\b|\bpositive\s+(?:ang\s+)?(?:pt|pregnancy\s+test)|\b(?:pt|pregnancy\s+test)\s+(?:ko\s+)?(?:ay\s+)?positive\b/i;
+const PREGNANT = /\bbuntis\s+(?:na\s+)?ako\b|\bako\s+(?:ay\s+)?buntis\b|\bnagdadalang-?tao\s+(?:na\s+)?ako\b|\b(?:i'?m|i\s+am)\s+pregnant\b|\bpositive\s+(?:ang\s+)?(?:pt|pregnancy\s+test)|\b(?:nag-?)?(?:pt|pregnancy\s+test)\b[^.?]*\bpositive\b|\b(?:pt|pregnancy\s+test)\s+(?:ko\s+)?(?:ay\s+)?positive\b/i;
 const GAVE_BIRTH = /\bnanganak\s+na\s+ako\b|\bkaka-?panganak\s+ko\s+lang\b|\bkapapanganak\s+ko\s+lang\b|\bi\s+(?:just\s+)?gave\s+birth\b|\bi\s+(?:just\s+)?had\s+(?:my|the)\s+baby\b/i;
 
 function statusOf(text: string): 'pregnant' | 'postpartum' | 'neither' | null {
