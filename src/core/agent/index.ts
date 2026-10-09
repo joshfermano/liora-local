@@ -1,5 +1,6 @@
 export * from './types';
 export { cycleFacts, dayFacts, guardReply } from './facts';
+export { contextPack, type ContextInput, type ContextPack } from './context';
 export { readActions, mergeActions } from './read';
 export { resolveDate } from './dates';
 export { planActions } from './plan';
