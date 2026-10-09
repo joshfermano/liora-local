@@ -7,7 +7,7 @@ const STROKE = 2;
 
 export type IconName =
   | 'mic' | 'stop' | 'lock' | 'danger' | 'check' | 'chevronLeft' | 'chevronRight'
-  | 'info' | 'close' | 'phone' | 'calendar' | 'list' | 'reset';
+  | 'info' | 'close' | 'phone' | 'calendar' | 'list' | 'reset' | 'live';
 
 function Glyph({ name, color }: { name: IconName; color: string }) {
   const p = { stroke: color, strokeWidth: STROKE, strokeLinecap: 'round', strokeLinejoin: 'round', fill: 'none' } as const;
@@ -61,6 +61,8 @@ function Glyph({ name, color }: { name: IconName; color: string }) {
       );
     case 'list':
       return <Path d="M9 7h11M9 12h11M9 17h11M4.5 7h.1M4.5 12h.1M4.5 17h.1" {...p} />;
+    case 'live':
+      return <Path d="M7 9v6M12 5v14M17 9v6" {...p} />;
     case 'reset':
       return <Path d="M4.5 12a7.5 7.5 0 1 0 2.2-5.3L4.5 9M4.5 4.5V9H9" {...p} />;
   }

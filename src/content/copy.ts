@@ -279,6 +279,7 @@ export const COPY = {
   'liora.starter.3': ui('Kailan next period ko?'),
   'liora.placeholder': ui('Message Liora'),
   'liora.send': ui('Send'),
+  'liora.live': ui('Live mode'),
   'liora.typing': ui('Liora is thinking'),
   'liora.period.add': ui('Add to calendar'),
   'liora.period.skip': ui('Not now'),
