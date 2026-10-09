@@ -164,6 +164,12 @@ describe('toFindings', () => {
     expect(found[0]?.severity).toBe('unknown');
   });
 
+  // On the phone, "konting sakit lang ng ulo ko" got pain 0.41 with "only mild" 0.86 and asked anyway.
+  it('takes a confident "only mild or moderate" even when the sign itself is uncertain', () => {
+    const found = toFindings({ 'yesno.severe_pain': yes(0.41), 'severe.severe_pain': yes(0.01), 'mild.severe_pain': yes(0.86) }, T);
+    expect(found[0]?.severity).toBe('moderate');
+  });
+
   it('asks when the yes itself is uncertain', () => {
     const found = toFindings({ 'yesno.severe_headache': yes(0.4), 'severe.severe_headache': yes(1), 'mild.severe_headache': yes(0) }, T);
     expect(found[0]?.severity).toBe('unknown');

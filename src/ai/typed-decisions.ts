@@ -139,7 +139,9 @@ export function toFindings(answers: Record<string, number[]>, thresholds: Thresh
       ? severityFrom(answers[`severe.${code}`]?.[0], answers[`mild.${code}`]?.[0], thresholds)
       : null;
     const finding = fromTypedDecision(code, yes[0] ?? 0, severity, thresholds);
-    if (finding) findings.push(finding);
+    if (!finding) continue;
+    // A confident "only mild or moderate" settles severity even when the sign itself is uncertain.
+    findings.push(severity === 'moderate' ? { ...finding, severity } : finding);
   }
   return findings;
 }
