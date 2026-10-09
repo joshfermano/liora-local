@@ -4,7 +4,7 @@ import { describeDay, estimatedPeriods, loggedDays, markMonth, periodsFromDays, 
 
 const TODAY = '2026-10-10';
 const period = (start: string, end: string | null = null): PeriodRecord => ({ id: start, start, end, flow_by_day: {}, source: 'calendar' });
-const PERIODS = [period('2026-06-04', '2026-06-08'), period('2026-07-02', '2026-07-07'), period('2026-07-31', '2026-08-04'), period('2026-08-27', '2026-08-31'), period('2026-09-25', '2026-09-29')];
+const PERIODS = [period('2026-04-07', '2026-04-11'), period('2026-05-06', '2026-05-10'), period('2026-06-04', '2026-06-08'), period('2026-07-02', '2026-07-07'), period('2026-07-31', '2026-08-04'), period('2026-08-27', '2026-08-31'), period('2026-09-25', '2026-09-29')];
 const log = (date: string): DayLog => ({ date, flow: null, symptoms: ['cramps'], moods: [], activities: [] });
 const checkIn = (date: string) => ({ id: date, created_at: `${date}T04:00:00.000Z` }) as Entry;
 

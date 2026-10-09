@@ -307,6 +307,7 @@ interface Prediction {
   basis: 'history' | 'stated';
   cycles_used: number;
   confidence: 'low' | 'medium' | 'high';
+  track?: { checked: number; held: number };   // from 3 replays on
 }
 ```
 
@@ -371,28 +372,44 @@ lengths = keep only 15..90                      # drop missed logs
 lengths = drop forgotten periods                # near 2x, 3x her median while the rest are steady
 recent  = last 12 of lengths, newest first
 
+steady(xs)  = 1.4826 * MAD(xs) / median(xs) <= 0.15
+
+# replay: predict each cycle k (k >= 2, oldest first) from the cycles before it, as below
+for k in 2 .. len(recent)-1:
+    miss[k] = actual[k] - round(weighted_median(before k))
+    held[k] = miss[k] fell inside the window drawn at that time
+n = number of replays; track = { checked: n, held: sum(held) } if n >= 3
+
 if len(recent) >= 2:
     L      = round(weighted_median(recent, decay = 0.85))
-    near   = first 6 of recent
-    spread = max(near) - min(near)
-    half   = max(2, ceil(spread / 2))
     basis  = 'history'
-    confidence = 'high'   if len(recent) >= 3 and spread <= 7
-                 'medium' if len(recent) >= 3
-                 'low'    otherwise
+    if n >= 6:
+        e = miss, with each miss beyond 3 robust SDs of the others (at least 1 day) clamped to
+            that edge, only if steady(recent)
+        before = max(1, ceil(-p10(e)));  after = max(1, ceil(p90(e)))
+    else:
+        near = first 6 of recent;  half = max(2, ceil((max(near) - min(near)) / 2))
+        before = after = half
+    rate = held / n
+    confidence = 'high'   if n >= 4 and rate >= 0.8 and steady(recent) and before + after + 1 <= 9
+                 'medium' if n >= 3 and rate >= 0.6
+                 'low'    if n >= 3
+                 # fewer than 3 replays: 'medium' if len(recent) >= 3 and spread <= 7, else 'low'
 elif settings.stated_cycle_length:
-    L = stated_cycle_length; half = 3; basis = 'stated'; confidence = 'low'
+    L = stated_cycle_length; before = after = 3; basis = 'stated'; confidence = 'low'
 else:
     return null                                 # "Log two periods and Liora will estimate the next one"
 
 next_start = last(starts) + L
-window     = next_start - half .. next_start + half
+window     = next_start - before .. next_start + after
 ```
 
 **Worked example (use it as a unit test):** starts Jul 1, Jul 29, Aug 27, Sep 24 give
 lengths 28, 29, 28; weighted median 28; next start
-Sep 24 + 28 = Oct 22; spread 1, so half = max(2, 1) = 2; window Oct 20 to Oct 24; 3 cycles with
-spread ≤ 7, so `high`. Irregular lengths 26, 35, 30 give L = 30, spread 9, half 5, `medium`.
+Sep 24 + 28 = Oct 22; spread 1, so half = max(2, 1) = 2; window Oct 20 to Oct 24; one replay, so
+no track record and the old `high` is capped at `medium`. Irregular lengths 26, 35, 30 give L = 30,
+spread 9, half 5, and `low` (one replay, spread over 7). Eight steady lengths (28, 29, 28, 28, 29,
+28, 28, 29) replay six times, all held: window next start ±1, `high`, track 6 of 6.
 
 **Why the weighted median (2026-10-10, user's call after a comparison):** on seeded simulated
 histories (800 women per scenario; simulated, never quoted as results) the mean and the weighted
@@ -409,13 +426,22 @@ steady (1.4826 x MAD / median <= 0.15); basis: Li, Urteaga et al., JAMIA 2022, o
   `stated` when she gave a usual cycle length; otherwise no prediction ("Log two periods and Liora
   will estimate the next one").
 - **Next start** = last confirmed start + the (rounded) cycle length.
-- **Window:** next start ± ceil(spread / 2) days, where spread = longest minus shortest of the
-  latest 6 lengths used; never narrower than ±2 days. With `stated` basis the window is ±3 days.
+- **Replay:** Liora predicts each past cycle (the third onward) from the cycles before it, with the
+  same method, and records the miss in days and whether the window drawn at that time held it.
+- **Window:** from 6 replays on, next start plus the 10th to 90th percentile of the misses, never
+  narrower than ±1 day. For steady cycles a miss beyond 3 robust SDs of the other misses (at least
+  1 day) counts at that edge, so one odd cycle widens the window a little instead of taking it over.
+  Before 6 replays: next start ± max(2, ceil(spread / 2)) days, spread = longest minus shortest of
+  the latest 6 lengths used. With `stated` basis the window is ±3 days.
+- **Track record:** from 3 replays on, `track` holds how many replays were checked and how many
+  held, for a line such as 5 of the last 6.
 - **Demo data:** a fresh install has no history. For the demo, log past periods through Tell
   Liora or the calendar on the demo phones; if seeded dates are used, label them as sample data.
 - **Confidence** (a display heuristic, not a medical threshold, and labelled as such in the
-  drawer): `low` for `stated` or 2 cycles; `medium` for 3 or more cycles with spread over 7 days;
-  `high` for 3 or more cycles with spread of 7 days or less.
+  drawer): `low` for `stated`; `high` only when at least 80% of at least 4 replays held, her cycles are
+  steady and the window is 9 days or narrower; `medium` when at least 60% of at least 3 replays
+  held; `low` otherwise. With fewer than 3 replays the old rule applies, capped at `medium`: 3 or
+  more cycles with spread of 7 days or less give `medium`, anything else `low`.
 - **Period length** for drawing predicted days: mean of logged period lengths, else the stated
   period length, else 5.
 - **Never** predicts while `status` is `pregnant` or `postpartum`, and never shows fertile or

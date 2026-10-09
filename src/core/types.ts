@@ -100,6 +100,7 @@ export const PredictionSchema = z.object({
   basis: z.enum(['history', 'stated']),
   cycles_used: z.number(),
   confidence: z.enum(['low', 'medium', 'high']),
+  track: z.object({ checked: z.number(), held: z.number() }).optional(),
 });
 
 export const SourceRefSchema = z.object({

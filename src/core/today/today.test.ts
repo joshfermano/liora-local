@@ -30,7 +30,7 @@ const input = (over: Partial<TodayInput> = {}): TodayInput => ({
   ...over,
 });
 
-// Starts 28, 29, 27 and 29 days apart; the newest leads: next around Oct 24, window Oct 22 to 26.
+// Starts 28, 29, 27 and 29 days apart; the newest leads: next around Oct 24, window Oct 22 to 26; four cycles replay twice, so medium.
 const PERIODS = [period('2026-06-04', '2026-06-08'), period('2026-07-02', '2026-07-07'), period('2026-07-31', '2026-08-04'), period('2026-08-27', '2026-08-31'), period('2026-09-25', '2026-09-29')];
 
 describe('the answer at the top of Today', () => {
@@ -39,7 +39,7 @@ describe('the answer at the top of Today', () => {
   });
 
   it('counts down to the estimated window', () => {
-    expect(today(input({ periods: PERIODS })).answer).toEqual({ kind: 'countdown', from: 12, to: 16, cycleDay: 16, confidence: 'high', basis: 'history' });
+    expect(today(input({ periods: PERIODS })).answer).toEqual({ kind: 'countdown', from: 12, to: 16, cycleDay: 16, confidence: 'medium', basis: 'history' });
   });
 
   it('says the period could start any day inside the window', () => {

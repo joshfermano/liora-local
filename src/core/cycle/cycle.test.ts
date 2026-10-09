@@ -1,12 +1,20 @@
 import { describe, expect, it } from 'vitest';
 import { cycleDay, cycleHistory, periodLength, predictNext, resolvePeriodDate } from './index';
-import type { PeriodRecord } from '../types';
+import { PredictionSchema, type PeriodRecord } from '../types';
+import { addDays, format, parseISO } from 'date-fns';
 
 const rec = (start: string, end: string | null = null): PeriodRecord => ({
   id: start, start, end, flow_by_day: {}, source: 'calendar',
 });
 const recs = (...starts: string[]) => starts.map((s) => rec(s));
 const TODAY = '2026-10-09';
+const fromLengths = (...lengths: number[]) => {
+  const starts = ['2026-01-01'];
+  for (const n of lengths) starts.push(format(addDays(parseISO(starts.at(-1)!), n), 'yyyy-MM-dd'));
+  return recs(...starts);
+};
+const days = (a: string, b: string) => (parseISO(b).getTime() - parseISO(a).getTime()) / 86400000;
+const width = (p: { window: { from: string; to: string } }) => days(p.window.from, p.window.to) + 1;
 
 describe('cycleHistory and cycleDay', () => {
   it('lists cycles newest first with their lengths', () => {
@@ -24,25 +32,25 @@ describe('cycleHistory and cycleDay', () => {
 });
 
 describe('predictNext', () => {
-  it('worked example 1: lengths 28, 29, 28 give Oct 22, Oct 20 to 24, high', () => {
+  it('worked example 1: lengths 28, 29, 28 give Oct 22, Oct 20 to 24, medium', () => {
     const p = predictNext(recs('2026-07-01', '2026-07-29', '2026-08-27', '2026-09-24'), {}, TODAY);
     expect(p).toEqual({
       next_start: '2026-10-22',
       window: { from: '2026-10-20', to: '2026-10-24' },
       basis: 'history',
       cycles_used: 3,
-      confidence: 'high',
+      confidence: 'medium', // one replay only: the old rule's high is capped at medium
     });
   });
 
-  it('worked example 2: lengths 26, 35, 30 give 30 days, plus or minus 5, medium', () => {
+  it('worked example 2: lengths 26, 35, 30 give 30 days, plus or minus 5, low', () => {
     const p = predictNext(recs('2026-01-01', '2026-01-27', '2026-03-03', '2026-04-02'), {}, TODAY);
     expect(p).toEqual({
       next_start: '2026-05-02',
       window: { from: '2026-04-27', to: '2026-05-07' },
       basis: 'history',
       cycles_used: 3,
-      confidence: 'medium',
+      confidence: 'low', // spread 9 and one replay: nothing yet earns medium
     });
   });
 
@@ -96,7 +104,7 @@ describe('predictNext', () => {
       window: { from: '2026-07-14', to: '2026-07-18' },
       basis: 'history',
       cycles_used: 4,
-      confidence: 'high',
+      confidence: 'medium', // two replays only: capped at medium
     });
   });
 
@@ -144,6 +152,62 @@ describe('predictNext', () => {
     expect(predictNext(history, {}, TODAY, 'postpartum')).toBeNull();
     expect(predictNext(history, { stated_cycle_length: 28 }, TODAY, 'pregnant')).toBeNull();
     expect(predictNext(history, {}, TODAY, 'neither')).not.toBeNull();
+  });
+});
+
+describe('the window and confidence from replaying her own history', () => {
+  it('steady 8 cycles: a narrow window, high, and a track record', () => {
+    const p = predictNext(fromLengths(28, 29, 28, 28, 29, 28, 28, 29), {}, TODAY)!;
+    expect(p.cycles_used).toBe(8);
+    expect(width(p)).toBe(3);
+    expect(days(p.window.from, p.next_start)).toBe(1);
+    expect(p.confidence).toBe('high');
+    expect(p.track).toEqual({ checked: 6, held: 6 });
+  });
+
+  it('varying cycles: a wider window and never high', () => {
+    const p = predictNext(fromLengths(24, 33, 27, 35, 26, 34, 28, 36), {}, TODAY)!;
+    expect(width(p)).toBeGreaterThanOrEqual(9);
+    expect(p.confidence).not.toBe('high');
+    expect(p.track?.checked).toBe(6);
+  });
+
+  it('one odd cycle among steady ones widens the window a little, not a lot', () => {
+    const p = predictNext(fromLengths(28, 28, 29, 28, 28, 29, 28, 28, 45), {}, TODAY)!;
+    expect(days(p.next_start, p.window.to)).toBeLessThanOrEqual(3);
+    expect(days(p.window.from, p.next_start)).toBeLessThanOrEqual(3);
+  });
+
+  it('under 6 replays keeps the old window rule: plus or minus max(2, ceil(spread / 2))', () => {
+    const p = predictNext(fromLengths(28, 29, 28, 28, 29, 28, 30), {}, TODAY)!;
+    expect(days(p.window.from, p.next_start)).toBe(2);
+    expect(days(p.next_start, p.window.to)).toBe(2);
+    const wide = predictNext(fromLengths(26, 35, 30, 26, 35, 30, 26), {}, TODAY)!;
+    expect(days(wide.window.from, wide.next_start)).toBe(5);
+  });
+
+  it('shows no track record under 3 replays and the stated basis', () => {
+    expect(predictNext(fromLengths(28, 29, 28, 28), {}, TODAY)!.track).toBeUndefined();
+    expect(predictNext(recs('2026-09-01'), { stated_cycle_length: 30 }, TODAY)!.track).toBeUndefined();
+  });
+
+  it('counts the replays the window missed', () => {
+    const p = predictNext(fromLengths(28, 28, 28, 28, 28, 28, 28, 40), {}, TODAY)!;
+    expect(p.track).toEqual({ checked: 6, held: 5 });
+    expect(p.confidence).toBe('high');
+  });
+
+  it('is not high when fewer than 80 percent of replays held', () => {
+    const p = predictNext(fromLengths(28, 28, 28, 28, 40, 28, 28, 40), {}, TODAY)!;
+    expect(p.track!.held / p.track!.checked).toBeLessThan(0.8);
+    expect(p.confidence).not.toBe('high');
+  });
+
+  it('keeps the track record valid for the stored schema, old data included', () => {
+    const p = predictNext(fromLengths(28, 29, 28, 28, 29, 28, 28, 29), {}, TODAY)!;
+    expect(PredictionSchema.parse(p)).toEqual(p);
+    const { track: _t, ...old } = p;
+    expect(PredictionSchema.parse(old)).toEqual(old);
   });
 });
 

@@ -50,6 +50,89 @@ export function withoutForgottenPeriods(newestFirst: number[]): number[] {
   });
 }
 
+const MIN_REPLAYS_FOR_WINDOW = 6;
+const MIN_REPLAYS_FOR_TRACK = 3;
+const STEADY = 0.15;
+
+const robustSpread = (xs: number[]) => {
+  const m = median(xs);
+  return 1.4826 * median(xs.map((x) => Math.abs(x - m)));
+};
+const isSteady = (xs: number[]) => robustSpread(xs) / median(xs) <= STEADY;
+
+function percentile(sorted: number[], q: number): number {
+  const pos = q * (sorted.length - 1);
+  const lo = Math.floor(pos);
+  const hi = Math.ceil(pos);
+  return sorted[lo]! + (sorted[hi]! - sorted[lo]!) * (pos - lo);
+}
+
+// One odd miss among steady cycles counts only up to 3 robust SDs (at least a day each) from the rest.
+function clampOneOffs(errors: number[]): number[] {
+  return errors.map((e, i) => {
+    const others = errors.filter((_, j) => j !== i);
+    const m = median(others);
+    const edge = 3 * Math.max(1, robustSpread(others));
+    return Math.min(m + edge, Math.max(m - edge, e));
+  });
+}
+
+interface Offsets {
+  before: number;
+  after: number;
+}
+
+// Days before and after the next start that her window covers, from the cycles before it
+// (newest first) and the errors of the replays so far.
+function windowOffsets(recent: number[], errors: number[]): Offsets {
+  if (errors.length >= MIN_REPLAYS_FOR_WINDOW) {
+    const e = isSteady(recent) ? clampOneOffs(errors) : errors;
+    const sorted = [...e].sort((a, b) => a - b);
+    return {
+      before: Math.max(1, Math.ceil(-percentile(sorted, 0.1))),
+      after: Math.max(1, Math.ceil(percentile(sorted, 0.9))),
+    };
+  }
+  const near = recent.slice(0, SPREAD_CYCLES);
+  const half = Math.max(2, Math.ceil((Math.max(...near) - Math.min(...near)) / 2));
+  return { before: half, after: half };
+}
+
+const likelyLength = (newestFirst: number[]) => Math.round(weightedMedian(newestFirst.slice(0, MAX_RECENT)));
+
+// Predicts each past cycle from the ones before it, as predictNext would have at the time.
+function replay(newestFirst: number[]): { errors: number[]; held: number } {
+  const oldestFirst = [...newestFirst].reverse();
+  const errors: number[] = [];
+  let held = 0;
+  for (let k = 2; k < oldestFirst.length; k++) {
+    const before = oldestFirst.slice(0, k).reverse();
+    const miss = oldestFirst[k]! - likelyLength(before);
+    const { before: lo, after: hi } = windowOffsets(before.slice(0, MAX_RECENT), errors);
+    if (miss >= -lo && miss <= hi) held++;
+    errors.push(miss);
+  }
+  return { errors, held };
+}
+
+type Confidence = Prediction['confidence'];
+
+function historyConfidence(
+  recent: number[],
+  track: { checked: number; held: number },
+  offsets: Offsets,
+): Confidence {
+  if (track.checked >= MIN_REPLAYS_FOR_TRACK) {
+    const rate = track.held / track.checked;
+    const narrow = offsets.before + offsets.after + 1 <= 9;
+    if (track.checked >= 4 && rate >= 0.8 && isSteady(recent) && narrow) return 'high';
+    return rate >= 0.6 ? 'medium' : 'low';
+  }
+  const near = recent.slice(0, SPREAD_CYCLES);
+  const spread = Math.max(...near) - Math.min(...near);
+  return recent.length >= 3 && spread <= 7 ? 'medium' : 'low';
+}
+
 export function predictNext(
   periods: PeriodRecord[],
   settings: CycleSettings,
@@ -61,22 +144,23 @@ export function predictNext(
   const last = starts[starts.length - 1];
   if (!last) return null;
 
-  const recent = withoutForgottenPeriods(cycleLengths(periods).reverse()).slice(0, MAX_RECENT);
+  const recent = withoutForgottenPeriods(cycleLengths(periods).reverse());
   let L: number;
-  let half: number;
+  let offsets: Offsets;
   let basis: Prediction['basis'];
-  let confidence: Prediction['confidence'];
+  let confidence: Confidence;
+  let track: Prediction['track'];
 
   if (recent.length >= 2) {
-    L = Math.round(weightedMedian(recent));
-    const near = recent.slice(0, SPREAD_CYCLES);
-    const spread = Math.max(...near) - Math.min(...near);
-    half = Math.max(2, Math.ceil(spread / 2));
+    const { errors, held } = replay(recent);
+    L = likelyLength(recent);
+    offsets = windowOffsets(recent.slice(0, MAX_RECENT), errors);
     basis = 'history';
-    confidence = recent.length >= 3 ? (spread <= 7 ? 'high' : 'medium') : 'low';
+    if (errors.length >= MIN_REPLAYS_FOR_TRACK) track = { checked: errors.length, held };
+    confidence = historyConfidence(recent.slice(0, MAX_RECENT), { checked: errors.length, held }, offsets);
   } else if (settings.stated_cycle_length) {
     L = settings.stated_cycle_length;
-    half = 3;
+    offsets = { before: 3, after: 3 };
     basis = 'stated';
     confidence = 'low';
   } else {
@@ -86,10 +170,11 @@ export function predictNext(
   const next = addDays(parseISO(last), L);
   return {
     next_start: fmt(next),
-    window: { from: fmt(addDays(next, -half)), to: fmt(addDays(next, half)) },
+    window: { from: fmt(addDays(next, -offsets.before)), to: fmt(addDays(next, offsets.after)) },
     basis,
-    cycles_used: basis === 'history' ? recent.length : 0,
+    cycles_used: basis === 'history' ? Math.min(recent.length, MAX_RECENT) : 0,
     confidence,
+    ...(track ? { track } : {}),
   };
 }
 
