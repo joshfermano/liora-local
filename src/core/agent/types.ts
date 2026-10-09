@@ -1,0 +1,66 @@
+import type { Activity, CycleSettings, DayLog, Flow, Mood, PeriodRecord, Symptom } from '../types';
+
+// What she said, turned into closed actions. Code resolves every date; neither the word rules nor
+// Gemma ever write one.
+export type DateWord =
+  | { kind: 'today' }
+  | { kind: 'yesterday' }
+  | { kind: 'days_ago'; n: number }
+  | { kind: 'date'; date: string }
+  | { kind: 'unknown' };
+
+export type AgentAction =
+  | { tool: 'period_start'; date: DateWord; flow: Flow | null }
+  | { tool: 'period_end'; date: DateWord }
+  | { tool: 'flow'; date: DateWord; flow: Flow }
+  | { tool: 'symptoms'; date: DateWord; symptoms: Symptom[] }
+  | { tool: 'moods'; date: DateWord; moods: Mood[] }
+  | { tool: 'activities'; date: DateWord; activities: Activity[] }
+  | { tool: 'weeks'; weeks: number }
+  | { tool: 'cycle_question' }
+  | { tool: 'health_question' }
+  | { tool: 'smalltalk' };
+
+export type Tool = AgentAction['tool'];
+export const WRITE_TOOLS = ['period_start', 'period_end', 'flow', 'symptoms', 'moods', 'activities', 'weeks'] as const;
+
+// The parts of her data an action may touch.
+export interface AgentData {
+  periods: PeriodRecord[];
+  dayLogs: DayLog[];
+  cycleSettings: CycleSettings;
+  setup: Record<string, unknown> | null;
+}
+
+// Policy: clear logs are saved at once; anything that replaces data, needs a date or changes her
+// status waits for her tap.
+export interface AgentPlan {
+  apply: AgentAction[];
+  confirm: AgentAction[];
+}
+
+// One line of the "Saved" block, in plain data; the screen words it from copy.
+export type SavedItem =
+  | { kind: 'period_start' | 'period_end'; date: string }
+  | { kind: 'flow'; date: string; flow: Flow }
+  | { kind: 'symptoms'; date: string; values: Symptom[] }
+  | { kind: 'moods'; date: string; values: Mood[] }
+  | { kind: 'activities'; date: string; values: Activity[] }
+  | { kind: 'weeks'; weeks: number };
+
+// The slices as they were before an apply, so Undo can put them back exactly.
+export interface Undo {
+  periods?: PeriodRecord[];
+  dayLogs?: DayLog[];
+  setup?: Record<string, unknown> | null;
+}
+
+export interface Applied {
+  data: Partial<AgentData>;
+  undo: Undo;
+  saved: SavedItem[];
+}
+
+export type Tone = 'worried' | 'sad' | 'tired' | 'happy' | 'neutral';
+
+export type VadState = 'waiting' | 'speech' | 'end';

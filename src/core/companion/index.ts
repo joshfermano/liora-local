@@ -2,6 +2,7 @@ import { predictNext } from '../cycle';
 import { readMoods } from '../lexicon';
 import type { Context, CycleSettings, Decision, Entry, Extraction, Mood, PeriodRecord, Prediction } from '../types';
 import { DANGER_CODES } from '../vocabulary';
+import type { AgentAction, SavedItem, Tone } from '../agent/types';
 
 // The companion never writes medical text: every reply is fixed copy, her own data, a quoted card
 // or the rules' decision. What she meant only chooses which of those to show.
@@ -15,7 +16,11 @@ export type ReplyBlock =
   | { kind: 'mood_noted'; moods: Mood[] }
   | { kind: 'cycle_answer'; prediction: Prediction; lastStart: string }
   | { kind: 'card'; cardId: string }
-  | { kind: 'actions'; items: QuickAction[] };
+  | { kind: 'actions'; items: QuickAction[] }
+  // The agent's turn: one guarded warm line, what it saved (with Undo), what it asks to save.
+  | { kind: 'warm'; text: string | null; tone: Tone }
+  | { kind: 'logged'; items: SavedItem[]; undoId: string }
+  | { kind: 'confirm'; actions: AgentAction[]; confirmId: string };
 
 const isDanger = (code: string) => (DANGER_CODES as readonly string[]).includes(code);
 const CYCLE_QUESTION = /\b(?:kailan|when)\b.*\b(?:regla|period|mens|dalaw)\b|\bnext\s+period\b|\b(?:cycle|siklo)\b/i;
