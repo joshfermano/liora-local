@@ -6,15 +6,14 @@ const setAskModel = vi.fn();
 const setRetrieveCard = vi.fn();
 const embedderBytesOnDisk = vi.fn();
 const setRouteActions = vi.fn();
-const setWarmLine = vi.fn();
+const setSayReply = vi.fn();
 vi.mock('./gemma-native', () => ({ modelBytesOnDisk: () => modelBytesOnDisk() }));
 vi.mock('./embedder', () => ({ embedderBytesOnDisk: () => embedderBytesOnDisk() }));
 vi.mock('./card-index', () => ({ retrieveCard: vi.fn() }));
-vi.mock('./gemma-session', () => ({ gemmaSession: () => gemmaSession(), askGemma: vi.fn(), askIntent: vi.fn() }));
+vi.mock('./gemma-session', () => ({ gemmaSession: () => gemmaSession(), askGemma: vi.fn() }));
 vi.mock('./agent-router', () => ({ routeWithGemma: vi.fn() }));
-vi.mock('./warm', () => ({ warmLine: vi.fn() }));
-vi.mock('../store/agent', () => ({ setRouteActions: (...a: unknown[]) => setRouteActions(...a), setWarmLine: (...a: unknown[]) => setWarmLine(...a) }));
-vi.mock('../store/companion', () => ({ setAskIntent: vi.fn() }));
+vi.mock('./agent-loop', () => ({ sayReply: vi.fn() }));
+vi.mock('../store/agent', () => ({ setRouteActions: (...a: unknown[]) => setRouteActions(...a), setSayReply: (...a: unknown[]) => setSayReply(...a) }));
 vi.mock('../store/tell', () => ({
   setAskModel: (...args: unknown[]) => setAskModel(...args),
   setRetrieveCard: (...args: unknown[]) => setRetrieveCard(...args),
@@ -50,7 +49,7 @@ describe('bootGemma', () => {
     expect(bootGemma()).toBe(true);
     expect(setAskModel).toHaveBeenCalledWith(expect.any(Function), expect.objectContaining({ role: 'llm' }));
     expect(setRouteActions).toHaveBeenCalledWith(expect.any(Function));
-    expect(setWarmLine).toHaveBeenCalledWith(expect.any(Function));
+    expect(setSayReply).toHaveBeenCalledWith(expect.any(Function));
     expect(gemmaSession).toHaveBeenCalledTimes(1);
   });
 
@@ -60,7 +59,7 @@ describe('bootGemma', () => {
     expect(bootGemma()).toBe(false);
     expect(setAskModel).toHaveBeenCalledWith(null);
     expect(setRouteActions).toHaveBeenCalledWith(null);
-    expect(setWarmLine).toHaveBeenCalledWith(null);
+    expect(setSayReply).toHaveBeenCalledWith(null);
     expect(gemmaSession).not.toHaveBeenCalled();
   });
 

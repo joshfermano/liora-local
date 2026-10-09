@@ -59,7 +59,7 @@ export async function downloadModel(onProgress: (written: number, total: number)
 
 export async function loadGemma(): Promise<NativeGemma> {
   const started = Date.now();
-  const ctx = await initLlama({ model: model().uri, n_ctx: 1024, n_gpu_layers: 99, use_mmap: true, use_mlock: false });
+  const ctx = await initLlama({ model: model().uri, n_ctx: 4096, n_gpu_layers: 99, use_mmap: true, use_mlock: false });
   const voice = voiceBytesOnDisk() > 0 && (await ctx.initMultimodal({ path: voiceModel().uri, use_gpu: true }));
   const loadMs = Date.now() - started;
 

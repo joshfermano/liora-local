@@ -10,37 +10,52 @@ vi.mock('./storage', () => ({
   },
 }));
 
-import { setAskIntent, useCompanionStore } from './companion';
+import { format } from 'date-fns';
+import { setRouteActions, setSayReply } from './agent';
+import { useCompanionStore } from './companion';
 import { useLogStore } from './log';
 import { useTellStore } from './tell';
 
-describe('companion thread', () => {
+const send = (text: string) => useCompanionStore.getState().send(text);
+const last = () => useCompanionStore.getState().messages.at(-1)!;
+const kinds = () => (last().blocks ?? []).map((b) => b.kind);
+const reply = () => last().blocks!.find((b) => b.kind === 'reply');
+
+describe('companion thread with the real rules and no model', () => {
   beforeEach(() => {
     useCompanionStore.getState().clear();
-    useLogStore.setState({ entries: [], setup: null, moods: [], periods: [], cycleSettings: {} });
-    setAskIntent(null);
+    useLogStore.setState({ entries: [], setup: null, moods: [], periods: [], dayLogs: [], cycleSettings: {} });
+    setRouteActions(null);
+    setSayReply(null);
   });
 
-  it('asks Gemma only when the word rules cannot tell what she means', async () => {
-    const ask = vi.fn(async () => 'greeting' as const);
-    setAskIntent(ask);
-    await useCompanionStore.getState().send('basta ganun');
-    await useCompanionStore.getState().send('hello');
-    expect(ask).toHaveBeenCalledTimes(1);
-    const first = useCompanionStore.getState().messages[1]!;
-    expect(first.blocks?.find((b) => b.kind === 'text')).toMatchObject({ kind: 'text', key: 'companion.greeting.anon' });
+  it('answers a greeting once, with no template question', async () => {
+    await send('hello');
+    expect(kinds().filter((k) => k === 'reply')).toHaveLength(1);
+    expect(kinds()).not.toContain('text');
+    expect(reply()).toMatchObject({ fallback: { key: 'reply.greeting.anon' } });
   });
 
-  it('keeps the rules reading when Gemma fails', async () => {
-    setAskIntent(async () => {
-      throw new Error('no model');
-    });
-    await useCompanionStore.getState().send('basta ganun');
-    expect(useCompanionStore.getState().messages[1]!.blocks?.find((b) => b.kind === 'text')).toMatchObject({ key: 'companion.other' });
+  it('thanks her back after "Thank you!"', async () => {
+    await send('Thank you!');
+    expect(reply()).toMatchObject({ text: null, fallback: { key: 'reply.thanks' } });
+    expect(kinds()).toEqual(['reply']);
+  });
+
+  it('removes a logged period when she asks, and undoes it', async () => {
+    const day = format(new Date(), 'yyyy-MM-dd');
+    useLogStore.setState({ periods: [{ id: 'p1', start: day, end: null, flow_by_day: {}, source: 'calendar' }] });
+    await send('Remove the logged period from today');
+    expect(useLogStore.getState().periods).toEqual([]);
+    expect(last().blocks!.find((b) => b.kind === 'logged')).toMatchObject({ items: [{ kind: 'period_deleted', date: day }] });
+    expect(reply()).toMatchObject({ fallback: { key: 'reply.deleted' } });
+    await send('undo');
+    expect(useLogStore.getState().periods).toHaveLength(1);
+    expect(reply()).toMatchObject({ fallback: { key: 'reply.undone' } });
   });
 
   it('adds her message and a reply', async () => {
-    await useCompanionStore.getState().send('hello');
+    await send('hello');
     const m = useCompanionStore.getState().messages;
     expect(m.map((x) => x.role)).toEqual(['her', 'liora']);
     expect(m[1]!.blocks?.length).toBeGreaterThan(0);
@@ -48,7 +63,7 @@ describe('companion thread', () => {
   });
 
   it('ignores empty text', async () => {
-    await useCompanionStore.getState().send('   ');
+    await send('   ');
     expect(useCompanionStore.getState().messages).toEqual([]);
   });
 
@@ -64,7 +79,7 @@ describe('companion thread', () => {
     const submit = useTellStore.getState().submit;
     useTellStore.setState({ submit: () => new Promise(() => {}) });
     try {
-      const sent = useCompanionStore.getState().send('hello');
+      const sent = send('hello');
       await vi.advanceTimersByTimeAsync(30_000);
       await sent;
       const m = useCompanionStore.getState().messages;
@@ -77,4 +92,3 @@ describe('companion thread', () => {
     }
   });
 });
-
