@@ -25,8 +25,10 @@ export function cardForRule(ruleId: string): CardData | null {
   return cards.find((card) => card.stage === 'pregnancy') ?? cards[0] ?? null;
 }
 
-// Retrieval (FR-8) will rank cards by meaning; until then a card must name one of her signs.
+// The card retrieval chose by meaning (FR-8) comes first; otherwise a card that names one of her signs.
 export function bestCard(entry: Entry): CardData | null {
+  const chosen = CARDS.find((card) => card.id === entry.card_ids[0]);
+  if (chosen) return chosen;
   for (const finding of entry.findings) {
     const card = linkedTo(finding.code).find((c) => c.stage === 'pregnancy') ?? linkedTo(finding.code)[0];
     if (card) return card;

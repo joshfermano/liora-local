@@ -11,12 +11,13 @@ vi.mock('./storage', () => ({
 }));
 
 import { useLogStore } from './log';
-import { setAskModel, useTellStore } from './tell';
+import { setAskModel, setRetrieveCard, useTellStore } from './tell';
 
 const HEADACHE = { 'yesno.severe_headache': [0.9], 'severe.severe_headache': [0.9], 'mild.severe_headache': [0.05] };
 
 beforeEach(async () => {
   setAskModel(null);
+  setRetrieveCard(null);
   useTellStore.getState().reset();
   useTellStore.getState().setContext({ status: 'pregnant' });
   await useLogStore.getState().deleteEverything();
@@ -24,6 +25,34 @@ beforeEach(async () => {
 afterEach(() => vi.useRealTimers());
 
 describe('tell store', () => {
+  it('attaches the closest reviewed card to a calm answer', async () => {
+    setRetrieveCard(async () => 'pcpnc-m2-any-concern');
+    const entry = await useTellStore.getState().submit('medyo masakit ang balakang ko');
+    expect(entry.decision.level).toBe('ok');
+    expect(entry.card_ids).toEqual(['pcpnc-m2-any-concern']);
+  });
+
+  it('does not search cards when the rules say go now', async () => {
+    let asked = false;
+    setRetrieveCard(async () => {
+      asked = true;
+      return 'pcpnc-m2-any-concern';
+    });
+    const entry = await useTellStore.getState().submit('sobrang sakit ng ulo ko tapos malabo paningin');
+    expect(entry.decision.level).toBe('go_now');
+    expect(entry.card_ids).toEqual([]);
+    expect(asked).toBe(false);
+  });
+
+  it('still answers when the card search fails', async () => {
+    setRetrieveCard(async () => {
+      throw new Error('embedder not loaded');
+    });
+    const entry = await useTellStore.getState().submit('medyo masakit ang balakang ko');
+    expect(entry.decision.level).toBe('ok');
+    expect(entry.card_ids).toEqual([]);
+  });
+
   const GEMMA = { role: 'llm' as const, id: 'gemma-4-E2B-it Q4_0', version: 'llama.rn 0.13.0-rc.7' };
 
   it('records the model that answered, for "How Liora decided"', async () => {

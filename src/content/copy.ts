@@ -131,6 +131,7 @@ export const COPY = {
   'setup.wifi': ui('Use Wi-Fi. The download is large.'),
   'setup.model.gemma': ui('Gemma 4'),
   'setup.model.voice': ui('Voice add-on'),
+  'setup.model.cards': ui('Source card search'),
   'setup.done': ui('Ready'),
   'setup.web': ui('Not available on web'),
   'setup.failed': ui('Download did not finish. Try again on Wi-Fi.'),

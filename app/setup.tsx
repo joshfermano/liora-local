@@ -2,6 +2,7 @@ import { useRouter } from 'expo-router';
 import { useState } from 'react';
 import { Platform, TextInput, View } from 'react-native';
 import { bootGemma } from '../src/ai/gemma-boot';
+import { downloadEmbedder, embedderBytesOnDisk } from '../src/ai/embedder';
 import { downloadModel, downloadVoice, modelBytesOnDisk, voiceBytesOnDisk } from '../src/ai/gemma-native';
 import { gemmaSession } from '../src/ai/gemma-session';
 import { en } from '../src/content/copy';
@@ -60,6 +61,7 @@ export default function Setup() {
   const router = useRouter();
   const [model, setModel] = useState<Progress>(() => initial(modelBytesOnDisk()));
   const [voice, setVoice] = useState<Progress>(() => initial(voiceBytesOnDisk()));
+  const [cards, setCards] = useState<Progress>(() => initial(embedderBytesOnDisk()));
   const [status, setStatus] = useState<Status | null>(null);
   const [weeks, setWeeks] = useState('');
   const [days, setDays] = useState('');
@@ -88,6 +90,7 @@ export default function Setup() {
   const start = async () => {
     if (model.state !== 'done') await run(downloadModel, setModel, modelBytesOnDisk);
     if (voice.state !== 'done') await run(downloadVoice, setVoice, voiceBytesOnDisk);
+    if (cards.state !== 'done') await run(downloadEmbedder, setCards, embedderBytesOnDisk);
     if (!bootGemma()) return;
     const { setOn } = useAiStatus.getState();
     gemmaSession().then(
@@ -148,6 +151,7 @@ export default function Setup() {
         </Text>
         <SetupRow name={en('setup.model.gemma')} state={model.state} written={model.written} total={model.total} status={rowStatus(model)} />
         <SetupRow name={en('setup.model.voice')} state={voice.state} written={voice.written} total={voice.total} status={rowStatus(voice)} />
+        <SetupRow name={en('setup.model.cards')} state={cards.state} written={cards.written} total={cards.total} status={rowStatus(cards)} />
         {needsDownload ? (
           <CapsuleButton
             variant="tinted"

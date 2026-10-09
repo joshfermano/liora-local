@@ -46,6 +46,11 @@ describe('source cards', () => {
     expect(bestCard(entry(['severe_abdominal_pain']))?.codes).toContain('severe_abdominal_pain');
   });
 
+  it('shows the card that retrieval chose for a calm answer first', () => {
+    const chosen = { ...entry(['severe_abdominal_pain']), card_ids: ['pcpnc-m2-any-concern'] };
+    expect(bestCard(chosen)?.id).toBe('pcpnc-m2-any-concern');
+  });
+
   it('says nothing rather than guess when no card matches', () => {
     expect(bestCard(entry([]))).toBeNull();
   });

@@ -24,6 +24,30 @@ type ModelRef = Entry['models'][number];
 let askModel: AskModel | null = null;
 let modelRef: ModelRef | null = null;
 
+type RetrieveCard = (text: string, context: Context) => Promise<string | null>;
+const CARD_TIMEOUT_MS = 3000;
+let retrieveCard: RetrieveCard | null = null;
+
+// Card search only chooses which reviewed card a calm answer shows (SR-7); it never changes the decision.
+export function setRetrieveCard(fn: RetrieveCard | null): void {
+  retrieveCard = fn;
+}
+
+async function cardFor(text: string, context: Context): Promise<string | null> {
+  if (!retrieveCard) return null;
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  const timeout = new Promise<null>((resolve) => {
+    timer = setTimeout(() => resolve(null), CARD_TIMEOUT_MS);
+  });
+  try {
+    return await Promise.race([retrieveCard(text, context), timeout]);
+  } catch {
+    return null;
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
 // The ref is what "How Liora decided" lists when this model actually answered.
 export function setAskModel(fn: AskModel | null, ref: ModelRef | null = null): void {
   askModel = fn;
@@ -68,9 +92,11 @@ export const useTellStore = create<TellState>()((set, get) => ({
         typedAnswers: answers,
         models: answers && modelRef ? [modelRef] : [],
       });
-      useLogStore.getState().addEntry(entry);
-      set({ current: entry, status: 'done' });
-      return entry;
+      const card = entry.decision.level === 'ok' ? await cardFor(text, get().context) : null;
+      const saved = card ? { ...entry, card_ids: [card] } : entry;
+      useLogStore.getState().addEntry(saved);
+      set({ current: saved, status: 'done' });
+      return saved;
     } catch (e) {
       set({ status: 'error', error: message(e) });
       throw e;

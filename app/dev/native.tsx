@@ -5,6 +5,8 @@ import { downloadModel, downloadVoice, modelBytesOnDisk, voiceBytesOnDisk, type 
 import { gemmaSession, releaseGemma } from '../../src/ai/gemma-session';
 import { toFindings } from '../../src/ai/typed-decisions';
 import { useVoiceNote } from '../../src/ai/use-voice-note';
+import { rankCards } from '../../src/ai/card-index';
+import { downloadEmbedder, embedderBytesOnDisk } from '../../src/ai/embedder';
 import { PROVISIONAL_THRESHOLDS } from '../../src/core/merge';
 import { evaluate } from '../../src/core/rules';
 
@@ -105,6 +107,24 @@ export default function NativeModelTest() {
       record({ step: 'download voice', ok: true, ms: Date.now() - started, bytes: voiceBytesOnDisk() });
     });
 
+  const rankDemoCards = () =>
+    run('card search', async () => {
+      if (embedderBytesOnDisk() <= 0) {
+        let last = 0;
+        await downloadEmbedder((written, total) => {
+          if (Date.now() - last < 500) return;
+          last = Date.now();
+          setStatus(`download card search: ${MB(written)} of ${MB(total)}`);
+        });
+      }
+      for (const message of [...DEMO_PHRASES, ...CHECK_PHRASES]) {
+        setStatus(`searching cards for "${message}"`);
+        const started = Date.now();
+        const ranked = await rankCards(message, { status: 'pregnant' }, 3);
+        record({ step: 'cards', message, ms: Date.now() - started, ranked: ranked.map((r) => `${r.id} ${r.score.toFixed(3)}`) });
+      }
+    });
+
   const toggleRecording = async () => {
     if (voiceNote.state !== 'recording') {
       await voiceNote.start().catch((e: unknown) => record({ step: 'record', ok: false, error: String(e) }));
@@ -138,6 +158,7 @@ export default function NativeModelTest() {
         title={voiceNote.state === 'recording' ? `6. Stop (${voiceNote.seconds} s) and write it down` : '6. Record a sentence'}
         onPress={toggleRecording}
       />
+      <Button disabled={busy} title="7. Card search: download (about 265 MB) and rank cards for 8 phrases" onPress={rankDemoCards} />
       <Text>{status}</Text>
       <Button title="Share results" onPress={() => Share.share({ message: report })} />
       <Text selectable>{report}</Text>
