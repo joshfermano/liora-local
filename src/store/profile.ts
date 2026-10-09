@@ -12,10 +12,11 @@ export interface Profile {
   weightKg?: number;
   status?: Status;
   weeks?: number;
+  daysSinceBirth?: number;
   lock: boolean;
 }
 
-const RANGES = { age: [10, 60], heightCm: [100, 220], weightKg: [25, 250], weeks: [1, 45] } as const;
+const RANGES = { age: [10, 60], heightCm: [100, 220], weightKg: [25, 250], weeks: [1, 45], daysSinceBirth: [0, 365] } as const;
 
 const inRange = (value: unknown, [min, max]: readonly [number, number]): number | undefined =>
   typeof value === 'number' && Number.isFinite(value) && value >= min && value <= max ? value : undefined;
@@ -31,6 +32,7 @@ export function readProfile(setup: SetupAnswers | null): Profile {
     weightKg: inRange(s.weightKg, RANGES.weightKg),
     status,
     weeks: status === 'pregnant' ? inRange(s.weeks, RANGES.weeks) : undefined,
+    daysSinceBirth: status === 'postpartum' ? inRange(s.days_since_birth, RANGES.daysSinceBirth) : undefined,
     lock: s.lock === true,
   };
   return Object.fromEntries(Object.entries(profile).filter(([, v]) => v !== undefined)) as Profile;
@@ -38,7 +40,9 @@ export function readProfile(setup: SetupAnswers | null): Profile {
 
 export function contextFrom(profile: Profile): Context {
   const status = profile.status ?? 'pregnant';
-  return profile.weeks !== undefined && status === 'pregnant' ? { status, weeks: profile.weeks } : { status };
+  if (status === 'pregnant' && profile.weeks !== undefined) return { status, weeks: profile.weeks };
+  if (status === 'postpartum' && profile.daysSinceBirth !== undefined) return { status, days_since_birth: profile.daysSinceBirth };
+  return { status };
 }
 
 export const PROFILE_RANGES = RANGES;
@@ -48,6 +52,7 @@ export function useProfile(): Profile {
   return readProfile(setup);
 }
 
-export function updateProfile(patch: Partial<Profile>): void {
-  mergeSetup(patch);
+// Setup saved days since birth under its own key; keep one key on disk.
+export function updateProfile({ daysSinceBirth, ...rest }: Partial<Profile>): void {
+  mergeSetup(daysSinceBirth === undefined ? rest : { ...rest, days_since_birth: daysSinceBirth });
 }

@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import { applyFollowUpAnswer, runPipeline } from '../core/pipeline';
 import type { Context, Entry } from '../core/types';
 import { useLogStore } from './log';
+import { contextFrom, readProfile } from './profile';
 
 export type TellStatus = 'idle' | 'thinking' | 'done' | 'error';
 
@@ -116,3 +117,12 @@ export const useTellStore = create<TellState>()((set, get) => ({
   },
   reset: () => set({ status: 'idle', current: null, error: null }),
 }));
+
+// The rules read her status from the saved profile, which survives a restart; this store does not.
+const syncContext = (setup: Parameters<typeof readProfile>[0]) => {
+  if (setup) useTellStore.setState({ context: contextFrom(readProfile(setup)) });
+};
+syncContext(useLogStore.getState().setup);
+useLogStore.subscribe((now, before) => {
+  if (now.setup !== before.setup) syncContext(now.setup);
+});

@@ -138,3 +138,12 @@ describe('tell store', () => {
     expect(s.context.status).toBe('postpartum');
   });
 });
+
+describe('the status the rules use', () => {
+  it('follows her saved profile, so a restart never resets her to pregnant', () => {
+    useLogStore.setState({ setup: { status: 'postpartum', days_since_birth: 10 } });
+    expect(useTellStore.getState().context).toEqual({ status: 'postpartum', days_since_birth: 10 });
+    useLogStore.setState({ setup: { status: 'pregnant', weeks: 30 } });
+    expect(useTellStore.getState().context).toEqual({ status: 'pregnant', weeks: 30 });
+  });
+});
