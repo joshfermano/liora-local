@@ -23,19 +23,19 @@ describe('companion thread', () => {
   it('asks Gemma only when the word rules cannot tell what she means', async () => {
     const ask = vi.fn(async () => 'greeting' as const);
     setAskIntent(ask);
-    await useCompanionStore.getState().send('magandang gabi po');
+    await useCompanionStore.getState().send('basta ganun');
     await useCompanionStore.getState().send('hello');
     expect(ask).toHaveBeenCalledTimes(1);
     const first = useCompanionStore.getState().messages[1]!;
-    expect(first.blocks?.[0]).toMatchObject({ kind: 'text', key: 'companion.greeting.anon' });
+    expect(first.blocks?.find((b) => b.kind === 'text')).toMatchObject({ kind: 'text', key: 'companion.greeting.anon' });
   });
 
   it('keeps the rules reading when Gemma fails', async () => {
     setAskIntent(async () => {
       throw new Error('no model');
     });
-    await useCompanionStore.getState().send('magandang gabi po');
-    expect(useCompanionStore.getState().messages[1]!.blocks?.[0]).toMatchObject({ key: 'companion.other' });
+    await useCompanionStore.getState().send('basta ganun');
+    expect(useCompanionStore.getState().messages[1]!.blocks?.find((b) => b.kind === 'text')).toMatchObject({ key: 'companion.other' });
   });
 
   it('adds her message and a reply', async () => {

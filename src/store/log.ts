@@ -21,6 +21,7 @@ export interface LogState extends LogData {
   setSetup(setup: SetupAnswers): void;
   addMood(result: MoodResult): void;
   setPeriods(periods: PeriodRecord[]): void;
+  setDayLogs(dayLogs: DayLog[]): void;
   saveDayLog(log: DayLog, periods?: PeriodRecord[]): void;
   deleteDayLog(date: string): void;
   setCycleSettings(settings: CycleSettings): void;
@@ -39,6 +40,7 @@ export const useLogStore = create<LogState>()(
       setSetup: (setup) => set({ setup }),
       addMood: (result) => set((s) => ({ moods: [result, ...s.moods] })),
       setPeriods: (periods) => set({ periods }),
+      setDayLogs: (dayLogs) => set({ dayLogs }),
       saveDayLog: (log, periods) =>
         set((s) => ({ dayLogs: upsertDayLog(s.dayLogs, log), periods: periods ?? s.periods })),
       deleteDayLog: (date) => set((s) => ({ dayLogs: s.dayLogs.filter((l) => l.date !== date) })),
