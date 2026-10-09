@@ -69,7 +69,7 @@ describe('cycle', () => {
   it('"Niregla ako today" logs the period and every module agrees', async () => {
     await send('Niregla ako today');
     expect(kinds()).toContain('logged');
-    expect(octPeriods()).toMatchObject([{ start: TODAY, end: null }]);
+    expect(octPeriods()).toMatchObject([{ start: TODAY, end: '2026-10-14' }]);
     expect(dayMark(TODAY)).toMatchObject({ period: 'logged', periodDay: 1 });
     const v = view();
     expect(v.model.answer).toEqual({ kind: 'period', day: 1 });

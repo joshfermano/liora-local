@@ -42,7 +42,8 @@ describe('dayFacts', () => {
 describe('guardReply', () => {
   const facts: Facts = { date: 'Oct 9', next_period: 'Oct 21 to Oct 25', cycle_day: 17, symptoms: ['cramps'] };
   it('keeps plain confirmations and facts it was given', () => {
-    expect(guardReply('Done! I removed your period from today.', facts)).toBe('Done! I removed your period from today.');
+    const removed = { ...facts, removed: ['removed the period that started today'] };
+    expect(guardReply('Done! I removed your period from today.', removed)).toBe('Done! I removed your period from today.');
     expect(guardReply('Your next period is likely Oct 21 to Oct 25.', facts)).toBe('Your next period is likely Oct 21 to Oct 25.');
   });
   it('drops diagnosis and a date that is not in the facts', () => {

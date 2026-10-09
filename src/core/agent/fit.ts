@@ -4,7 +4,7 @@ import { isEmptyDayLog, upsertDayLog } from '../daylog';
 import type { DayLog, Flow, PeriodRecord } from '../types';
 import type { AgentData } from './types';
 
-const shift = (date: string, n: number) => format(addDays(parseISO(date), n), 'yyyy-MM-dd');
+export const shift = (date: string, n: number) => format(addDays(parseISO(date), n), 'yyyy-MM-dd');
 
 // A period reported as ended more than this long after it began is more likely a late report than
 // a real length. A plausibility guard on logging, not a medical limit.
@@ -16,7 +16,9 @@ export function startFits(date: string, data: AgentData, today: string): boolean
 }
 
 export function openPeriodFor(date: string, periods: PeriodRecord[]): PeriodRecord | null {
-  const open = periods.filter((p) => p.end === null && p.start <= date).sort((a, b) => (a.start < b.start ? -1 : 1));
+  const open = periods
+    .filter((p) => p.start <= date && (p.end === null || date <= p.end))
+    .sort((a, b) => (a.start < b.start ? -1 : 1));
   const last = open.at(-1);
   return last && differenceInCalendarDays(parseISO(date), parseISO(last.start)) <= MAX_OPEN_DAYS ? last : null;
 }

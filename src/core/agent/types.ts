@@ -53,7 +53,8 @@ export interface AgentPlan {
 
 // One line of the "Saved" block, in plain data; the screen words it from copy.
 export type SavedItem =
-  | { kind: 'period_start' | 'period_end'; date: string }
+  | { kind: 'period_start'; date: string; end?: string }
+  | { kind: 'period_end'; date: string }
   | { kind: 'flow'; date: string; flow: Flow }
   | { kind: 'symptoms'; date: string; values: Symptom[] }
   | { kind: 'moods'; date: string; values: Mood[] }

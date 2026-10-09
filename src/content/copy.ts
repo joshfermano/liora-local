@@ -570,6 +570,7 @@ export const COPY = {
   'agent.logged.activities': ui('{list}, {date}'),
   'agent.logged.weeks': ui('Week {n} of your pregnancy'),
   'agent.logged.period_deleted': ui('Removed your period, {from} to {to}'),
+  'agent.logged.period_range': ui('Period logged, {from} to {to}'),
   'agent.logged.period_deleted_open': ui('Removed your period that started {date}'),
   'agent.logged.day_cleared_all': ui('Cleared everything logged {date}'),
   'agent.logged.day_cleared': ui('Cleared the {what} logged {date}'),

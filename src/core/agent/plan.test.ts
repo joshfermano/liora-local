@@ -137,9 +137,9 @@ describe('applyActions: delete and clear', () => {
 describe('applyActions', () => {
   it('starts an open period with its flow and a day log', () => {
     const out = applyActions([{ tool: 'period_start', date: today, flow: 'heavy' }], data(), TODAY);
-    expect(out.data.periods).toEqual([{ id: 'tell-2026-10-10', start: TODAY, end: null, flow_by_day: { [TODAY]: 'heavy' }, source: 'tell' }]);
+    expect(out.data.periods).toEqual([{ id: 'tell-2026-10-10', start: TODAY, end: '2026-10-14', flow_by_day: { [TODAY]: 'heavy' }, source: 'tell' }]);
     expect(out.data.dayLogs?.[0]).toMatchObject({ date: TODAY, flow: 'heavy' });
-    expect(out.saved).toEqual([{ kind: 'period_start', date: TODAY }, { kind: 'flow', date: TODAY, flow: 'heavy' }]);
+    expect(out.saved).toEqual([{ kind: 'period_start', date: TODAY, end: '2026-10-14' }, { kind: 'flow', date: TODAY, flow: 'heavy' }]);
   });
   it('closes the open period on the end date', () => {
     const open: PeriodRecord = { ...period('2026-10-06', null, { '2026-10-06': 'heavy' }), source: 'tell' };

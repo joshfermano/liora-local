@@ -31,10 +31,20 @@ function flat(facts: Facts): string {
 // Keeps the sentences of Gemma's reply that are safe to show (no medical advice, diagnosis,
 // medicine, contraception advice, or any number missing from the facts); null when none are. A
 // symptom may be named only when it is in the facts, that is, when she logged it herself.
+// "I logged / saved / removed / updated…": only true when a tool did it this turn.
+const CLAIM =
+  /\b(?:i(?:'ve| have)?|i've)\s+(?:just\s+)?(?:logged|saved|added|recorded|removed|deleted|cleared|updated|changed|undone|undid|set)\b|\b(?:na-?log|nai-?log|naitala|inalis|binura|tinanggal|na-?save)\s+ko\b/i;
+const acted = (facts: Facts) => ['saved', 'removed', 'undone'].some((k) => {
+  const v = facts[k];
+  return Array.isArray(v) ? v.length > 0 : Boolean(v);
+});
+
 export function guardReply(text: string, facts: Facts): string | null {
   const known = flat(facts);
   const numbers = new Set(known.match(/\d+/g) ?? []);
+  const didSomething = acted(facts);
   const ok = (sentence: string) => {
+    if (!didSomething && CLAIM.test(sentence)) return false;
     if (URL.test(sentence) || BANNED_WORDS.test(sentence) || BANNED_ROOTS.test(sentence)) return false;
     if ((sentence.match(/\d+/g) ?? []).some((n) => !numbers.has(n))) return false;
     const lower = sentence.toLowerCase();

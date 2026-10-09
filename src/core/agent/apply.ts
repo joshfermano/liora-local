@@ -1,6 +1,7 @@
+import { usualLength } from '../calendar';
 import { applyFlow, upsertDayLog } from '../daylog';
 import { resolveDate } from './dates';
-import { dayHas, mergeLog, openPeriodFor, periodsToDelete, startFits } from './fit';
+import { dayHas, mergeLog, openPeriodFor, periodsToDelete, shift, startFits } from './fit';
 import type { AgentAction, AgentData, Applied, SavedItem } from './types';
 
 type Step = { data: Partial<AgentData>; saved: SavedItem[] } | null;
@@ -39,8 +40,10 @@ function step(a: AgentAction, cur: AgentData, today: string): Step {
     }
     case 'period_start': {
       if (!startFits(date, cur, today)) return null;
-      const record = { id: `tell-${date}`, start: date, end: null, flow_by_day: a.flow ? { [date]: a.flow } : {}, source: 'tell' as const };
-      const saved: SavedItem[] = [{ kind: 'period_start', date }];
+      // Her usual days are marked at once, as in the calendar's edit mode; "tapos na" shortens them.
+      const end = shift(date, usualLength(cur.periods, cur.cycleSettings) - 1);
+      const record = { id: `tell-${date}`, start: date, end, flow_by_day: a.flow ? { [date]: a.flow } : {}, source: 'tell' as const };
+      const saved: SavedItem[] = [{ kind: 'period_start', date, end }];
       if (!a.flow) return { data: { periods: [...cur.periods, record] }, saved };
       saved.push({ kind: 'flow', date, flow: a.flow });
       return { data: { periods: [...cur.periods, record], dayLogs: mergeLog(cur.dayLogs, date, { flow: a.flow }) }, saved };

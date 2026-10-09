@@ -18,8 +18,11 @@ const list = (prefix: string, values: string[]) => values.map((v) => en(`${prefi
 export function savedLine(item: SavedItem): string {
   switch (item.kind) {
     case 'period_start':
+      return item.end
+        ? fill(en('agent.logged.period_range'), { from: dayWord(item.date), to: dayWord(item.end) })
+        : fill(en('agent.logged.period_start'), { date: dayWord(item.date) });
     case 'period_end':
-      return fill(en(`agent.logged.${item.kind}`), { date: dayWord(item.date) });
+      return fill(en('agent.logged.period_end'), { date: dayWord(item.date) });
     case 'flow':
       return fill(en('agent.logged.flow'), { flow: en(`cal.flow.${item.flow}`), date: dayWord(item.date) });
     case 'symptoms':

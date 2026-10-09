@@ -71,7 +71,7 @@ function factLine(item: SavedItem, today: string): string {
   const when = (date: string) => dayLabel(date, today);
   switch (item.kind) {
     case 'period_start':
-      return `period start logged for ${when(item.date)}`;
+      return item.end ? `period logged from ${when(item.date)} to ${when(item.end)}` : `period start logged for ${when(item.date)}`;
     case 'period_end':
       return `period end logged for ${when(item.date)}`;
     case 'flow':
