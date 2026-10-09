@@ -18,3 +18,4 @@ public/workers/
 *.tsbuildinfo
 public/ort/
 .playwright-mcp/
+.claude/worktrees/
