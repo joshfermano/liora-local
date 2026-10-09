@@ -47,7 +47,7 @@ describe('guardReply', () => {
     expect(guardReply('Your next period is likely Oct 21 to Oct 25.', facts)).toBe('Your next period is likely Oct 21 to Oct 25.');
   });
   it('drops diagnosis and a date that is not in the facts', () => {
-    expect(guardReply('Done! It might be a sign of infection. Your period is due Oct 3.', facts)).toBe('Done!');
+    expect(guardReply('Done! It might be a sign of infection. Your period is due Oct 3.', { ...facts, saved: ['cramps today'] })).toBe('Done!');
   });
   it.each([
     'You should rest.',
