@@ -5,3 +5,14 @@
 
 # Private, developer-specific notes for coding agents (see AGENTS.md)
 /.tmp/
+
+# Local execution ledgers for the superpowers skills
+.superpowers/
+
+# Build and tooling output
+node_modules/
+dist/
+.expo/
+web-build/
+public/workers/
+*.tsbuildinfo

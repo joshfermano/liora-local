@@ -495,7 +495,7 @@ Rejected: `jinaai/jina-clip-v2` (CC BY-NC 4.0, ~861 MB).
 | Framework | `expo` (web export) | ~57.0.21 |
 | Routing | `expo-router` | ~57.0.20 |
 | UI runtime | `react`, `react-dom`, `react-native`, `react-native-web` | 19.2.3, 19.2.3, 0.86.3, ~0.21.2 |
-| Language | `typescript` | ^5.9 (do not go past 6.0) |
+| Language | `typescript` | ~6.0.3 (the version Expo SDK 57 expects) |
 | Styling | `nativewind`, `tailwindcss` | ^4.2.0 (not v5), ^3.4.16 |
 | Motion | `react-native-reanimated`, `react-native-worklets` | ~4.5.1, ~0.10.1 |
 | Graphics | `react-native-svg` | ~15.15.4 |

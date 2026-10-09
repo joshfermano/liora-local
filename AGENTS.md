@@ -44,8 +44,8 @@ next-period estimate. Everything runs on the device.
   project or repo.
 - **Verify on the real devices:** iPhone 17 and iPhone 17 Pro, iOS 27.2, Safari and Home Screen
   web app. Desktop Chrome is a convenience, not evidence for iPhone.
-- **Ask before outward actions:** creating or publishing the GitHub repo, enabling Pages, pushing,
-  posting anything.
+- **Ask before outward actions:** creating or publishing a repo, enabling Pages, posting anything.
+  Pushing verified commits to `main` is pre-approved by the user (2026-10-09).
 
 ## Build conventions
 

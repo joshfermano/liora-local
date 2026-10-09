@@ -1,0 +1,45 @@
+{
+  "name": "liora-local",
+  "version": "0.1.0",
+  "private": true,
+  "main": "expo-router/entry",
+  "scripts": {
+    "start": "expo start",
+    "web": "expo start --web",
+    "export": "expo export -p web",
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit"
+  },
+  "packageManager": "pnpm@9.15.0",
+  "dependencies": {
+    "@expo-google-fonts/marcellus": "^0.4.1",
+    "@expo/metro-runtime": "~57.0.16",
+    "date-fns": "^4",
+    "expo": "~57.0.27",
+    "expo-constants": "~57.0.21",
+    "expo-font": "~57.0.4",
+    "expo-linking": "~57.0.12",
+    "expo-router": "~57.0.25",
+    "expo-status-bar": "~57.0.1",
+    "idb-keyval": "^6",
+    "nativewind": "^4.2.7",
+    "react": "19.2.3",
+    "react-dom": "19.2.3",
+    "react-native": "0.86.3",
+    "react-native-reanimated": "4.5.1",
+    "react-native-safe-area-context": "~5.7.0",
+    "react-native-screens": "~4.26.0",
+    "react-native-svg": "15.15.4",
+    "react-native-web": "^0.21.2",
+    "react-native-worklets": "0.10.1",
+    "tailwindcss": "^3.4.19",
+    "zod": "^4",
+    "zustand": "^5"
+  },
+  "devDependencies": {
+    "@types/react": "~19.2.18",
+    "esbuild": "^0.28.2",
+    "typescript": "~6.0.3",
+    "vitest": "^4.1"
+  }
+}

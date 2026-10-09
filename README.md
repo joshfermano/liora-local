@@ -127,7 +127,7 @@ ship will be listed here.
 ## Tech stack
 
 Expo SDK 57 exported for the web, Expo Router, React 19.2, React Native 0.86 with React Native Web,
-NativeWind 4.2 with Tailwind 3.4, Reanimated 4.5, Zustand 5, Zod 4, date-fns 4, TypeScript 5.9.
+NativeWind 4.2 with Tailwind 3.4, Reanimated 4.5, Zustand 5, Zod 4, date-fns 4, TypeScript 6.0.
 Models run in two Web Workers bundled with esbuild. Data is stored in IndexedDB (idb-keyval). Offline
 support comes from a Workbox service worker. Tests use Vitest. Hosting will be GitHub Pages.
 

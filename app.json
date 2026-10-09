@@ -1,0 +1,24 @@
+{
+  "expo": {
+    "name": "Tell Liora",
+    "slug": "liora-local",
+    "scheme": "tellliora",
+    "version": "0.1.0",
+    "platforms": [
+      "web"
+    ],
+    "userInterfaceStyle": "automatic",
+    "web": {
+      "bundler": "metro",
+      "output": "single"
+    },
+    "plugins": [
+      "expo-router",
+      "expo-font",
+      "expo-status-bar"
+    ],
+    "experiments": {
+      "baseUrl": "/liora-local"
+    }
+  }
+}

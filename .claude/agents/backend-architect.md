@@ -44,7 +44,7 @@ two workers. Nothing leaves the device after setup (NFR-2, SR-10).
 
 ## Latest tech
 
-Pinned: Vitest ^4.1, zod ^4.1, zustand ^5, date-fns ^4.1, TypeScript ^5.9 (below 6.0), idb-keyval.
+Pinned: Vitest ^4.1, zod ^4.1, zustand ^5, date-fns ^4.1, TypeScript ~6.0.3, idb-keyval.
 Before using an API you are unsure of, check context7 and `node_modules`; they win over memory.
 
 ## Skills
