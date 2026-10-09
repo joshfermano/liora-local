@@ -23,7 +23,7 @@ describe('companion thread', () => {
     await useCompanionStore.getState().send('hello');
     const m = useCompanionStore.getState().messages;
     expect(m.map((x) => x.role)).toEqual(['her', 'liora']);
-    expect(m[1].blocks?.length).toBeGreaterThan(0);
+    expect(m[1]!.blocks?.length).toBeGreaterThan(0);
     expect(useCompanionStore.getState().thinking).toBe(false);
   });
 
