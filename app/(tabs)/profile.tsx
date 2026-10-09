@@ -154,6 +154,13 @@ export default function Profile() {
             </PressableSurface>
           </Section>
 
+          <Section>
+            <PressableSurface label={en('sources.row')} onPress={() => router.push('/sources')} role="link" pressScale={0.98} surfaceClassName="min-h-choice flex-row items-center justify-between gap-md px-md">
+              <Text variant="body">{en('sources.row')}</Text>
+              <Symbol name="chevron.right" fallback="chevronRight" tone="tertiary" size={14} />
+            </PressableSurface>
+          </Section>
+
           {confirming ? (
             <Section title={en('log.delete_all')}>
               <View className="gap-sm p-md">
