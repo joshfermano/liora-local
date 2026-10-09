@@ -23,7 +23,7 @@ describe('runPipeline', () => {
   it('merges typed answers with the lexicon and keeps the more serious severity', () => {
     const entry = runPipeline({
       ...base,
-      text: 'masakit ulo ko',
+      text: 'grabe ang sakit ng ulo ko',
       typedAnswers: { 'yesno.severe_headache': [0.9], 'severe.severe_headache': [0.9], 'mild.severe_headache': [0.05] },
     });
     const headache = entry.findings.filter((f) => f.code === 'severe_headache');
@@ -101,6 +101,30 @@ describe('the model can add caution but never remove a follow-up on its own (SR-
   it('ignores the mild reading when her words also carry a strong word', () => {
     const entry = run('medyo ang ulo ko pero sobrang hirap', headacheMild);
     expect(entry.findings.find((f) => f.code === 'severe_headache')?.severity).toBe('unknown');
+  });
+});
+
+describe('comfort first: the model alone cannot call a sign very bad', () => {
+  const headacheSevere = { 'yesno.severe_headache': [0.95], 'severe.severe_headache': [0.9], 'mild.severe_headache': [0.05] };
+  const run = (text: string) =>
+    runPipeline({ id: 'e', now: new Date('2026-10-10T00:00:00Z'), text, input: 'text', context: { status: 'pregnant' }, typedAnswers: headacheSevere });
+
+  it('asks how bad it is first when only the model reads it as very bad', () => {
+    const entry = run('log my symptoms today, im having headache and bloating');
+    expect(entry.findings.find((f) => f.code === 'severe_headache')?.severity).toBe('unknown');
+    expect(entry.decision.level).toBe('follow_up');
+    expect(entry.decision.follow_up?.code).toBe('severe_headache');
+  });
+
+  it.each([
+    'sobrang sakit ng ulo ko',
+    'hindi ko na kaya ang sakit ng ulo ko',
+    'di ko na kaya yung ulo ko',
+    'i have a very bad headache',
+    'worst headache of my life',
+    'my headache is unbearable',
+  ])('goes now when her own words say it is very bad: %s', (text) => {
+    expect(run(text).decision.level).toBe('go_now');
   });
 });
 

@@ -24,14 +24,20 @@ function extract(text: string, now: Date): Extraction | null {
   return { period, symptoms: [], moods: [], danger_signs: [], pregnancy_weeks: weeks };
 }
 
-// SR-1: the model may add caution but never remove a follow-up on its own. Its "mild" reading of a
-// severity sign counts only when her own words carry a mild word from the word list and no strong one.
+const STRONG_IN_HER_WORDS = /(?:hindi|di)\s+ko\s+na\s+(?:kaya|matiis)|\bvery\b|\bworst\b|unbearable|\bterrible\b|can'?t\s+(?:take|bear|stand)/i;
+
+// SR-1: the model may never settle how bad a sign is on its own; her words or her answer do. Its
+// "mild" reading counts only when her words carry a mild word and no strong one, and its "very bad"
+// reading only when her words carry a strong one. Otherwise Liora asks the follow-up first.
 function cautious(findings: Finding[], text: string): Finding[] {
-  const mildInHerWords = MILD_CUE.test(text) && !SEVERE_CUE.test(text);
-  if (mildInHerWords) return findings;
-  return findings.map((f) =>
-    f.code.startsWith('severe_') && (f.severity === 'mild' || f.severity === 'moderate') ? { ...f, severity: 'unknown' } : f,
-  );
+  const strong = SEVERE_CUE.test(text) || STRONG_IN_HER_WORDS.test(text);
+  const mild = MILD_CUE.test(text) && !strong;
+  return findings.map((f) => {
+    if (!f.code.startsWith('severe_')) return f;
+    if (f.severity === 'severe' && !strong) return { ...f, severity: 'unknown' };
+    if ((f.severity === 'mild' || f.severity === 'moderate') && !mild) return { ...f, severity: 'unknown' };
+    return f;
+  });
 }
 
 // The WHO tables cover pregnancy and the weeks after birth (user's call, 2026-10-10): when her

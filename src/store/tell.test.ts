@@ -89,7 +89,7 @@ describe('tell store', () => {
 
   it('uses the typed answers from the model', async () => {
     setAskModel(async () => HEADACHE);
-    const entry = await useTellStore.getState().submit('masakit ulo ko', 'voice');
+    const entry = await useTellStore.getState().submit('masakit ulo ko, hindi ko na kaya', 'voice');
     expect(entry.input).toBe('voice');
     expect(entry.decision.level).toBe('go_now');
     expect(entry.findings[0]?.sources).toEqual(expect.arrayContaining(['llm']));

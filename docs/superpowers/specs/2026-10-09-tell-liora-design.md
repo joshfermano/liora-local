@@ -205,6 +205,11 @@ it. Tell Liora runs the same idea on the phone:
 ### Safety properties (tests must cover each)
 
 - **SR-1** Models can only add caution. A danger code from any source survives the merge.
+  **Comfort first (2026-10-10):** the model never settles how bad a severity sign is on its own.
+  Its "very bad" reading counts only when her words carry a strong word ("sobrang", "grabe",
+  "hindi ko na kaya", "very", "worst", "unbearable"); otherwise the sign stays unknown and she
+  gets a warm fixed line and the one follow-up question first. Skip still counts as serious, and
+  danger signs in her own words (bleeding, fits, blurred vision) still go straight to go-now.
 - **SR-2** The model only answers typed questions over closed option lists and never generates
   free text into the pipeline. An error or timeout equals "no findings"; the word list and
   embedding matcher still run. **Agent (2026-10-10):** Gemma may also choose agent actions through
