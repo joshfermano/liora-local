@@ -128,30 +128,41 @@ function ConfidenceRow({ finding, danger }: { finding: Finding; danger: boolean 
   );
 }
 
-const MODEL_ICON: Record<Entry['models'][number]['role'], { sf: string; fallback: 'brain' | 'live' | 'list' | 'info' }> = {
-  llm: { sf: 'brain', fallback: 'brain' },
+const MODEL_ICON: Partial<Record<Entry['models'][number]['role'], { sf: string; fallback: 'live' | 'list' | 'info' }>> = {
   asr: { sf: 'waveform', fallback: 'live' },
   embedding: { sf: 'magnifyingglass', fallback: 'list' },
   ocr: { sf: 'doc.text.viewfinder', fallback: 'info' },
 };
 
+// The model's official name, not the file it was loaded from.
+const OFFICIAL: [RegExp, string][] = [
+  [/gemma-?4.*e2b/i, 'Gemma 4 E2B'],
+  [/embedding-?gemma/i, 'EmbeddingGemma'],
+  [/whisper/i, 'Whisper'],
+  [/florence/i, 'Florence-2'],
+];
+const officialName = (id: string) => OFFICIAL.find(([re]) => re.test(id))?.[1] ?? id;
+
 function ModelTile({ model }: { model: Entry['models'][number] }) {
   const icon = MODEL_ICON[model.role];
+  const name = officialName(model.id);
   return (
     <View
       accessible
-      accessibilityLabel={`${model.id}, ${en(`decided.role.${model.role}`)}, ${model.version}`}
+      accessibilityLabel={`${name}, ${en(`decided.role.${model.role}`)}`}
       className={`${SURFACE.surface} ${EDGE} rounded-pane flex-row items-center gap-sm px-md py-sm`}
     >
-      <View className={`h-9 w-9 items-center justify-center rounded-full ${SURFACE.tintSoft}`}>
-        <Symbol name={icon.sf as never} fallback={icon.fallback} tone="tintSoftInk" size={18} />
-      </View>
+      {icon ? (
+        <View className={`h-9 w-9 items-center justify-center rounded-full ${SURFACE.tintSoft}`}>
+          <Symbol name={icon.sf as never} fallback={icon.fallback} tone="tintSoftInk" size={18} />
+        </View>
+      ) : null}
       <View className="flex-1">
         <Text variant="subheadline" className="font-semibold">
-          {model.id}
+          {name}
         </Text>
         <Text variant="caption1" tone="secondary">
-          {`${en(`decided.role.${model.role}`)} · ${model.version}`}
+          {en(`decided.role.${model.role}`)}
         </Text>
       </View>
     </View>
