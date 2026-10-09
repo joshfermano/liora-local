@@ -40,7 +40,8 @@ Context, from checked sources:
 | **Decide** | A deterministic decision model built from WHO and DOH warning-sign tables makes the call: go to the hospital now, one fixed follow-up question, or a calm answer. |
 | **Explain** | Fixed, pre-written screens; a card to show the nurse; and the WHO or DOH passage behind the answer, shown word for word. |
 | **Remember** | Her log, a cycle calendar and an explained next-period estimate, stored only on her phone. |
-| **Companion** | The Liora tab is a conversation. The word rules (and, only when they read nothing, one typed Gemma question) tell what her message is about; the reply is then built from fixed copy, her own logs, a quoted source card or the rules' decision, with the go-now and nurse card inline. Gemma never writes the reply. |
+| **Act** | Liora is an agent: "Niregla ako today, masakit puson ko" saves her period start and symptom at once, with Undo. The word rules read her message first; Gemma fills gaps by choosing from closed action lists (never writing dates or medical text); clear logs are saved, anything that would replace data or change her status waits for her tap. It works the same in the chat, in hands-free Liora Live and from Today. |
+| **Companion** | The reply is built from fixed copy, what was saved, her own logs, a quoted source card or the rules' decision, opened by one guarded warm sentence on calm turns. On a danger sign, nothing else happens: the go-now screen and nurse card. |
 
 **The AI only understands her words. Every decision comes from transparent rules she can see.**
 
@@ -64,7 +65,10 @@ reported.
   "mild" reading counts only when her own words say so ("medyo", "konti").
 - **No AI-written medical text.** The "go now" and crisis screens use fixed copy. The urgent lines
   quote approved WHO passages word for word, and source cards are shown verbatim, never paraphrased.
-  Gemma never writes a reply: it only answers yes/no questions with probabilities.
+  Gemma answers yes/no questions with probabilities and picks actions from closed lists. The one
+  thing it writes is a short warm sentence on calm turns, checked by a filter that blocks advice,
+  symptoms, medicines, numbers and dates (a fixed warm line replaces anything it blocks); never on
+  a danger turn.
 - **Works without the AI.** If the model cannot load, "AI off, checklist on" lets her tap her signs,
   and the same rules decide.
 - **Not a medical device.** Liora doesn't diagnose or prescribe; it helps her decide when to go.

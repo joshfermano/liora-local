@@ -207,7 +207,11 @@ it. Tell Liora runs the same idea on the phone:
 - **SR-1** Models can only add caution. A danger code from any source survives the merge.
 - **SR-2** The model only answers typed questions over closed option lists and never generates
   free text into the pipeline. An error or timeout equals "no findings"; the word list and
-  embedding matcher still run.
+  embedding matcher still run. **Agent (2026-10-10):** Gemma may also choose agent actions through
+  a closed JSON schema (tools, symptom, mood, activity and flow enums, date words that code
+  resolves), and on calm turns write one warm sentence that must pass `guardWarm` (no advice,
+  symptoms, medicines, numbers, dates or contraception words) or a fixed `warm.*` line is shown.
+  Neither runs on a `go_now` or `follow_up` turn, and neither can change a decision.
 - **SR-3** The decision model is pure, deterministic TypeScript with a source on every rule.
 - **SR-4** Go-now and crisis screens contain only fixed copy.
 - **SR-5** Unknown severity triggers a follow-up; skipping resolves to serious.
