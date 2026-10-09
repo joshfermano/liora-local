@@ -24,3 +24,10 @@ describe('the reply follows her moods today', () => {
     expect(replyPlan(undone, { tone: 'neutral', today: '2026-10-10', moods: ['sad'] }).fallback.key).toBe('reply.nothing_to_undo');
   });
 });
+
+describe('the moods in her message come first', () => {
+  it('is bright when she says she is happy now, even after a tired morning', () => {
+    const { fallback } = replyPlan(calm, { name: 'Ana', tone: 'neutral', today: '2026-10-10', moods: ['tired', 'joyful', 'romantic'], said: ['joyful', 'romantic'] });
+    expect(fallback.key).toBe('reply.greeting.bright');
+  });
+});

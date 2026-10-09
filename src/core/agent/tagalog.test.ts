@@ -53,3 +53,20 @@ describe('messageLanguage', () => {
     expect(messageLanguage('😊', 'tagalog')).toBe('tagalog');
   });
 });
+
+describe('found in the demo dry run', () => {
+  it.each(['Ano ang dapat kong ihanda bago manganak?', 'Kailangan ko bang magpahinga?', 'Dapat ba akong uminom ng maraming tubig?'])(
+    '%s is a health question, so a source card can answer it',
+    (text) => {
+      expect(readActions(text, today).some((a) => a.tool === 'health_question')).toBe(true);
+    },
+  );
+
+  it.each(['When is my fertile window?', 'Kailan ako fertile?', 'When do I ovulate?'])('%s is a cycle question', (text) => {
+    expect(readActions(text, today).some((a) => a.tool === 'cycle_question')).toBe(true);
+  });
+
+  it('reads "sakit lang ng ulo" as a headache', () => {
+    expect(readActions('konting sakit lang ng ulo ko', today).some((a) => a.tool === 'symptoms')).toBe(true);
+  });
+});

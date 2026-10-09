@@ -177,7 +177,7 @@ export async function runTurn(text: string, entry: Entry, day: string, thread: T
   if (entry.findings.length > 0) attachments.push({ kind: 'decision', entryId: entry.id, level: entry.decision.level });
 
   const tone = toneOf(text, entry);
-  const { facts, fallback, style } = replyPlan(outcome, { name: profile.name, tone, today: day, moods: moodsOn(data.dayLogs, day) });
+  const { facts, fallback, style } = replyPlan(outcome, { name: profile.name, tone, today: day, moods: moodsOn(data.dayLogs, day), said: pick(actions, 'moods')?.moods });
   if (attachments.length === 0) {
     if (asksAboutHerData) attachments.push({ kind: 'actions', items: ['calendar'] });
     else if (facts.no_action_taken === true) attachments.push({ kind: 'actions', items: [...HOME] });

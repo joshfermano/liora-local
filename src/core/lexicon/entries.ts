@@ -8,9 +8,9 @@ export interface Entry {
 }
 
 const HEAD_PAIN =
-  /\b(?:(?:masakit|sakit|kirot|kumikirot)\s+(?:ng\s+|ang\s+)?ulo|ulo\s+(?:ko\s+)?(?:ay\s+)?(?:masakit|kumikirot)|headaches?|migraine)\b/i;
+  /\b(?:(?:masakit|sakit|kirot|kumikirot)\s+(?:(?:lang|na|talaga|pa)\s+)?(?:ng\s+|ang\s+)?ulo|ulo\s+(?:ko\s+)?(?:ay\s+)?(?:masakit|kumikirot)|headaches?|migraine)\b/i;
 const BELLY_PAIN =
-  /\b(?:(?:masakit|sakit|kirot|kumikirot)\s+(?:ng\s+|ang\s+|sa\s+)?tiyan|tiyan\s+(?:ko\s+)?(?:ay\s+)?masakit|(?:stomach|abdominal|belly|tummy)\s*(?:pain|ache)s?|stomachache)\b/i;
+  /\b(?:(?:masakit|sakit|kirot|kumikirot)\s+(?:(?:lang|na|talaga|pa)\s+)?(?:ng\s+|ang\s+|sa\s+)?tiyan|tiyan\s+(?:ko\s+)?(?:ay\s+)?masakit|(?:stomach|abdominal|belly|tummy)\s*(?:pain|ache)s?|stomachache)\b/i;
 
 export const ENTRIES: Entry[] = [
   { pattern: HEAD_PAIN, codes: ['severe_headache', 'headache'] },
