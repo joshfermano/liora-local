@@ -128,7 +128,8 @@ function ConfidenceRow({ finding, danger }: { finding: Finding; danger: boolean 
   );
 }
 
-const MODEL_ICON: Partial<Record<Entry['models'][number]['role'], { sf: string; fallback: 'live' | 'list' | 'info' }>> = {
+const MODEL_ICON: Partial<Record<Entry['models'][number]['role'], { sf: string; fallback: 'brain' | 'live' | 'list' | 'info' }>> = {
+  llm: { sf: 'brain', fallback: 'brain' },
   asr: { sf: 'waveform', fallback: 'live' },
   embedding: { sf: 'magnifyingglass', fallback: 'list' },
   ocr: { sf: 'doc.text.viewfinder', fallback: 'info' },
@@ -149,7 +150,7 @@ function ModelTile({ model }: { model: Entry['models'][number] }) {
   return (
     <View
       accessible
-      accessibilityLabel={`${name}, ${en(`decided.role.${model.role}`)}`}
+      accessibilityLabel={`${name}, ${model.version}`}
       className={`${SURFACE.surface} ${EDGE} rounded-pane flex-row items-center gap-sm px-md py-sm`}
     >
       {icon ? (
@@ -162,7 +163,7 @@ function ModelTile({ model }: { model: Entry['models'][number] }) {
           {name}
         </Text>
         <Text variant="caption1" tone="secondary">
-          {en(`decided.role.${model.role}`)}
+          {model.version}
         </Text>
       </View>
     </View>

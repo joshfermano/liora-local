@@ -195,10 +195,6 @@ export const COPY = {
   'decided.step.rules': ui('Checked the WHO rules'),
   'decided.step.models': ui('AI models that ran'),
   'decided.silent': ui('{readers}: found nothing'),
-  'decided.role.llm': ui('Reads your words'),
-  'decided.role.asr': ui('Writes down your voice'),
-  'decided.role.embedding': ui('Finds the source card'),
-  'decided.role.ocr': ui('Reads a photo'),
   'decided.principle': ui('The AI only reads your words; fixed rules decide. Nothing left this phone.'),
   // name, lock and settings (LUM-81, LUM-82)
   'name.question': ui('What should Liora call you?'),
