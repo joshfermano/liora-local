@@ -8,7 +8,8 @@ const embedderBytesOnDisk = vi.fn();
 vi.mock('./gemma-native', () => ({ modelBytesOnDisk: () => modelBytesOnDisk() }));
 vi.mock('./embedder', () => ({ embedderBytesOnDisk: () => embedderBytesOnDisk() }));
 vi.mock('./card-index', () => ({ retrieveCard: vi.fn() }));
-vi.mock('./gemma-session', () => ({ gemmaSession: () => gemmaSession(), askGemma: vi.fn() }));
+vi.mock('./gemma-session', () => ({ gemmaSession: () => gemmaSession(), askGemma: vi.fn(), askIntent: vi.fn() }));
+vi.mock('../store/companion', () => ({ setAskIntent: vi.fn() }));
 vi.mock('../store/tell', () => ({
   setAskModel: (...args: unknown[]) => setAskModel(...args),
   setRetrieveCard: (...args: unknown[]) => setRetrieveCard(...args),

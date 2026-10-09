@@ -1,7 +1,7 @@
 import { format } from 'date-fns';
 import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
-import { composeReply, ruleIntent, type ReplyBlock } from '../core/companion';
+import { composeReply, ruleIntent, type Intent, type ReplyBlock } from '../core/companion';
 import { contextFrom, readProfile } from './profile';
 import { useLogStore } from './log';
 import { storage } from './storage';
@@ -22,6 +22,25 @@ interface CompanionState {
   clear(): void;
 }
 
+type AskIntent = (text: string) => Promise<Intent | null>;
+let askIntent: AskIntent | null = null;
+const INTENT_TIMEOUT_MS = 3000;
+
+export function setAskIntent(fn: AskIntent | null): void {
+  askIntent = fn;
+}
+
+// Gemma is asked only when the word rules read nothing; a slow or failed answer keeps 'other'.
+async function intentFor(text: string, ruled: Intent): Promise<Intent> {
+  if (ruled !== 'other' || !askIntent) return ruled;
+  const timeout = new Promise<null>((resolve) => setTimeout(() => resolve(null), INTENT_TIMEOUT_MS));
+  try {
+    return (await Promise.race([askIntent(text), timeout])) ?? ruled;
+  } catch {
+    return ruled;
+  }
+}
+
 const newId = () => `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
 
 export const useCompanionStore = create<CompanionState>()(
@@ -40,8 +59,9 @@ export const useCompanionStore = create<CompanionState>()(
           const entry = await useTellStore.getState().submit(text);
           const { setup, periods, cycleSettings } = useLogStore.getState();
           const profile = readProfile(setup);
+          const intent = await intentFor(text, ruleIntent(text, entry));
           blocks = composeReply({
-            intent: ruleIntent(text, entry),
+            intent,
             entry,
             context: contextFrom(profile),
             periods,
