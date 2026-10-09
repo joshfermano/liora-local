@@ -18,6 +18,7 @@ const ASK: Record<DangerCode, string> = {
   severe_abdominal_pain: 'Does the message say she has pain in her belly?',
   unconscious: 'Does the message say she fainted, passed out or cannot be woken?',
   central_cyanosis: 'Does the message say her lips or tongue are blue or grey?',
+  severe_difficulty_breathing: 'Does the message say she has difficulty breathing?',
 };
 
 const HOW_BAD: Partial<Record<DangerCode, string>> = {
@@ -25,6 +26,7 @@ const HOW_BAD: Partial<Record<DangerCode, string>> = {
   severe_vomiting: 'the vomiting',
   severe_pain: 'the pain',
   severe_abdominal_pain: 'the belly pain',
+  severe_difficulty_breathing: 'the difficulty breathing',
 };
 
 export const YESNO = ['yes', 'no'] as const;

@@ -10,6 +10,25 @@ const decide = (text: string) => evaluate(mergeFindings(readText(text)), ctx);
 const sev = (text: string, code: string) =>
   mergeFindings(readText(text)).find((f) => f.code === code)?.severity;
 
+describe('difficulty breathing (WHO ANC DAK: "Severe difficulty breathing")', () => {
+  it.each(['hirap akong huminga', 'hindi ako makahinga', 'kinakapos ang hininga ko', "I can't breathe properly"])(
+    'reads "%s" as difficulty breathing',
+    (text) => {
+      expect(readText(text).map((f) => f.code)).toContain('severe_difficulty_breathing');
+    },
+  );
+
+  it('goes to go_now when the message says it is very bad', () => {
+    expect(decide('sobrang hirap huminga').level).toBe('go_now');
+  });
+
+  it('asks the follow-up when the message does not say how bad', () => {
+    const decision = decide('hirap akong huminga');
+    expect(decision.level).toBe('follow_up');
+    expect(decision.follow_up?.code).toBe('severe_difficulty_breathing');
+  });
+});
+
 describe('readText', () => {
   it('marks every finding as lexicon with null confidence', () => {
     const findings = readText('masakit ulo ko');
@@ -105,6 +124,7 @@ describe('danger code phrasings', () => {
     severe_abdominal_pain: ['sakit ng tiyan', 'masakit tiyan ko', 'stomach pain'],
     unconscious: ['hinimatay siya', 'nawalan ng malay', 'she passed out'],
     central_cyanosis: ['nangingitim ang labi', 'blue lips', 'asul ang labi'],
+    severe_difficulty_breathing: ['hirap huminga', 'hindi makahinga', 'shortness of breath'],
   };
   const serious = (code: string) => code.startsWith('severe_');
 

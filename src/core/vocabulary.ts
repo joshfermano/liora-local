@@ -9,11 +9,12 @@ export const MOODS = [
   'calm', 'joyful', 'energetic', 'romantic', 'tired', 'anxious', 'stressed', 'irritable', 'sad',
 ] as const;
 
-// WHO ANC.DT.01, the 13 codes only.
+// The WHO ANC DAK danger-sign check (ANC.DT.01, p. 73), with "Headache and visual disturbance"
+// split into two codes so either one alone is caught.
 export const DANGER_CODES = [
   'vaginal_bleeding', 'convulsions', 'fever', 'severe_headache', 'visual_disturbance',
   'imminent_delivery', 'labour', 'looks_very_ill', 'severe_vomiting', 'severe_pain',
-  'severe_abdominal_pain', 'unconscious', 'central_cyanosis',
+  'severe_abdominal_pain', 'unconscious', 'central_cyanosis', 'severe_difficulty_breathing',
 ] as const;
 
 export const SEVERITIES = ['mild', 'moderate', 'severe', 'unknown'] as const;

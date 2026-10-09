@@ -15,7 +15,7 @@ describe('vocabulary', () => {
     expect(DANGER_CODES).toEqual([
       'vaginal_bleeding', 'convulsions', 'fever', 'severe_headache', 'visual_disturbance',
       'imminent_delivery', 'labour', 'looks_very_ill', 'severe_vomiting', 'severe_pain',
-      'severe_abdominal_pain', 'unconscious', 'central_cyanosis',
+      'severe_abdominal_pain', 'unconscious', 'central_cyanosis', 'severe_difficulty_breathing',
     ]);
   });
 });

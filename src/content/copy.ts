@@ -71,6 +71,7 @@ export const COPY = {
   'sign.severe_abdominal_pain': who('Abdominal pain'),
   'sign.unconscious': who('Unconscious'),
   'sign.central_cyanosis': who('Central cyanosis'),
+  'sign.severe_difficulty_breathing': who('Difficulty breathing'),
 
   'severity.severe': ui('severe'),
   'severity.moderate': ui('moderate'),

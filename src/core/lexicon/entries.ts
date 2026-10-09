@@ -26,6 +26,11 @@ export const ENTRIES: Entry[] = [
   { pattern: /lagnat|\bsinat\b|\bfever\b|febrile/i, codes: ['fever'] },
   {
     pattern:
+      /hirap\s+(?:akong\s+|ako\s+|na\s+|ng\s+)?(?:huminga|makahinga|paghinga)|hindi\s+(?:ako\s+)?makahinga|kinakapos\s+(?:ang\s+|ng\s+|sa\s+)?(?:hininga|paghinga)|hinihingal|(?:can'?t|cannot|hard\s+to|trouble|difficulty)\s+breath(?:e|ing)|short(?:ness)?\s+of\s+breath/i,
+    codes: ['severe_difficulty_breathing'],
+  },
+  {
+    pattern:
       /malabo\s+(?:ang\s+|na\s+|ng\s+)?(?:paningin|mata)|nanlalabo|nandidilim\s+ang\s+(?:paningin|mata)|blurr?(?:y|ed)\s+vision|vision\s+(?:is\s+)?blurr|double vision|seeing\s+(?:spots|stars|flashing)/i,
     codes: ['visual_disturbance'],
   },

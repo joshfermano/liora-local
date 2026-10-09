@@ -23,7 +23,7 @@ describe('rule table', () => {
       expect(rule?.level).toBe('go_now');
       expect(rule?.source).toEqual({ ...SOURCE, ref: 'ANC.DT.01' });
     }
-    expect(RULES).toHaveLength(14);
+    expect(RULES).toHaveLength(15);
   });
   it('DT.17 cites its own ref', () => {
     expect(RULES.find((r) => r.id === 'ANC.DT.17')?.source).toEqual({ ...SOURCE, ref: 'ANC.DT.17' });
