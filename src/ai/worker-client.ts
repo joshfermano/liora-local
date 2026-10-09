@@ -41,6 +41,14 @@ export function createWorkerClient(worker: WorkerLike) {
   };
 }
 
-export function workerUrl(name: WorkerName, baseUrl = process.env.EXPO_BASE_URL ?? '') {
+// Expo serves public/ from the root in development and under the base URL in the export.
+export function publicBase(env: { NODE_ENV?: string; EXPO_BASE_URL?: string }) {
+  return env.NODE_ENV === 'production' ? (env.EXPO_BASE_URL ?? '') : '';
+}
+
+export function workerUrl(
+  name: WorkerName,
+  baseUrl = publicBase({ NODE_ENV: process.env.NODE_ENV, EXPO_BASE_URL: process.env.EXPO_BASE_URL }),
+) {
   return `${baseUrl}/workers/${name}-worker.js`;
 }

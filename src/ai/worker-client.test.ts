@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { WorkerRequest, WorkerResponse } from './protocol';
-import { createWorkerClient, workerUrl, type WorkerLike } from './worker-client';
+import { createWorkerClient, publicBase, workerUrl, type WorkerLike } from './worker-client';
 
 class FakeWorker extends EventTarget implements WorkerLike {
   sent: WorkerRequest[] = [];
@@ -70,5 +70,15 @@ describe('workerUrl', () => {
 
   it('works when the site is served from the root', () => {
     expect(workerUrl('ml', '')).toBe('/workers/ml-worker.js');
+  });
+});
+
+describe('publicBase', () => {
+  it('uses the site base address in the published build', () => {
+    expect(publicBase({ NODE_ENV: 'production', EXPO_BASE_URL: '/liora-local' })).toBe('/liora-local');
+  });
+
+  it('uses the root in development, where Expo serves public files from /', () => {
+    expect(publicBase({ NODE_ENV: 'development', EXPO_BASE_URL: '/liora-local' })).toBe('');
   });
 });
