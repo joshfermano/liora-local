@@ -2,7 +2,7 @@ import { useRouter } from 'expo-router';
 import { useState } from 'react';
 import { TextInput, View } from 'react-native';
 import { en } from '../src/content/copy';
-import { formatPhPhone } from '../src/core/phone';
+import { formatPhPhone, typePhPhone } from '../src/core/phone';
 import { useLogStore } from '../src/store/log';
 import { BLOOD_TYPES, PROFILE_RANGES, updateProfile, useProfile, type BloodType, type Profile, type Status } from '../src/store/profile';
 import { GlassCard } from '../src/ui/Glass';
@@ -251,8 +251,9 @@ export default function ProfileEdit() {
               <Text variant="body">{en('em.phone')}</Text>
               <TextInput
                 value={phone}
+                // Only a Philippine number fits: digits and a leading plus, grouped as she types.
                 onChangeText={(t) => {
-                  setPhone(t);
+                  setPhone(typePhPhone(t));
                   setError(null);
                 }}
                 onBlur={() => setPhone((p) => formatPhPhone(p) ?? p)}
@@ -262,7 +263,7 @@ export default function ProfileEdit() {
                 textContentType="telephoneNumber"
                 autoComplete="tel"
                 returnKeyType="done"
-                maxLength={24}
+                maxLength={17}
                 className={`min-h-tap flex-1 text-right text-body ${TEXT_TONE.tint}`}
               />
             </View>
