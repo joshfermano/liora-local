@@ -114,6 +114,11 @@ export function Glance({ model, pregnant }: { model: TodayModel; pregnant: boole
             <Text variant="subheadline" tone="tintSoftInk" className="font-semibold">
               {en(`td.confidence_short.${next.confidence}`)}
             </Text>
+            {next.track ? (
+              <Text variant="footnote" tone="tintSoftInk">
+                {fill('td.track', { n: next.track.checked, k: next.track.held })}
+              </Text>
+            ) : null}
           </Pane>
         ) : null}
         <Pane width={paneW}>

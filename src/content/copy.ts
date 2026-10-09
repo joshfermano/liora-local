@@ -414,6 +414,7 @@ export const COPY = {
   'td.confidence_short.low': ui('Low confidence'),
   'td.confidence_short.medium': ui('Medium confidence'),
   'td.confidence_short.high': ui('High confidence'),
+  'td.track': ui("Replayed on your last {n} cycles, Liora's window held {k}."),
   'td.patterns_after': ui('Liora describes patterns after 2 logged cycles. You have {n}.'),
   'td.unwell.title': ui('Feeling unwell?'),
   'td.unwell.body': ui('Tell Liora in your own words. The WHO danger-sign rules decide when to go.'),
