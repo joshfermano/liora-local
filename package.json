@@ -16,6 +16,7 @@
   "dependencies": {
     "@expo-google-fonts/marcellus": "^0.4.1",
     "@expo/metro-runtime": "~57.0.16",
+    "@expo/ui": "~57.0.22",
     "@huggingface/transformers": "4.3.1",
     "date-fns": "^4",
     "expo": "~57.0.27",
