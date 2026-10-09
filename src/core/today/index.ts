@@ -55,6 +55,8 @@ export interface TodayModel {
   fertile: FertileWindow | null; // the current or next estimated window; an estimate, not contraception
   patterns: Insight[];
   cyclesLogged: number;
+  // Everything she logged today, from the day log and from what she told Liora; shown in any status.
+  todayLog: { flow: DayLog['flow']; symptoms: string[]; moods: string[]; activities: string[]; note: string | null };
 }
 
 const MAX_DOTS = 45;
@@ -138,6 +140,7 @@ export function today(input: TodayInput): TodayModel {
     : [];
 
   const todayLog = dayLogs.find((d) => d.date === now);
+  const unique = (xs: string[]) => [...new Set(xs)];
   const todayEntries = entries.filter((e) => dayOf(e.created_at) === now);
   const loggedToday = {
     period: onPeriod || Boolean(todayLog?.flow),
@@ -155,5 +158,13 @@ export function today(input: TodayInput): TodayModel {
 
   const fertile = tracking ? (fertileWindows(input).find((f) => f.to >= now) ?? null) : null;
 
-  return { answer, strip, next, cycles, rows, loggedToday, gapQuestion, fertile, patterns: insights(input), cyclesLogged: lengths.length };
+  const logged = {
+    flow: todayLog?.flow ?? null,
+    symptoms: unique([...(todayLog?.symptoms ?? []), ...todayEntries.flatMap((e) => e.findings.map((f) => f.code).filter(isSymptom))]),
+    moods: unique([...(todayLog?.moods ?? []), ...todayEntries.flatMap((e) => e.extraction?.moods ?? [])]),
+    activities: [...(todayLog?.activities ?? [])],
+    note: todayLog?.note ?? null,
+  };
+
+  return { answer, strip, next, cycles, rows, loggedToday, gapQuestion, fertile, patterns: insights(input), cyclesLogged: lengths.length, todayLog: logged };
 }

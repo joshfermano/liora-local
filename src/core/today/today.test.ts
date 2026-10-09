@@ -154,3 +154,20 @@ describe('the fertile window on Today', () => {
     expect(today(input()).fertile).toBeNull();
   });
 });
+
+describe("what she logged today, for Today's first pane", () => {
+  it('joins the day log and what she told Liora today, once each', () => {
+    const model = today(
+      input({
+        status: 'pregnant',
+        dayLogs: [day(TODAY, { flow: 'light', symptoms: ['cramps'], moods: ['tired'], activities: ['walk'], note: 'long day' })],
+        entries: [entry(TODAY, ['cramps', 'headache']), entry('2026-10-09', ['nausea'])],
+      }),
+    );
+    expect(model.todayLog).toEqual({ flow: 'light', symptoms: ['cramps', 'headache'], moods: ['tired'], activities: ['walk'], note: 'long day' });
+  });
+
+  it('is empty when nothing is logged today', () => {
+    expect(today(input()).todayLog).toEqual({ flow: null, symptoms: [], moods: [], activities: [], note: null });
+  });
+});

@@ -76,6 +76,50 @@ function Pane({ width, wash, fertile, children }: { width: number; wash?: boolea
   );
 }
 
+// What she logged today, in any status: the day log's chips plus what she told Liora.
+function TodayPane({ width, log, onEdit }: { width: number; log: TodayModel['todayLog']; onEdit: () => void }) {
+  const chips = [
+    ...(log.flow ? [fill('td.today.flow', { flow: en(`cal.flow.${log.flow}`) })] : []),
+    ...log.symptoms.map((c) => en(`symptom.${c}`)),
+    ...log.moods.map((m) => en(`feeling.${m}`)),
+    ...log.activities.map((a) => en(`activity.${a}`)),
+  ];
+  return (
+    <Pane width={width}>
+      <View className="flex-row items-center gap-xs">
+        <Symbol name="checkmark.circle" fallback="check" tone="tint" size={18} />
+        <Text variant="subheadline" className="flex-1">
+          {en('td.today.title')}
+        </Text>
+        <Text variant="subheadline" tone="tint" accessibilityRole="link" onPress={() => { tap(); onEdit(); }}>
+          {en(chips.length || log.note ? 'td.today.edit' : 'td.today.log')}
+        </Text>
+      </View>
+      {chips.length ? (
+        <View className="flex-row flex-wrap gap-xs">
+          {chips.map((c) => (
+            <View key={c} className="rounded-full bg-tint-soft px-sm py-xxs dark:bg-tint-soft-dark">
+              <Text variant="footnote" tone="tintSoftInk">
+                {c}
+              </Text>
+            </View>
+          ))}
+        </View>
+      ) : null}
+      {log.note ? (
+        <Text variant="footnote" tone="secondary" numberOfLines={2}>
+          {`“${log.note}”`}
+        </Text>
+      ) : null}
+      {!chips.length && !log.note ? (
+        <Text variant="subheadline" tone="secondary">
+          {en('td.today.empty')}
+        </Text>
+      ) : null}
+    </Pane>
+  );
+}
+
 export function Glance({ model, pregnant }: { model: TodayModel; pregnant: boolean }) {
   const router = useRouter();
   const margin = useMargin();
@@ -101,6 +145,7 @@ export function Glance({ model, pregnant }: { model: TodayModel; pregnant: boole
         style={{ marginHorizontal: -margin }}
         contentContainerStyle={{ paddingHorizontal: margin, gap: GAP }}
       >
+        <TodayPane width={paneW} log={model.todayLog} onEdit={() => router.push('/log-day' as Href)} />
         {next ? (
           <Pane width={paneW} wash>
             <View className="flex-row items-center gap-xs">
