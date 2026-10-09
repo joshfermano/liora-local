@@ -32,7 +32,7 @@ export default function Live() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { width } = useWindowDimensions();
-  const size = Math.min(width * 0.7, 300);
+  const size = Math.min(width * 0.9, 380);
   const reduce = useReducedMotion();
   const c = useColors();
   const colors = { deepColor: c.dusk, upperColor: c.tint, lowerColor: c.peach, highlightColor: c['tint-soft'], launchColor: c['tint-fill'], spinnerColor: c.tint };
