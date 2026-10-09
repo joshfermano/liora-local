@@ -89,7 +89,8 @@ export function Glance({ model, pregnant }: { model: TodayModel; pregnant: boole
         ? en('td.next.tomorrow')
         : fill('td.next.days', { n: next.inDays })
     : '';
-  const observations = model.patterns;
+  // Recurring symptoms and mood patterns are read in Deeper below, with the help they need; showing them here too repeated them.
+  const observations = model.patterns.filter((p) => p.kind !== 'recurring' && p.kind !== 'mood_pattern');
   return (
     <View className="gap-sm">
       <ScrollView
