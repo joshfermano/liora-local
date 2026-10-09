@@ -1,0 +1,86 @@
+import { create } from 'zustand';
+import { applyFollowUpAnswer, runPipeline } from '../core/pipeline';
+import type { Context, Entry } from '../core/types';
+import { useLogStore } from './log';
+
+export type TellStatus = 'idle' | 'thinking' | 'done' | 'error';
+
+export interface TellState {
+  status: TellStatus;
+  context: Context;
+  current: Entry | null;
+  error: string | null;
+  setContext(context: Context): void;
+  submit(text: string, input?: 'text' | 'voice'): Promise<Entry>;
+  answerFollowUp(answer: 'yes' | 'no' | 'skip'): Promise<Entry>;
+  reset(): void;
+}
+
+type AskModel = (text: string) => Promise<Record<string, number[]>>;
+
+const MODEL_TIMEOUT_MS = 8000;
+let askModel: AskModel | null = null;
+
+export function setAskModel(fn: AskModel | null): void {
+  askModel = fn;
+}
+
+// SR-2: the lexicon alone still decides when the model is missing, fails or is slow.
+async function typedAnswers(text: string): Promise<Record<string, number[]> | undefined> {
+  if (!askModel) return undefined;
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  const timeout = new Promise<undefined>((resolve) => {
+    timer = setTimeout(() => resolve(undefined), MODEL_TIMEOUT_MS);
+  });
+  try {
+    return await Promise.race([askModel(text), timeout]);
+  } catch {
+    return undefined;
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+const newId = () => `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
+const message = (e: unknown) => (e instanceof Error ? e.message : 'Something went wrong');
+
+export const useTellStore = create<TellState>()((set, get) => ({
+  status: 'idle',
+  context: { status: 'pregnant' },
+  current: null,
+  error: null,
+  setContext: (context) => set({ context }),
+  submit: async (text, input = 'text') => {
+    set({ status: 'thinking', error: null });
+    try {
+      const answers = await typedAnswers(text);
+      const entry = runPipeline({
+        id: newId(),
+        now: new Date(),
+        text,
+        input,
+        context: get().context,
+        typedAnswers: answers,
+      });
+      useLogStore.getState().addEntry(entry);
+      set({ current: entry, status: 'done' });
+      return entry;
+    } catch (e) {
+      set({ status: 'error', error: message(e) });
+      throw e;
+    }
+  },
+  answerFollowUp: async (answer) => {
+    const { current, context } = get();
+    if (!current?.decision.follow_up) {
+      const e = new Error('There is no follow-up question to answer');
+      set({ status: 'error', error: e.message });
+      throw e;
+    }
+    const next = applyFollowUpAnswer(current, answer, context);
+    useLogStore.getState().addEntry(next);
+    set({ current: next, status: 'done', error: null });
+    return next;
+  },
+  reset: () => set({ status: 'idle', current: null, error: null }),
+}));
