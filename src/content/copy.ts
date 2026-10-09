@@ -298,6 +298,7 @@ export const COPY = {
   'liora.starter.3': ui('Kailan next period ko?'),
   'liora.placeholder': ui('Message Liora'),
   'liora.send': ui('Send'),
+  'liora.disclaimer': ui('AI can make mistakes.'),
   'liora.live': ui('Liora Live'),
   'live.close': ui('Close'),
   'live.listening': ui('Listening. Liora answers when you pause.'),

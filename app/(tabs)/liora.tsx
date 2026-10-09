@@ -201,6 +201,9 @@ export default function Liora() {
           </View>
           <View className="w-full max-w-column self-center" style={{ paddingTop: 8, paddingHorizontal: margin, paddingBottom: footerGap }}>
             <Composer text={text} setText={setText} />
+            <Text variant="caption1" tone="tertiary" className="px-xs pt-xxs">
+              {en('liora.disclaimer')}
+            </Text>
           </View>
         </View>
       </View>
