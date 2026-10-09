@@ -3,7 +3,6 @@ import { View } from 'react-native';
 import { en, fil } from '../../content/copy';
 import type { Entry } from '../../core/types';
 import { useTellStore } from '../../store/tell';
-import { CapsuleButton } from '../CapsuleButton';
 import { ChoiceCard } from '../ChoiceCard';
 import { DecidedLink } from '../DecidedLink';
 import { Pair } from '../Pair';
@@ -28,14 +27,12 @@ export function FollowUp({ entry }: { entry: Entry }) {
     <Screen>
       <View className="gap-xxl pt-xxl">
         <Pair copyKey={question} large="title3" small="body" />
-        <View className="gap-xs">
+        <View className="gap-sm">
           <ChoiceCard label={en('result.yes')} chosen={chosen === 'yes'} onPress={() => answer('yes')} />
           <ChoiceCard label={en('result.no')} chosen={chosen === 'no'} onPress={() => answer('no')} />
+          <ChoiceCard label={en('result.skip')} chosen={chosen === 'skip'} onPress={() => answer('skip')} />
         </View>
-        <View className="gap-xxs">
-          <View className="self-start">
-            <CapsuleButton variant="plain" label={en('result.skip')} onPress={() => answer('skip')} />
-          </View>
+        <View className="gap-xxs px-md">
           <Text variant="footnote" tone="secondary">
             {fil('followup.skip_means')}
           </Text>

@@ -1,10 +1,12 @@
 import { useRouter } from 'expo-router';
+import { useEffect } from 'react';
 import { ScrollView, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { en, fil, severityKey, signKey } from '../../content/copy';
 import type { Entry } from '../../core/types';
 import { CapsuleButton } from '../CapsuleButton';
-import { DecidedLink } from '../DecidedLink';
+import { ExplainLinks } from '../decisionParts';
+import { warn } from '../haptics';
 import { Icon } from '../Icon';
 import { Lattice } from '../Lattice';
 import { useMargin } from '../Screen';
@@ -22,6 +24,9 @@ export function GoNow({ entry }: { entry: Entry }) {
   // Several signs can fire the same WHO table; show each source once.
   const sources = [...new Set(fired.map((f) => sourceFor(f.rule_id)).filter((s) => s !== null))];
   const firstRule = fired[0]?.rule_id;
+  useEffect(() => {
+    warn();
+  }, []);
 
   return (
     <View className={`flex-1 ${SURFACE.ground}`}>
@@ -64,19 +69,17 @@ export function GoNow({ entry }: { entry: Entry }) {
             })}
           </Lattice>
 
-          <View className="gap-xxs">
-            {sources.map((s, i) => (
-              <Text key={i} variant="footnote" tone="secondary">
-                {sourceLine(s)}
-              </Text>
-            ))}
-            {firstRule ? (
-              <View className="self-start">
-                <CapsuleButton variant="plain" label={en('result.why')} onPress={() => router.push(`/why/${firstRule}`)} />
-              </View>
-            ) : null}
-            <DecidedLink id={entry.id} />
-          </View>
+          {sources.length > 0 ? (
+            <Lattice header={en('go.source.header')}>
+              {sources.map((src, i) => (
+                <View key={i} className="min-h-tap justify-center px-md py-sm">
+                  <Text variant="body">{sourceLine(src)}</Text>
+                </View>
+              ))}
+            </Lattice>
+          ) : null}
+
+          <ExplainLinks id={entry.id} ruleId={firstRule} />
         </View>
       </ScrollView>
     </View>

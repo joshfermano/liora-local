@@ -5,7 +5,8 @@ import type { Entry, FindingSource } from '../../src/core/types';
 import { DANGER_CODES } from '../../src/core/vocabulary';
 import { useTellStore } from '../../src/store/tell';
 import { CapsuleButton } from '../../src/ui/CapsuleButton';
-import { Icon } from '../../src/ui/Icon';
+import { SeasonMark } from '../../src/ui/art';
+import { FactRow } from '../../src/ui/decisionParts';
 import { Lattice } from '../../src/ui/Lattice';
 import { sourceFor, sourceLine } from '../../src/ui/ruleSource';
 import { Screen } from '../../src/ui/Screen';
@@ -26,74 +27,54 @@ export default function Decided() {
 }
 
 function Body({ entry, onBack }: { entry: Entry; onBack: () => void }) {
-  const lines = [
-    ...new Set(
-      entry.decision.fired.map((f) => {
-        const src = sourceFor(f.rule_id);
-        return src ? `${f.rule_id} · ${sourceLine(src)}` : f.rule_id;
-      }),
-    ),
-  ];
+  const rules = [...new Set(entry.decision.fired.map((f) => f.rule_id))].map((id): [string, string | undefined] => {
+    const src = sourceFor(id);
+    return [id, src ? sourceLine(src) : undefined];
+  });
   return (
     <Screen>
-      <View className="gap-xl pt-xl">
-        <Text variant="displayHeading" accessibilityRole="header">
-          {en('decided.title')}
-        </Text>
+      <View className="gap-xl pt-lg">
+        <View className="flex-row items-center gap-sm">
+          <SeasonMark season="calm" size={28} />
+          <Text variant="displayHeading" accessibilityRole="header" className="flex-1">
+            {en('decided.title')}
+          </Text>
+        </View>
         {READERS.map((reader) => {
           const found = entry.findings.filter((f) => f.sources.includes(reader));
           return (
             <Lattice key={reader} header={en(`decided.reader.${reader}`)}>
               {found.length === 0 ? (
-                <View className="min-h-tap justify-center px-md py-sm">
-                  <Text variant="body" tone="secondary">
-                    {en('decided.nothing')}
-                  </Text>
-                </View>
+                <FactRow label={en('decided.nothing')} />
               ) : (
                 found.map((f) => (
-                  <View key={f.code} className="min-h-tap flex-row items-center gap-sm px-md py-sm">
-                    {(DANGER_CODES as readonly string[]).includes(f.code) ? <Icon name="danger" tone="urgent" /> : null}
-                    <Text variant="body" className="flex-1">
-                      {fil(signKey(f.code))} · {fil(severityKey(f.severity))}
-                      {reader === 'llm' && f.confidence !== null
+                  <FactRow
+                    key={f.code}
+                    label={fil(signKey(f.code))}
+                    danger={(DANGER_CODES as readonly string[]).includes(f.code)}
+                    value={`${fil(severityKey(f.severity))}${
+                      reader === 'llm' && f.confidence !== null
                         ? ` · ${confidenceWord(f.confidence)} (${f.confidence.toFixed(2)})`
-                        : ''}
-                    </Text>
-                  </View>
+                        : ''
+                    }`}
+                  />
                 ))
               )}
             </Lattice>
           );
         })}
         <Lattice header={en('decided.rules')}>
-          {lines.length === 0 ? (
-            <View className="min-h-tap justify-center px-md py-sm">
-              <Text variant="body" tone="secondary">
-                {en('decided.rules.none')}
-              </Text>
-            </View>
+          {rules.length === 0 ? (
+            <FactRow label={en('decided.rules.none')} />
           ) : (
-            lines.map((l) => (
-              <View key={l} className="min-h-tap justify-center px-md py-sm">
-                <Text variant="body">{l}</Text>
-              </View>
-            ))
+            rules.map(([id, line]) => <FactRow key={id} label={id} value={line} />)
           )}
         </Lattice>
         <Lattice header={en('decided.models')}>
           {entry.models.length === 0 ? (
-            <View className="min-h-tap justify-center px-md py-sm">
-              <Text variant="body">{en('decided.models.none')}</Text>
-            </View>
+            <FactRow label={en('decided.models.none')} />
           ) : (
-            entry.models.map((m) => (
-              <View key={`${m.role}-${m.id}`} className="min-h-tap justify-center px-md py-sm">
-                <Text variant="body">
-                  {m.role} · {m.id} · {m.version}
-                </Text>
-              </View>
-            ))
+            entry.models.map((m) => <FactRow key={`${m.role}-${m.id}`} label={m.role} value={`${m.id} · ${m.version}`} />)
           )}
         </Lattice>
         <CapsuleButton variant="neutral" label={en('result.back')} onPress={onBack} />

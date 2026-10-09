@@ -4,8 +4,9 @@ import { bestCard } from '../../content/cards';
 import { en } from '../../content/copy';
 import type { Entry } from '../../core/types';
 import { useTellStore } from '../../store/tell';
+import { HeroScene } from '../art';
 import { CapsuleButton } from '../CapsuleButton';
-import { DecidedLink } from '../DecidedLink';
+import { ExplainLinks } from '../decisionParts';
 import { Lattice } from '../Lattice';
 import { Screen } from '../Screen';
 import { SourceCard } from '../SourceCard';
@@ -19,10 +20,11 @@ export function Calm({ entry }: { entry: Entry }) {
 
   return (
     <Screen>
-      <View className="gap-xl pt-xxl">
-        <Text variant="body">
-          {en('calm.copy')}
-        </Text>
+      <View className="gap-xl pt-lg">
+        <View className="items-center">
+          <HeroScene size={132} season="calm" />
+        </View>
+        <Text variant="title3">{en('calm.copy')}</Text>
         <Lattice header={en('calm.watch.header')}>
           <View className="min-h-tap justify-center px-md py-sm">
             <Text variant="body">{en('calm.watch.items')}</Text>
@@ -35,9 +37,8 @@ export function Calm({ entry }: { entry: Entry }) {
             {en('result.ask_checkup')}
           </Text>
         )}
-        <DecidedLink id={entry.id} />
+        <ExplainLinks id={entry.id} ruleId={entry.decision.fired[0]?.rule_id} />
         <CapsuleButton
-          variant="neutral"
           label={en('result.home')}
           onPress={() => {
             reset();

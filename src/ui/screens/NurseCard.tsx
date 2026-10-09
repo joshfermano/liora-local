@@ -5,6 +5,7 @@ import { View } from 'react-native';
 import { en, fil, severityKey, signKey } from '../../content/copy';
 import type { Context, Entry } from '../../core/types';
 import { CapsuleButton } from '../CapsuleButton';
+import { Lattice } from '../Lattice';
 import { Pair } from '../Pair';
 import { Screen } from '../Screen';
 import { useName } from '../name';
@@ -13,7 +14,7 @@ import { Text } from '../Text';
 
 function Fact({ label, children }: { label: string; children: ReactNode }) {
   return (
-    <View className="gap-xxs">
+    <View className="gap-xxs px-md py-md">
       <Pair copyKey={label} large="footnote" small="footnote" largeTone="secondary" />
       {children}
     </View>
@@ -37,39 +38,45 @@ export function NurseCard({ entry, context }: { entry: Entry; context: Context }
 
   return (
     <Screen raised field={false}>
-      <View className="gap-xl pt-lg">
+      <View className="gap-lg pt-lg">
         {name ? <Text variant="display">{name}</Text> : null}
-        {figure !== undefined ? (
-          <Fact label={figureKey}>
-            <Text variant="display">{figure}</Text>
-          </Fact>
-        ) : null}
-        <Fact label="nurse.signs">
-          {entry.findings.map((f) => (
-            <Text key={f.code} variant="title2">
-              {fil(signKey(f.code))} · {fil(severityKey(f.severity))}
-            </Text>
-          ))}
-        </Fact>
-        <Fact label="nurse.logged">
-          <Text variant="title2">{format(logged, 'h:mm a, d MMM yyyy')}</Text>
-        </Fact>
-        {bp ? (
-          <Fact label="nurse.bp">
-            <Text variant="title2">
-              {bp.systolic}/{bp.diastolic}
-            </Text>
-          </Fact>
-        ) : null}
-        {body.map(([label, value, unit]) =>
-          value === undefined ? null : (
-            <Fact key={label} label={label}>
-              <Text variant="title2">
-                {value} {en(unit)}
-              </Text>
-            </Fact>
-          ),
-        )}
+        <Lattice>
+          {[
+            figure !== undefined ? (
+              <Fact key="figure" label={figureKey}>
+                <Text variant="display">{figure}</Text>
+              </Fact>
+            ) : null,
+            <Fact key="signs" label="nurse.signs">
+              <View className="gap-xs">
+                {entry.findings.map((f) => (
+                  <Text key={f.code} variant="title2">
+                    {fil(signKey(f.code))} · {fil(severityKey(f.severity))}
+                  </Text>
+                ))}
+              </View>
+            </Fact>,
+            <Fact key="logged" label="nurse.logged">
+              <Text variant="title2">{format(logged, 'h:mm a, d MMM yyyy')}</Text>
+            </Fact>,
+            bp ? (
+              <Fact key="bp" label="nurse.bp">
+                <Text variant="title2">
+                  {bp.systolic}/{bp.diastolic}
+                </Text>
+              </Fact>
+            ) : null,
+            ...body.map(([label, value, unit]) =>
+              value === undefined ? null : (
+                <Fact key={label} label={label}>
+                  <Text variant="title2">
+                    {value} {en(unit)}
+                  </Text>
+                </Fact>
+              ),
+            ),
+          ]}
+        </Lattice>
         <CapsuleButton variant="neutral" label={en('result.back')} onPress={() => router.back()} />
       </View>
     </Screen>
