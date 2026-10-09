@@ -8,7 +8,7 @@ import { useUnlock } from './lock';
 import { Screen } from './Screen';
 import { Text } from './Text';
 
-// Only /log, /mood and /calendar use this. Help paths must never be gated.
+// Only /log, /mood, /calendar and /history use this. Help paths must never be gated.
 export function LockGate({ children }: { children: ReactNode }) {
   const router = useRouter();
   const { locked, unlock } = useUnlock();

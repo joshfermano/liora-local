@@ -23,7 +23,7 @@ const reply = () => last().blocks!.find((b) => b.kind === 'reply');
 
 describe('companion thread with the real rules and no model', () => {
   beforeEach(() => {
-    useCompanionStore.getState().clear();
+    useCompanionStore.setState({ messages: [], history: [], thinking: false });
     useLogStore.setState({ entries: [], setup: null, moods: [], periods: [], dayLogs: [], cycleSettings: {} });
     setRouteActions(null);
     setSayReply(null);
@@ -70,8 +70,10 @@ describe('companion thread with the real rules and no model', () => {
   it('empties when everything is deleted', async () => {
     useLogStore.setState({ setup: { name: 'A' } });
     useCompanionStore.setState({ messages: [{ id: '1', role: 'her', text: 'x', at: '' }] });
+    useCompanionStore.setState({ history: [{ id: 'h', startedAt: '', endedAt: '', messages: [{ id: '2', role: 'her', text: 'y', at: '' }] }] });
     await useLogStore.getState().deleteEverything();
     expect(useCompanionStore.getState().messages).toEqual([]);
+    expect(useCompanionStore.getState().history).toEqual([]);
   });
 
   it('answers with the error line and unlocks when the reply never finishes', async () => {
@@ -91,4 +93,62 @@ describe('companion thread with the real rules and no model', () => {
       vi.useRealTimers();
     }
   });
+
+  describe('history', () => {
+    const her = (id: string, text: string, at = '2026-10-10T08:00:00.000Z') => ({ id, role: 'her' as const, text, at });
+
+    it('keeps the conversation she clears, newest first', () => {
+      useCompanionStore.setState({ messages: [her('1', 'first')] });
+      useCompanionStore.getState().clear();
+      useCompanionStore.setState({ messages: [her('2', 'second')] });
+      useCompanionStore.getState().clear();
+      const { messages, history } = useCompanionStore.getState();
+      expect(messages).toEqual([]);
+      expect(history.map((c) => c.messages[0]!.text)).toEqual(['second', 'first']);
+      expect(history[0]!.startedAt).toBe('2026-10-10T08:00:00.000Z');
+    });
+
+    it('drops a question she never answered, so an old yes cannot save stale data', () => {
+      useCompanionStore.setState({
+        messages: [her('1', 'regla ko'), { id: '2', role: 'liora', at: '', blocks: [{ kind: 'text', key: 'liora.error' }, { kind: 'confirm', actions: [], confirmId: 'c' }] }],
+      });
+      useCompanionStore.getState().clear();
+      expect(useCompanionStore.getState().history[0]!.messages[1]!.blocks).toEqual([{ kind: 'text', key: 'liora.error' }]);
+    });
+
+    it('does not keep an empty conversation', () => {
+      useCompanionStore.getState().clear();
+      expect(useCompanionStore.getState().history).toEqual([]);
+    });
+
+    it('opens a past conversation and keeps the one she was in', () => {
+      useCompanionStore.setState({ messages: [her('1', 'old')] });
+      useCompanionStore.getState().clear();
+      const [old] = useCompanionStore.getState().history;
+      useCompanionStore.setState({ messages: [her('2', 'now')] });
+      useCompanionStore.getState().open(old!.id);
+      const { messages, history } = useCompanionStore.getState();
+      expect(messages.map((m) => m.text)).toEqual(['old']);
+      expect(history.map((c) => c.messages[0]!.text)).toEqual(['now']);
+    });
+
+    it('forgets a past conversation she deletes', () => {
+      useCompanionStore.setState({ messages: [her('1', 'gone')] });
+      useCompanionStore.getState().clear();
+      const [gone] = useCompanionStore.getState().history;
+      useCompanionStore.getState().forget(gone!.id);
+      expect(useCompanionStore.getState().history).toEqual([]);
+    });
+
+    it('keeps at most 50 past conversations', () => {
+      for (let i = 0; i < 55; i++) {
+        useCompanionStore.setState({ messages: [her(String(i), `m${i}`)] });
+        useCompanionStore.getState().clear();
+      }
+      const { history } = useCompanionStore.getState();
+      expect(history).toHaveLength(50);
+      expect(history[0]!.messages[0]!.text).toBe('m54');
+    });
+  });
 });
+

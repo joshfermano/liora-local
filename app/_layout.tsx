@@ -38,6 +38,7 @@ export default function RootLayout() {
         <Stack.Screen name="day" options={{ presentation: 'modal', animation: 'default' }} />
         <Stack.Screen name="avatar" options={{ presentation: 'modal', animation: 'default' }} />
         <Stack.Screen name="voice" options={{ presentation: 'modal', animation: 'default' }} />
+        <Stack.Screen name="history" options={{ presentation: 'modal', animation: 'default' }} />
         <Stack.Screen name="live" options={{ presentation: 'fullScreenModal', animation: 'fade' }} />
       </Stack>
     </>

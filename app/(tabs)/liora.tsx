@@ -1,3 +1,4 @@
+import { useRouter } from 'expo-router';
 import { useEffect, useRef, useState } from 'react';
 import { Keyboard, KeyboardAvoidingView, Platform, ScrollView, View } from 'react-native';
 import { en } from '../../src/content/copy';
@@ -27,6 +28,8 @@ export default function Liora() {
   const messages = useCompanionStore((s) => s.messages);
   const thinking = useCompanionStore((s) => s.thinking);
   const clear = useCompanionStore((s) => s.clear);
+  const hasHistory = useCompanionStore((s) => s.history.length > 0);
+  const router = useRouter();
   const [text, setText] = useState('');
   const last = messages[messages.length - 1];
   const canClear = messages.length > 0 && !thinking;
@@ -55,19 +58,34 @@ export default function Liora() {
           <Text variant="displayTitle" accessibilityRole="header">
             {en('tabs.liora')}
           </Text>
-          {canClear ? (
-            <PressableSurface
-              label={en('liora.clear')}
-              onPress={() => {
-                tap();
-                clear();
-              }}
-            >
-              <GlassCard interactive className="h-tap w-tap items-center justify-center">
-                <Symbol name="arrow.counterclockwise" fallback="reset" tone="tint" size={20} />
-              </GlassCard>
-            </PressableSurface>
-          ) : null}
+          <View className="flex-row items-center gap-xs">
+            {hasHistory ? (
+              <PressableSurface
+                label={en('liora.history')}
+                onPress={() => {
+                  tap();
+                  router.push('/history');
+                }}
+              >
+                <GlassCard interactive className="h-tap w-tap items-center justify-center">
+                  <Symbol name="clock.arrow.circlepath" fallback="list" tone="tint" size={20} />
+                </GlassCard>
+              </PressableSurface>
+            ) : null}
+            {canClear ? (
+              <PressableSurface
+                label={en('liora.clear')}
+                onPress={() => {
+                  tap();
+                  clear();
+                }}
+              >
+                <GlassCard interactive className="h-tap w-tap items-center justify-center">
+                  <Symbol name="arrow.counterclockwise" fallback="reset" tone="tint" size={20} />
+                </GlassCard>
+              </PressableSurface>
+            ) : null}
+          </View>
         </View>
         <ScrollView ref={scroll} className="flex-1" keyboardShouldPersistTaps="handled" contentContainerStyle={{ flexGrow: 1, paddingBottom: 12 }}>
           {messages.length === 0 && !thinking ? (
