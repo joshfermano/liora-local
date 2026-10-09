@@ -123,7 +123,7 @@ export function Block({ block }: { block: ReplyBlock }) {
           {block.moods.map((m) => (
             <View key={m} className={`${SURFACE.tintSoft} rounded-full px-sm py-xxs`}>
               <Text variant="footnote" tone="tintSoftInk">
-                {String(m).replace(/_/g, ' ')}
+                {en(`feeling.${m}`)}
               </Text>
             </View>
           ))}

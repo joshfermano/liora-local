@@ -287,6 +287,16 @@ export const COPY = {
   'liora.followup.open': ui('Answer the question'),
   'liora.error': ui('Something went wrong. Please try again.'),
   'liora.clear': ui('Clear conversation'),
+  // her mood words, shown back as she said them
+  'feeling.calm': ui('Calm'),
+  'feeling.joyful': ui('Joyful'),
+  'feeling.energetic': ui('Energetic'),
+  'feeling.romantic': ui('Romantic'),
+  'feeling.tired': ui('Tired'),
+  'feeling.anxious': ui('Anxious'),
+  'feeling.stressed': ui('Stressed'),
+  'feeling.irritable': ui('Irritable'),
+  'feeling.sad': ui('Sad'),
 } as const satisfies Record<string, Entry>;
 
 export type CopyKey = keyof typeof COPY;
