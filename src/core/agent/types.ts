@@ -20,6 +20,7 @@ export type AgentAction =
   | { tool: 'delete_period'; date: DateWord; span?: 'month' | 'all' }
   | { tool: 'clear_day'; date: DateWord; what: 'all' | 'flow' | 'symptoms' | 'moods' | 'activities' }
   | { tool: 'undo_last' }
+  | { tool: 'set_status'; status: 'pregnant' | 'postpartum' | 'neither' }
   | { tool: 'ask_day'; date: DateWord }
   | { tool: 'open'; screen: Screen }
   | { tool: 'cycle_question' }
@@ -30,7 +31,7 @@ export type Screen = 'calendar' | 'mood_check' | 'checklist' | 'profile' | 'log_
 
 export type Tool = AgentAction['tool'];
 export const WRITE_TOOLS = [
-  'period_start', 'period_end', 'flow', 'symptoms', 'moods', 'activities', 'weeks', 'delete_period', 'clear_day',
+  'period_start', 'period_end', 'flow', 'symptoms', 'moods', 'activities', 'weeks', 'delete_period', 'clear_day', 'set_status',
 ] as const;
 
 // Plain data the responder may use; every number in Gemma's reply must appear here.
@@ -60,6 +61,7 @@ export type SavedItem =
   | { kind: 'moods'; date: string; values: Mood[] }
   | { kind: 'activities'; date: string; values: Activity[] }
   | { kind: 'weeks'; weeks: number }
+  | { kind: 'status'; status: 'pregnant' | 'postpartum' | 'neither' }
   | { kind: 'period_deleted'; date: string; end?: string | null }
   | { kind: 'day_cleared'; date: string; what: 'all' | 'flow' | 'symptoms' | 'moods' | 'activities' };
 

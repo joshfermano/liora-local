@@ -33,6 +33,8 @@ export function savedLine(item: SavedItem): string {
       return fill(en('agent.logged.activities'), { list: list('activity', item.values), date: dayWord(item.date) });
     case 'weeks':
       return fill(en('agent.logged.weeks'), { n: String(item.weeks) });
+    case 'status':
+      return en(`agent.logged.status.${item.status}`);
     case 'period_deleted':
       return item.end
         ? fill(en('agent.logged.period_deleted'), { from: dayWord(item.date), to: dayWord(item.end) })
@@ -50,6 +52,8 @@ export function confirmLine(action: AgentAction, today = ymd(new Date())): strin
   switch (action.tool) {
     case 'weeks':
       return fill(en('agent.confirm.weeks'), { n: String(action.weeks) });
+    case 'set_status':
+      return en(`agent.confirm.status.${action.status}`);
     case 'period_start':
     case 'period_end': {
       const date = resolveDate(action.date, today);

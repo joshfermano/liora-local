@@ -23,6 +23,8 @@ function verdict(a: AgentAction, data: AgentData, status: string | undefined, to
     }
     case 'weeks':
       return status === 'pregnant' ? 'apply' : 'confirm';
+    case 'set_status':
+      return 'confirm';
     case 'symptoms':
     case 'moods':
     case 'activities': {
@@ -46,7 +48,16 @@ export function planActions(actions: AgentAction[], data: AgentData, status: str
   const plan: AgentPlan = { apply: [], confirm: [] };
   for (const a of actions) {
     const v = verdict(a, data, status, today);
-    if (v !== 'skip') plan[v].push(a);
+    if (v === 'skip') continue;
+    // A period while her profile says pregnant: nothing is saved until she says she is not
+    // pregnant, and that answer updates her profile first.
+    if (status === 'pregnant' && PERIOD_LOGS.has(a.tool)) plan.confirm.push(a);
+    else plan[v].push(a);
+  }
+  if (status === 'pregnant' && plan.confirm.some((a) => PERIOD_LOGS.has(a.tool))) {
+    plan.confirm.unshift({ tool: 'set_status', status: 'neither' });
   }
   return plan;
 }
+
+const PERIOD_LOGS: ReadonlySet<AgentAction['tool']> = new Set(['period_start', 'period_end', 'flow']);

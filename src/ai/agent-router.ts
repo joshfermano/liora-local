@@ -4,7 +4,7 @@ import { ActivitySchema, FlowSchema, MoodSchema, SymptomSchema } from '../core/t
 import { ACTIVITIES, FLOWS, MOODS, SYMPTOMS } from '../core/vocabulary';
 import { runJson } from './gemma-session';
 
-const TOOLS = [...WRITE_TOOLS, 'undo_last', 'ask_day', 'open', 'cycle_question', 'health_question', 'smalltalk'] as const;
+const TOOLS = [...WRITE_TOOLS.filter((t) => t !== 'set_status'), 'undo_last', 'ask_day', 'open', 'cycle_question', 'health_question', 'smalltalk'] as const;
 const DATES = ['today', 'yesterday', 'days_ago', 'unknown'] as const;
 const PARTS = ['all', 'flow', 'symptoms', 'moods', 'activities'] as const;
 const SCREENS = ['calendar', 'mood_check', 'checklist', 'profile', 'log_day'] as const satisfies readonly Screen[];

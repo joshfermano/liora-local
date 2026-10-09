@@ -7,6 +7,11 @@ import type { AgentAction, AgentData, Applied, SavedItem } from './types';
 type Step = { data: Partial<AgentData>; saved: SavedItem[] } | null;
 
 function step(a: AgentAction, cur: AgentData, today: string): Step {
+  if (a.tool === 'set_status') {
+    const { weeks: _weeks, ...rest } = cur.setup ?? {};
+    const setup = a.status === 'pregnant' ? { ...(cur.setup ?? {}), status: a.status } : { ...rest, status: a.status };
+    return { data: { setup }, saved: [{ kind: 'status', status: a.status }] };
+  }
   if (a.tool === 'weeks') {
     return { data: { setup: { ...(cur.setup ?? {}), status: 'pregnant', weeks: a.weeks } }, saved: [{ kind: 'weeks', weeks: a.weeks }] };
   }
