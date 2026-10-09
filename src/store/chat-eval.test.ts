@@ -376,7 +376,7 @@ describe('answering from a lived-in account', () => {
     ['ilang araw na ako may regla?', 'her.period_day'],
     ["what's in my notes?", 'reply.recall'],
     ['when did I last have cramps?', 'her.last_sign'],
-    ['how often do I get headaches?', 'her.count_sign'],
+    ['how often do I get headaches?', 'her.count_sign.one'],
   ])('"%s"', async (text, expected) => {
     expect(await lived(text)).toBe(expected);
   });
