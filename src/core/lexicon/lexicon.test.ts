@@ -111,7 +111,7 @@ describe('readText', () => {
 
 describe('danger code phrasings', () => {
   const phrases: Record<DangerCode, string[]> = {
-    vaginal_bleeding: ['dinudugo ako', 'may dugo sa underwear ko', 'I have bleeding'],
+    vaginal_bleeding: ['dinudugo ako', 'may dugo sa underwear ko', 'I have bleeding', 'malakas ang dugo ko', 'nakaka-tatlong pads na ako sa isang oras', 'napupuno ang pads ko', 'soaking through my pads', 'heavy bleeding after birth', 'may buo-buong dugo', 'passing blood clots'],
     convulsions: ['nagka-seizure siya', 'may kumbulsyon', 'having a convulsion'],
     fever: ['may lagnat ako', 'nilalagnat', 'I have a fever'],
     severe_headache: ['sakit ng ulo', 'masakit ulo ko', 'headache'],
