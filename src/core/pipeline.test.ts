@@ -110,3 +110,19 @@ describe('period mentions', () => {
     expect(entry.extraction?.period).toMatchObject({ event: 'started', date: '2026-10-08' });
   });
 });
+
+describe('her period while not pregnant', () => {
+  const bleedingYes = { 'yesno.vaginal_bleeding': [0.95] };
+  const run = (status: Context['status']) =>
+    runPipeline({ id: 'p', now, text: 'Nagsimula regla ko ngayon', input: 'text', context: { status }, typedAnswers: bleedingYes });
+
+  it('is not a danger sign when she is neither pregnant nor postpartum, even if Gemma hears bleeding', () => {
+    expect(run('neither').decision.level).toBe('ok');
+  });
+
+  it('is still flagged while pregnant or after birth', () => {
+    expect(run('pregnant').decision.level).toBe('go_now');
+    expect(run('postpartum').decision.level).toBe('go_now');
+  });
+});
+
