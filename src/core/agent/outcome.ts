@@ -150,12 +150,11 @@ function styled(fallback: Fallback, style: ReplyStyle): Fallback {
 
 export function replyPlan(
   o: Outcome,
-  who: { name?: string; tone: Tone; today: string; moods?: Mood[]; said?: Mood[] },
+  who: { name?: string; tone: Tone; today: string; moods?: Mood[]; said?: Mood[]; hurting?: boolean },
 ): { facts: Facts; fallback: Fallback; style: ReplyStyle } {
   const facts: Facts = {};
   const moods = who.moods ?? [];
-  // How she feels right now beats what she logged earlier today.
-  const style = replyStyle(who.said?.length ? who.said : moods, who.tone);
+  const style = replyStyle(moods, who.tone, { moods: who.said, hurting: who.hurting });
   if (who.name) facts.her_name = who.name;
   const tone = TONE_WORD[who.tone];
   if (tone) facts.her_tone = tone;
