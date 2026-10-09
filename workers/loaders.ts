@@ -13,12 +13,12 @@ function forwardProgress(onProgress: (event: ProgressEvent) => void) {
 }
 
 export const loaders: Loaders = {
-  // Gemma4ForCausalLM loads only embed_tokens and decoder_model_merged; the audio and vision encoders stay on the server.
+  // Gemma4ForCausalLM loads only embed_tokens and decoder_model_merged; the audio and vision encoders are never downloaded.
   async gemma4(spec, onProgress) {
     const progress_callback = forwardProgress(onProgress);
     const tokenizer = await AutoTokenizer.from_pretrained(spec.repo, { progress_callback });
     const model = await Gemma4ForCausalLM.from_pretrained(spec.repo, {
-      device: 'webgpu',
+      device: spec.device,
       dtype: spec.dtype as never,
       progress_callback,
     });
