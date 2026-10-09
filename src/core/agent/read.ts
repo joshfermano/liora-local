@@ -13,7 +13,7 @@ const PERIOD_WORD = /regla|\bmens\b|\bperiod\b|dalaw/i;
 const START =
   /ni(?:re)?-?regla|(?<!tapos\s)\bna\s+regla\s+(?:na\s+)?ako\b|\bnaregla|\bnagregla|nagka-?regla|nag-?mens|dinatnan|dinalaw|nagkaroon\s+(?:ako\s+)?(?:na\s+)?ng\s+regla|may\s+regla\s+na|dumating\s+na\s+(?:ang\s+)?regla|regla\s+(?:ko\s+)?(?:ay\s+)?(?:nagsimula|dumating)|(?:got|have|had)\s+my\s+period|(?:my\s+)?period\s+(?:has\s+)?(?:started|began|came)|\blog\s+(?:my\s+)?period\b|\bi-?log\s+(?:mo\s+)?(?:ang\s+|yung\s+)?(?:regla|period)|\bmag-?log\s+(?:ng\s+)?(?:regla|period)|nag-?(?:simula|start)\s+(?:na\s+)?(?:ang\s+)?(?:regla|mens|period)|started\s+my\s+period|nagkaroon\s+(?:(?:na|ako)\s+){1,2}ng\s+(?:regla|mens|period)|dumating\s+na\s+(?:ang\s+|yung\s+)?(?:regla|mens|period|dalaw)|\bmay\s+(?:regla|mens|period)\s+(?:na|ako)\b|nagka-?(?:period|mens)|\b(?:first|unang)\s+(?:day|araw)\s+(?:ng|of)\s+(?:my\s+)?(?:regla|mens|period)|\bday\s*1\s+(?:ng|of)\s+(?:my\s+)?(?:regla|mens|period)|\b(?:i'?m|i\s+am)\s+on\s+my\s+period|^\s*(?:(?:regla|mens|dalaw|period)\s+ko|may\s+(?:regla|mens|dalaw)\s+(?:na\s+)?ako)\s+(?:na\s+)?(?:ngayon|today|kanina|kahapon|na)?\s*[.!]*\s*$|\bmay\s+dalaw\s+(?:na|ako)\b/i;
 const END = /natapos|tapos\s+na|wala\s+na|huminto|\b(?:ended|stopped|finished)\b|\b(?:last|huling)\s+(?:day|araw)\s+(?:ng|of)\b/i;
-const NOT_YET = /(?:hindi|di|wala)\s+pa\b|\bnot\s+yet\b|haven'?t/i;
+const NOT_YET = /(?:hindi|di|wala)\s+(?:pa|pala)\b|\bnot\s+yet\b|haven'?t|\bdid\s*n'?t\s+(?:get|have|start)\b/i;
 const NEGATED = /\b(?:hindi|di|walang|ayaw|didn'?t|did\s+not|not|never|no)\b/i;
 const CLAUSE = /[,.;!?]|\b(?:pero|but)\b/i;
 
@@ -83,13 +83,14 @@ function statusOf(text: string): 'pregnant' | 'postpartum' | 'neither' | null {
   return null;
 }
 
+const NOT_A_NAME = /^(?:later|back|soon|tomorrow|tonight|now|anytime|again|when|if|not|na|a|an|the|nothing|none|maybe|mamaya|bukas|ulit|kapag|pag|baby|mommy|mama|anything|whatever)\b/i;
 const RENAME =
   /^\s*(?:(?:please|pls|liora,?)\s+)*(?:(?:change|update|set)\s+my\s+name\s+(?:to|as|into)|call\s+me|my\s+name\s+is|tawagin\s+mo\s+(?:akong|ako\s+na|na\s+lang\s+akong)|palitan\s+mo\s+(?:ang\s+)?pangalan\s+ko\s+(?:ng|sa|to|into)|(?:ang\s+)?pangalan\s+ko\s+ay)\s+([\p{L}][\p{L}' .-]{0,38}?)(?:\s+(?:po|na\s+lang|nalang|please|instead))*[\s.!]*$/iu;
 
 // "Call me Bea": her new name, as she wrote it, or null.
 export function readRename(text: string): string | null {
   const name = RENAME.exec(text)?.[1]?.trim();
-  return name && name.split(/\s+/).length <= 3 ? name : null;
+  return name && name.split(/\s+/).length <= 3 && !NOT_A_NAME.test(name) ? name : null;
 }
 
 export function readActions(text: string, today: string): AgentAction[] {
