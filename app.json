@@ -37,6 +37,12 @@
         {
           "microphonePermission": "Liora uses the microphone only when you tap the mic, to write down what you say. Your voice stays on this phone."
         }
+      ],
+      [
+        "expo-local-authentication",
+        {
+          "faceIDPermission": "Liora uses Face ID only to open your private log, mood check and calendar. It never locks the help screens."
+        }
       ]
     ],
     "experiments": {

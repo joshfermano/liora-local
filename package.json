@@ -24,6 +24,7 @@
     "expo-file-system": "~57.0.7",
     "expo-font": "~57.0.4",
     "expo-linking": "~57.0.12",
+    "expo-local-authentication": "~57.0.3",
     "expo-router": "~57.0.25",
     "expo-status-bar": "~57.0.1",
     "idb-keyval": "^6",
