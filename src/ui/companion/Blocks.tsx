@@ -16,6 +16,7 @@ import { SourceCard } from '../SourceCard';
 import { Symbol } from '../Symbol';
 import { Text } from '../Text';
 import { SURFACE } from '../theme';
+import { Thinking } from '../Thinking';
 import { agentStore } from './agent-store';
 import { confirmLine, savedLine } from './saved';
 
@@ -133,29 +134,35 @@ function PeriodConfirm({ block }: { block: Extract<ReplyBlock, { kind: 'period_c
 
 function Logged({ block }: { block: Extract<ReplyBlock, { kind: 'logged' }> }) {
   const [undone, setUndone] = useState(false);
+  const [late, setLate] = useState(false);
   if (block.items.length === 0) return null;
   if (undone) return <Text variant="subheadline" tone="secondary" accessibilityLiveRegion="polite">{en('agent.undone')}</Text>;
   return (
-    <GlassCard className="gap-xs p-md">
+    <GlassCard className="gap-xxs px-md py-sm">
       <Text variant="footnote" tone="secondary" accessibilityRole="header">
         {en('agent.logged.title')}
       </Text>
       {block.items.map((item, i) => (
-        <Text key={i} variant="body">
-          {savedLine(item)}
-        </Text>
+        <View key={i} className="flex-row items-center gap-xs">
+          <Symbol name="checkmark.circle" fallback="check" tone="tint" size={16} />
+          <Text variant="subheadline" className="flex-1">
+            {savedLine(item)}
+          </Text>
+        </View>
       ))}
-      <View className="items-start">
-        <CapsuleButton
-          variant="plain"
-          label={en('agent.undo')}
-          onPress={() => {
-            tap();
-            void agentStore().undo?.(block.undoId);
-            setUndone(true);
-          }}
-        />
-      </View>
+      {late ? null : (
+        <View className="items-start">
+          <CapsuleButton
+            variant="plain"
+            label={en('agent.undo')}
+            onPress={() => {
+              tap();
+              if (agentStore().undo(block.undoId)) setUndone(true);
+              else setLate(true);
+            }}
+          />
+        </View>
+      )}
     </GlassCard>
   );
 }
@@ -190,21 +197,51 @@ function Confirm({ block }: { block: Extract<ReplyBlock, { kind: 'confirm' }> })
   );
 }
 
+// One Liora message: a single text bubble (reply, else warm, else the first text), then its attachments.
+function bubbleText(blocks: ReplyBlock[]): { text: string | null; waiting: boolean } | null {
+  const reply = blocks.find((b): b is Extract<ReplyBlock, { kind: 'reply' }> => b.kind === 'reply');
+  if (reply) return { text: reply.text ?? fill(en(reply.fallback.key), reply.fallback.params), waiting: reply.text === null };
+  const warm = blocks.find((b): b is Extract<ReplyBlock, { kind: 'warm' }> => b.kind === 'warm');
+  if (warm) return { text: warm.text ?? en(`warm.${warm.tone}`), waiting: warm.text === null };
+  const text = blocks.find((b): b is Extract<ReplyBlock, { kind: 'text' }> => b.kind === 'text');
+  return text ? { text: fill(en(text.key), text.params), waiting: false } : null;
+}
+
+export function LioraMessage({ blocks, thinking = false }: { blocks: ReplyBlock[]; thinking?: boolean }) {
+  const lead = bubbleText(blocks);
+  const hasLogged = blocks.some((b) => b.kind === 'logged');
+  const actions = [...new Set(blocks.flatMap((b) => (b.kind === 'actions' ? b.items : [])))];
+  const rest = blocks.filter(
+    (b) => b.kind !== 'reply' && b.kind !== 'warm' && b.kind !== 'text' && b.kind !== 'actions' && !(hasLogged && b.kind === 'mood_noted'),
+  );
+  return (
+    <View className="gap-xs">
+      {lead ? (
+        <Bubble>
+          {lead.waiting && thinking ? (
+            <View className="py-xxs">
+              <Thinking label={en('liora.typing')} />
+            </View>
+          ) : (
+            <Text variant="body">{lead.text}</Text>
+          )}
+        </Bubble>
+      ) : null}
+      {rest.map((b, i) => (
+        <Block key={i} block={b} />
+      ))}
+      {actions.length > 0 ? <Block block={{ kind: 'actions', items: actions }} /> : null}
+    </View>
+  );
+}
+
 export function Block({ block }: { block: ReplyBlock }) {
   const router = useRouter();
   switch (block.kind) {
     case 'text':
-      return (
-        <Bubble>
-          <Text variant="body">{fill(en(block.key), block.params)}</Text>
-        </Bubble>
-      );
     case 'warm':
-      return (
-        <Bubble>
-          <Text variant="body">{block.text ?? en(`warm.${block.tone}`)}</Text>
-        </Bubble>
-      );
+    case 'reply':
+      return <LioraMessage blocks={[block]} />;
     case 'logged':
       return <Logged block={block} />;
     case 'confirm':
@@ -260,4 +297,3 @@ export function Block({ block }: { block: ReplyBlock }) {
       );
   }
 }
-

@@ -585,6 +585,8 @@ export const COPY = {
   'reply.confirm': ui('Just checking before I save it.'),
   'companion.action.profile': ui('Profile'),
   'companion.action.log_day': ui('Log your day'),
+  // one-bubble chat (LUM-84)
+  'reply.card_spoken': ui('I found a reviewed source, it is on your screen.'),
 } as const satisfies Record<string, Entry>;
 
 export type CopyKey = keyof typeof COPY;
