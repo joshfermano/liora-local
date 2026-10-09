@@ -12,6 +12,7 @@ function step(a: AgentAction, cur: AgentData, today: string): Step {
   }
   if (a.tool === 'cycle_question' || a.tool === 'health_question' || a.tool === 'smalltalk') return null;
   if (a.tool === 'undo_last' || a.tool === 'ask_day' || a.tool === 'open') return null;
+  if (a.tool === 'remember' || a.tool === 'forget') return null;
   const date = resolveDate(a.date, today);
   if (!date) return null;
   switch (a.tool) {

@@ -7,6 +7,7 @@ import {
   resolveDate,
   smalltalkKind,
   toneOf,
+  withoutMemory,
   type AgentAction,
   type Fallback,
   type Outcome,
@@ -18,6 +19,7 @@ import { composeReply, type ReplyBlock } from '../core/companion';
 import type { Entry } from '../core/types';
 import { commit, dataNow, plan, revertLatest, understand } from './agent';
 import { useLogStore } from './log';
+import { useMemoryStore } from './memory';
 import { contextFrom, readProfile } from './profile';
 
 export interface AgentTurn {
@@ -42,7 +44,10 @@ function pick<T extends AgentAction['tool']>(actions: AgentAction[], tool: T): E
 export async function runTurn(text: string, entry: Entry, day: string, thread: Turn[], read: Triage): Promise<AgentTurn> {
   // A question about her own data is answered from her data: no source card, and no router to ask.
   const asksAboutHerData = read.purpose === 'ask';
-  const actions = asksAboutHerData ? read.actions : await understand(text, read.actions);
+  const understood = asksAboutHerData ? read.actions : await understand(text, read.actions);
+  // A note is stored only on a calm turn: never when the rules or the model saw a danger sign.
+  const calm = read.purpose !== 'urgent' && entry.decision.level === 'ok';
+  const actions = calm ? understood : withoutMemory(understood);
   const outcome: Outcome = {
     saved: [],
     waiting: false,
@@ -72,6 +77,7 @@ export async function runTurn(text: string, entry: Entry, day: string, thread: T
   outcome.waiting = confirm.length > 0;
   const removing = actions.some((a) => a.tool === 'delete_period' || a.tool === 'clear_day');
   outcome.notFound = removing && !outcome.saved.some((i) => i.kind === 'period_deleted' || i.kind === 'day_cleared');
+  outcome.noteNotFound = actions.some((a) => a.tool === 'forget') && !outcome.saved.some((i) => i.kind === 'forgot');
   if (done) attachments.push({ kind: 'logged', items: done.saved, undoId: done.undoId });
   if (confirm.length > 0) attachments.push({ kind: 'confirm', actions: confirm, confirmId: newId() });
 
@@ -134,6 +140,7 @@ export async function runTurn(text: string, entry: Entry, day: string, thread: T
     moodChecks: log.moods,
     profile: { name: profile.name, age: profile.age, status: profile.status, weeks: profile.weeks },
     today: day,
+    memory: { notes: useMemoryStore.getState().notes, language: useMemoryStore.getState().language },
   });
   return {
     attachments,

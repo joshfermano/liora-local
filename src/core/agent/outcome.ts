@@ -13,6 +13,8 @@ export interface Outcome {
   nothingToUndo: boolean;
   // She asked to delete or clear something that is not there.
   notFound: boolean;
+  // She asked Liora to forget a note it does not have.
+  noteNotFound?: boolean;
   cycle: { facts: Facts; textKey: string | null } | null;
   day: { date: string; facts: Facts; hasData: boolean } | null;
   // null when she did not ask a health question.
@@ -59,7 +61,7 @@ export function dayHasData(data: AgentData, date: string): boolean {
 }
 
 const words = (code: string) => code.replace(/_/g, ' ');
-const isRemoval = (i: SavedItem) => i.kind === 'period_deleted' || i.kind === 'day_cleared';
+const isRemoval = (i: SavedItem) => i.kind === 'period_deleted' || i.kind === 'day_cleared' || i.kind === 'forgot';
 
 function dayLabel(date: string, today: string): string {
   if (date === today) return 'today';
@@ -88,6 +90,10 @@ function factLine(item: SavedItem, today: string): string {
       return item.end ? `removed the period from ${when(item.date)} to ${when(item.end)}` : `removed the period that started ${when(item.date)}`;
     case 'day_cleared':
       return `cleared ${item.what === 'all' ? 'everything' : `the ${item.what}`} logged for ${when(item.date)}`;
+    case 'remembered':
+      return `will remember: "${item.note}"`;
+    case 'forgot':
+      return item.note ? `forgot: "${item.note}"` : 'forgot everything she asked me to remember';
   }
 }
 
@@ -98,15 +104,20 @@ const HELP = [
   'tell her about her cycle and what her data shows',
   'show a reviewed source card for a health question',
   'open the calendar, mood check, checklist, profile or day log',
+  'remember a short note she asks for, and forget it again',
 ];
 
 const TONE_WORD: Partial<Record<Tone, string>> = { worried: 'scared', sad: 'sad', tired: 'tired' };
 
 function fallbackOf(o: Outcome, name: string | undefined): Fallback {
-  if (o.saved.length > 0) return { key: o.saved.every(isRemoval) ? 'reply.deleted' : 'reply.saved' };
+  if (o.saved.length > 0) {
+    if (o.saved.every((i) => i.kind === 'remembered')) return { key: 'reply.remembered' };
+    return { key: o.saved.every(isRemoval) ? 'reply.deleted' : 'reply.saved' };
+  }
   if (o.undid) return { key: 'reply.undone' };
   if (o.nothingToUndo) return { key: 'reply.nothing_to_undo' };
   if (o.notFound) return { key: 'reply.not_found' };
+  if (o.noteNotFound) return { key: 'reply.note_not_found' };
   if (o.waiting) return { key: 'reply.confirm' };
   if (o.day) return { key: o.day.hasData ? 'reply.day' : 'reply.day_empty' };
   if (o.cycle) return { key: o.cycle.textKey ?? 'reply.cycle' };
@@ -130,6 +141,7 @@ export function replyPlan(o: Outcome, who: { name?: string; tone: Tone; today: s
   if (o.undid) facts.undone = o.undid.map((i) => factLine(i, who.today));
   if (o.nothingToUndo) facts.nothing_to_undo = true;
   if (o.notFound) facts.could_not_find_it_on_her_calendar = true;
+  if (o.noteNotFound) facts.could_not_find_that_note = true;
   if (o.waiting) facts.waiting_for_her_tap_to_save = true;
   if (o.day) {
     facts.day = dayLabel(o.day.date, who.today);

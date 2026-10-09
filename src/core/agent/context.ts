@@ -2,6 +2,7 @@ import { format, parseISO, subDays } from 'date-fns';
 import type { Insight } from '../insights';
 import { today as todayModel } from '../today';
 import type { Entry, MoodResult } from '../types';
+import type { Language } from './language';
 import type { AgentData, Facts } from './types';
 
 // Everything Liora knows about her, written plainly for the reply prompt. Code computes every date
@@ -12,6 +13,8 @@ export interface ContextInput {
   moodChecks: MoodResult[];
   profile: { name?: string; age?: number; status?: 'pregnant' | 'postpartum' | 'neither'; weeks?: number };
   today: string;
+  // Her own notes and the language she writes in: they flavour the words, never the rules.
+  memory?: { notes: string[]; language?: Language };
 }
 
 export interface ContextPack {
@@ -45,7 +48,9 @@ function pattern(i: Insight): string | null {
   }
 }
 
-export function contextPack({ data, entries, moodChecks, profile, today }: ContextInput): ContextPack {
+const LANGUAGE: Record<Language, string> = { tagalog: 'Tagalog', english: 'English', taglish: 'Taglish' };
+
+export function contextPack({ data, entries, moodChecks, profile, today, memory }: ContextInput): ContextPack {
   const status = profile.status;
   const model = todayModel({
     entries,
@@ -117,6 +122,9 @@ export function contextPack({ data, entries, moodChecks, profile, today }: Conte
     lines.push('Recent check-ins with Liora:');
     for (const e of checkIns) lines.push(`- ${day(e.created_at)}: "${e.text.slice(0, 60)}" (${LEVEL[e.decision.level]})`);
   }
+
+  if (memory?.notes.length) lines.push(`She asked Liora to remember: ${memory.notes.join('; ')}`);
+  if (memory?.language) lines.push(`She writes in: ${LANGUAGE[memory.language]} (reply the same way)`);
 
   const text = lines.join('\n');
   return { text, facts: { her_data: text } };

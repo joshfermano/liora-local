@@ -42,6 +42,10 @@ export function savedLine(item: SavedItem): string {
         what: item.what,
         date: dayWord(item.date),
       });
+    case 'remembered':
+      return fill(en('agent.logged.remembered'), { note: item.note });
+    case 'forgot':
+      return item.note ? fill(en('agent.logged.forgot'), { note: item.note }) : en('agent.logged.forgot_all');
   }
 }
 

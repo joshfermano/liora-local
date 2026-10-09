@@ -28,6 +28,7 @@ import type { ReplyRequest } from '../core/agent';
 import type { ReplyBlock } from '../core/companion';
 import { setRouteActions, setSayReply } from './agent';
 import { useCompanionStore } from './companion';
+import { useJournalStore } from './journal';
 import { useLogStore } from './log';
 import { setRetrieveCard } from './tell';
 
@@ -61,6 +62,7 @@ const reply = () => {
 describe('companion agent turn', () => {
   beforeEach(() => {
     useCompanionStore.getState().clear();
+    useJournalStore.getState().clear();
     useLogStore.setState({ entries: [], setup: null, moods: [], periods: [], dayLogs: [], cycleSettings: {} });
     setRouteActions(null);
     setSayReply(null);

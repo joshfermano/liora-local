@@ -574,6 +574,9 @@ export const COPY = {
   'agent.logged.period_deleted_open': ui('Removed your period that started {date}'),
   'agent.logged.day_cleared_all': ui('Cleared everything logged {date}'),
   'agent.logged.day_cleared': ui('Cleared the {what} logged {date}'),
+  'agent.logged.remembered': ui('Remembered: {note}'),
+  'agent.logged.forgot': ui('Forgot: {note}'),
+  'agent.logged.forgot_all': ui('Forgot everything you asked me to remember'),
   'agent.date.today': ui('today'),
   'agent.date.yesterday': ui('yesterday'),
   'agent.undo': ui('Undo'),
@@ -590,6 +593,8 @@ export const COPY = {
   // the agent's fixed fallback replies when Gemma has none (LUM-84); bright, never medical
   'reply.saved': ui('Done! I saved that for you.'),
   'reply.deleted': ui('Done, I removed it.'),
+  'reply.remembered': ui('Okay, I will remember that.'),
+  'reply.note_not_found': ui('I could not find that in what you asked me to remember.'),
   'reply.undone': ui('Okay, I undid that.'),
   'reply.nothing_to_undo': ui('There is nothing to undo right now.'),
   'reply.not_found': ui('I could not find that on your calendar.'),

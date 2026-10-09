@@ -1,5 +1,7 @@
-import { applyActions, mergeActions, planActions, type AgentAction, type ReplyRequest, type SavedItem, type Undo } from '../core/agent';
+import { applyActions, applyMemory, mergeActions, planActions, undoable, type AgentAction, type JournalEntry, type ReplyRequest, type SavedItem, type Undo } from '../core/agent';
+import { useJournalStore } from './journal';
 import { useLogStore } from './log';
+import { useMemoryStore } from './memory';
 import { readProfile } from './profile';
 
 type RouteActions = (text: string) => Promise<AgentAction[]>;
@@ -51,28 +53,30 @@ export function plan(actions: AgentAction[], today: string) {
   return planActions(actions, dataNow(), profile.status, today);
 }
 
-// Only the latest change can be undone: the slices as they were, and what it saved.
-interface Snapshot {
-  id: string;
-  undo: Undo;
-  saved: SavedItem[];
-}
-let latest: Snapshot | null = null;
 const newId = () => `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
 
-// Writes through the log store so it persists, and keeps the old slices for Undo.
+// Writes through the log store so it persists, and journals the old slices so Undo works even
+// after the app restarts.
 export function commit(actions: AgentAction[], today: string): { undoId: string; saved: SavedItem[] } | null {
   if (actions.length === 0) return null;
   const applied = applyActions(actions, dataNow(), today);
-  if (applied.saved.length === 0) return null;
+  const noted = applyMemory(actions, useMemoryStore.getState().notes);
+  const saved = [...applied.saved, ...(noted?.saved ?? [])];
+  if (saved.length === 0) return null;
   const log = useLogStore.getState();
   const { periods, dayLogs, setup, cycleSettings } = applied.data;
   if (periods) log.setPeriods(periods);
   if (dayLogs) log.setDayLogs(dayLogs);
   if (cycleSettings) log.setCycleSettings(cycleSettings);
   if (setup !== undefined) restoreSetup(setup);
-  latest = { id: newId(), undo: applied.undo, saved: applied.saved };
-  return { undoId: latest.id, saved: applied.saved };
+  const undo: Undo = { ...applied.undo };
+  if (noted) {
+    undo.notes = useMemoryStore.getState().notes;
+    useMemoryStore.getState().setNotes(noted.notes);
+  }
+  const id = newId();
+  useJournalStore.getState().record({ id, at: new Date().toISOString(), saved, undo });
+  return { undoId: id, saved };
 }
 
 function restoreSetup(setup: Record<string, unknown> | null): void {
@@ -80,26 +84,28 @@ function restoreSetup(setup: Record<string, unknown> | null): void {
   else useLogStore.setState({ setup: null });
 }
 
-function putBack({ undo }: Snapshot): void {
+function putBack({ id, undo }: JournalEntry): void {
   const log = useLogStore.getState();
   if (undo.periods) log.setPeriods(undo.periods);
   if (undo.dayLogs) log.setDayLogs(undo.dayLogs);
   if (undo.setup !== undefined) restoreSetup(undo.setup);
+  if (undo.notes) useMemoryStore.getState().setNotes(undo.notes);
+  useJournalStore.getState().drop(id);
 }
 
-// An older Undo button finds its snapshot replaced and gets false.
+// A Logged block's Undo works while its commit is in the journal, unless a newer change has since
+// touched the same data.
 export function revert(undoId: string): boolean {
-  if (!latest || latest.id !== undoId) return false;
-  putBack(latest);
-  latest = null;
+  const entry = undoable(useJournalStore.getState().entries, undoId);
+  if (!entry) return false;
+  putBack(entry);
   return true;
 }
 
 export function revertLatest(): { id: string; saved: SavedItem[] } | null {
-  if (!latest) return null;
-  const back = latest;
+  const back = useJournalStore.getState().entries.at(-1);
+  if (!back) return null;
   putBack(back);
-  latest = null;
   return { id: back.id, saved: back.saved };
 }
 
