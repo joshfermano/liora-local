@@ -67,6 +67,8 @@ export function confirmLine(action: AgentAction, today = ymd(new Date())): strin
       return en(`agent.confirm.status.${action.status}`);
     case 'set_name':
       return fill(en('agent.confirm.name'), { name: action.name });
+    case 'remember':
+      return fill(en('agent.confirm.remember'), { note: action.note });
     case 'period_start':
     case 'period_end': {
       const date = resolveDate(action.date, today);

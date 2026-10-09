@@ -1,6 +1,7 @@
 import { readText } from '../lexicon';
 import { resolveDate } from './dates';
-import type { AgentAction, DateWord, SavedItem } from './types';
+import { readActions } from './read';
+import { WRITE_TOOLS, type AgentAction, type DateWord, type SavedItem } from './types';
 import { dateWord } from './when';
 
 // Short replies that only make sense after what Liora just saved: "pati kahapon", "kahapon pala",
@@ -53,14 +54,17 @@ export function dateAnswer(text: string, waiting: AgentAction[], today: string):
 export function carryOver(text: string, last: SavedItem[], today: string): AgentAction[] | null {
   if (last.length === 0 || text.trim().split(/\s+/).length > SHORT || text.includes('?')) return null;
   if (readText(text).length > 0) return null;
+  // "Masaya din ako kahapon" carries its own log: that is what she means, not the last one again.
+  if (readActions(text, today).some((a) => (WRITE_TOOLS as readonly string[]).includes(a.tool))) return null;
   if (UNDO.test(text)) return [{ tool: 'undo_last' }];
   const word = dateWord(text, { kind: 'unknown' }, today);
   const date = resolveDate(word, today);
   if (ENDED.test(text) && last.some((i) => i.kind === 'period_start' || i.kind === 'flow')) {
-    return [{ tool: 'period_end', date: at(date ?? today) }];
+    // No day named: Liora asks which, as everywhere else; it never guesses a date.
+    return [{ tool: 'period_end', date: date ? at(date) : { kind: 'unknown' } }];
   }
   if (AGAIN_PERIOD.test(text) && last.some((i) => i.kind === 'period_start')) {
-    return [{ tool: 'period_start', date: at(date ?? today), flow: null }];
+    return [{ tool: 'period_start', date: date ? at(date) : { kind: 'unknown' }, flow: null }];
   }
   if (!date) return null;
   if (MOVE.test(text)) {
@@ -86,8 +90,30 @@ export function continuesTopic(text: string): boolean {
 }
 
 // "Hindi pala, malungkot ako": she takes back what Liora just saved and says what is true instead.
-const CORRECTION = /^\s*(?:hindi\s+pala|di\s+pala|mali(?:\s+pala)?|actually|i\s+mean|i\s+meant|sorry|no\s*,|wait\s*,?\s*no|ay\s+hindi|ay\s+mali)\b/i;
+const CORRECTION = /^\s*(?:hindi\s+pala|di\s+pala|mali(?:\s+pala)?|actually|i\s+mean|i\s+meant|no\s*,|wait\s*,?\s*no|ay\s+hindi|ay\s+mali)\b/i;
 
 export function corrects(text: string, last: SavedItem[]): boolean {
   return last.length > 0 && CORRECTION.test(text);
+}
+
+// A bare answer to "Shall I save this?", typed instead of swiped.
+const CONFIRM_YES =
+  /^\s*(?:oo|opo|oo\s+po|yes|yep|yup|yeah|sige|ok(?:ay)?|okie|go|sure|tama|correct|confirm|save(?:\s+it)?|i-?save(?:\s+mo)?)(?:\s+(?:po|na|lang|please|mo|it))*[\s.!]*$/i;
+const CONFIRM_NO = /^\s*(?:hindi|huwag|wag|no|nope|cancel|skip|ayoko|mali|not\s+now|hindi\s+na|huwag\s+na|wag\s+na)(?:\s+(?:po|na|lang|please|muna))*[\s.!]*$/i;
+
+export function confirmAnswer(text: string): 'yes' | 'no' | null {
+  if (CONFIRM_YES.test(text)) return 'yes';
+  if (CONFIRM_NO.test(text)) return 'no';
+  return null;
+}
+
+const undated = (a: AgentAction) => 'date' in a && a.date.kind === 'unknown';
+
+// A confirm whose day she has not said: saving it needs the day first.
+export function needsDate(actions: AgentAction[]): boolean {
+  return actions.some(undated);
+}
+
+export function withDate(actions: AgentAction[], date: string): AgentAction[] {
+  return actions.map((a) => (undated(a) ? ({ ...a, date: at(date) } as AgentAction) : a));
 }

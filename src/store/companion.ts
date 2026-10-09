@@ -16,7 +16,7 @@ import { CONVERSATION_MS, isNewConversation, recentTurns } from './thread';
 import { runTurn, type AgentTurn } from './turn';
 import { mentionsSelfHarm } from '../core/agent/crisis';
 import { mentionsLoss } from '../core/agent/loss';
-import { carryOver, continuesTopic, corrects, dateAnswer } from '../core/agent/carry';
+import { carryOver, confirmAnswer, continuesTopic, corrects, dateAnswer, needsDate, withDate } from '../core/agent/carry';
 import { WRITE_TOOLS, type AgentAction, type SavedItem } from '../core/agent';
 import { followUpAnswer } from '../core/agent/followon';
 import { afterBirthCard, warningSignsCard } from '../core/agent/warning';
@@ -49,6 +49,9 @@ function archived(messages: ThreadMessage[], history: PastChat[]): PastChat[] {
   return [chat, ...history].slice(0, HISTORY_MAX);
 }
 
+// What a confirm answer did: 'needs_date' leaves the block waiting for the day.
+export type ConfirmResult = 'saved' | 'unchanged' | 'skipped' | 'needs_date' | 'gone';
+
 interface CompanionState {
   messages: ThreadMessage[];
   history: PastChat[];
@@ -57,8 +60,9 @@ interface CompanionState {
   // Puts back what a `logged` block saved. False when a newer change has since touched the same data
   // or the change has left the journal (the last 10 are kept, across restarts).
   undo(undoId: string): boolean;
-  // Her tap on a `confirm` block: yes saves those actions, no drops them.
-  confirm(confirmId: string, yes: boolean): void;
+  // Her tap on a `confirm` block: yes saves those actions, no drops them. A block that still needs its
+  // day saves only with `date`; without one it stays, so nothing is ever shown as saved that was not.
+  confirm(confirmId: string, yes: boolean, date?: string): ConfirmResult;
   // Starts a fresh conversation; the one she leaves goes to history.
   clear(): void;
   // Brings a past conversation back; the current one goes to history.
@@ -163,12 +167,14 @@ export const useCompanionStore = create<CompanionState>()(
         set((s) => ({ messages: dropBlock(s.messages, (b) => b.kind === 'logged' && b.undoId === undoId) }));
         return true;
       },
-      confirm: (confirmId, yes) => {
+      confirm: (confirmId, yes, date) => {
         const block = get()
           .messages.flatMap((m) => m.blocks ?? [])
           .find((b) => b.kind === 'confirm' && b.confirmId === confirmId);
-        if (block?.kind !== 'confirm') return;
-        const done = yes ? commit(block.actions, today()) : null;
+        if (block?.kind !== 'confirm') return 'gone';
+        const actions = date ? withDate(block.actions, date) : block.actions;
+        if (yes && needsDate(actions)) return 'needs_date';
+        const done = yes ? commit(actions, today()) : null;
         set((s) => ({
           messages: s.messages.map((m) =>
             m.blocks?.some((b) => b.kind === 'confirm' && b.confirmId === confirmId)
@@ -182,6 +188,7 @@ export const useCompanionStore = create<CompanionState>()(
               : m,
           ),
         }));
+        return !yes ? 'skipped' : done ? 'saved' : 'unchanged';
       },
       send: async (raw, input = 'text') => {
         const text = raw.trim();
@@ -240,6 +247,18 @@ export const useCompanionStore = create<CompanionState>()(
           } finally {
             set({ thinking: false });
           }
+          return;
+        }
+        // "Oo" or "hindi" right after "Shall I save this?": the same as swiping the card.
+        const said = waiting ? confirmAnswer(text) : null;
+        if (waiting && said) {
+          if (said === 'yes' && needsDate(waiting.actions)) {
+            add([{ kind: 'reply', text: null, fallback: { key: 'reply.which_day' } }]);
+          } else {
+            const result = get().confirm(waiting.confirmId, said === 'yes');
+            add([{ kind: 'reply', text: null, fallback: { key: result === 'saved' ? 'reply.saved' : result === 'unchanged' ? 'reply.unchanged' : 'reply.not_saved' } }]);
+          }
+          set({ thinking: false });
           return;
         }
         if ((mild || already) && !typed) {
@@ -333,9 +352,10 @@ export const useCompanionStore = create<CompanionState>()(
             return;
           }
           // "Ilang weeks na ako?": her weeks are in her profile, so even without a model she gets them.
-          const asksWeeks = /\btrimester\b|\bhow\s+far\s+along\b|\bilang\s+(?:months|buwan)\s+(?:na\s+)?(?:ako|akong)|\bhow\s+many\s+months\b|\bilang\s+(?:weeks|linggo)\b(?!\s+pa\b)|\bhow\s+many\s+weeks\b|\bwhat\s+week\b|\bpang-?ilang\s+(?:week|linggo)\b/i.test(text);
-          const asksDue = /\bilang\s+(?:weeks|linggo|araw|buwan)\s+pa\b|\bhow\s+(?:many|long)\b.*\b(?:until|till|before)\b.*\b(?:birth|deliver|due|labou?r)\b|\bkailan\s+(?:ako\s+)?(?:manganganak|manganak)\b|\bdue\s+date\b|\bkabuwanan\s+ko\b|\bwhen\s+(?:will|am|do)\s+i\s+(?:give\s+birth|deliver|due)\b|\bwhen\s+is\s+(?:my\s+)?(?:baby|due)\b/i.test(text);
-          const quiet = !turn.attachments.some((b) => b.kind === 'logged' || b.kind === 'confirm');
+          const asksWeeks = /\btrimester\b|\bhow\s+far\s+along\b|\bilang\s+(?:months|buwan)\s+(?:na\s+)?(?:ako|akong)|\bhow\s+many\s+months\s+(?:pregnant|along|am\s+i|na\s+ako)\b|\bilang\s+(?:weeks|linggo)\b(?!\s+pa\b)|\bhow\s+many\s+weeks\b|\bwhat\s+week\b|\bpang-?ilang\s+(?:week|linggo)\b/i.test(text);
+          const asksDue = /\bilang\s+(?:weeks|linggo|araw|buwan)\s+pa\b.*\b(?:manganak|manganganak|panganganak|due|labou?r|birth|kabuwanan)\b|\bhow\s+(?:many|long)\b.*\b(?:until|till|before)\b.*\b(?:birth|deliver|due|labou?r)\b|\bkailan\s+(?:ako\s+)?(?:manganganak|manganak)\b|\bdue\s+date\b|\bkabuwanan\s+ko\b|\bwhen\s+(?:will|am|do)\s+i\s+(?:give\s+birth|deliver|due)\b|\bwhen\s+is\s+(?:my\s+)?(?:baby|due)\b/i.test(text);
+          // An answer already taken from her notes or logs stays; only a generic reply is replaced.
+          const quiet = !turn.attachments.some((b) => b.kind === 'logged' || b.kind === 'confirm' || b.kind === 'steps' && b.steps.some((st) => st.kind === 'recalled' || st.kind === 'looked'));
           if ((asksWeeks || asksDue) && profile.status === 'pregnant' && profile.weeks !== undefined && quiet) {
             turn = { ...turn, fallback: { key: asksDue ? 'reply.due' : 'reply.weeks', params: { n: String(profile.weeks) } }, attachments: turn.attachments.filter((b) => b.kind !== 'actions' || asksWeeks) };
           }

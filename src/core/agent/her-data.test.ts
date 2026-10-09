@@ -59,9 +59,26 @@ describe('answering from her own logs', () => {
     expect(herAnswer('late ba ako?', notNow, 'neither', '2026-10-20')).toMatchObject({ key: 'her.late.yes' });
   });
 
+  it('does not call a single cycle or period an average', () => {
+    const two = { ...ANA, periods: [P('c', '2026-09-12', '2026-09-17'), P('d', '2026-10-09', null)] };
+    expect(ask('gaano kahaba ang cycle ko?', two)).toEqual({ key: 'her.cycle_length.one', params: { n: '27' } });
+    expect(ask('ilang araw usually ang regla ko?', two)).toEqual({ key: 'her.period_length.one', params: { n: '6' } });
+  });
+
   it('says plainly when there is nothing logged yet', () => {
     expect(ask('anong cycle day ko?', NEW)).toEqual({ key: 'her.no_periods' });
     expect(ask('may regla ba ako ngayon?', NEW)).toEqual({ key: 'her.on_period.no' });
+  });
+
+  it.each([
+    'how many days until my check-up?',
+    'how often should I take medicine for a headache?',
+    'is it okay to eat regular food?',
+    'regular checkup ako bukas',
+    'am i still bleeding?',
+    'how long should I rest after exercise?',
+  ])('does not answer "%s" from her cycle', (text) => {
+    expect(ask(text)).toBeNull();
   });
 
   it('leaves logs, other questions and pregnancy to the other tools', () => {

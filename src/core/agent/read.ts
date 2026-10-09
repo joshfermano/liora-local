@@ -4,7 +4,7 @@ import { ACTIVITIES, SYMPTOMS } from '../vocabulary';
 import { readEdit, THANKS } from './edits';
 import { readMemory } from './memory';
 import type { AgentAction, DateWord } from './types';
-import { dateWord } from './when';
+import { dateWord, namesComingDate } from './when';
 import { readDischarge } from './discharge';
 
 // Input patterns only: what she might type, in Tagalog, Taglish or English. No advice here.
@@ -42,21 +42,23 @@ const CONTACT =
   /\bemergency\s+contact\b|\b(?:call|text|message|tawagan|i-?text|i-?message|kontakin)\s+(?:(?:mo|naman|na|po)\s+)*(?:him|her|them|si|sya|siya|kay|my|ang|yung|sa|asawa|husband|partner|mama|nanay|papa|tatay)\b|\bpa-?(?:call|text|tawag)\b/i;
 // A question with none of these words is chat ("Nag tatagalog ka ba?"), not a health question.
 const HEALTH =
-  /sakit|pain|hurt|ache|dugo|bleed|blood|buntis|pregnan|baby|sanggol|gamot|medicine|vitamin|normal|safe|delikado|danger|kain|\beat|food|pagkain|inom|drink|exercis|ehersisyo|lagnat|fever|suka|vomit|nause|hilo|dizz|cramp|puson|tiyan|ulo|discharge|ihi|\bpee|urin|contraction|hilab|labou?r|panganak|birth|ovulat|obul|fertile|regla|period|mens|cycle|check-?up|doctor|doktor|\bob\b|clinic|ospital|hospital|symptom|sintomas|breast|dede|gatas|milk|tulog|sleep|stress|anxi|weight|timbang|\bsex|contracep|\bpills?\b|condom|trimester|weeks?\b|linggo|swell|manas|maga|headache|bloat|kabag|kirot|hapdi|pagod|tired|manganak|pahinga|\brest\b|ihanda|prepar|tubig|water|kalinisan|hygien|maligo|\bbath|kape|coffee|caffeine|alak|alcohol|beer|wine|yosi|smok|\b(?:pwede|puwede)\s+ba\b|\bcan\s+i\b|\bshould\s+i\b|\bbawal\b|\bok(?:ay)?\s+lang\s+ba\b/i;
+  /sakit|pain|hurt|ache|dugo|bleed|blood|buntis|pregnan|baby|sanggol|gamot|medicine|vitamin|normal|safe|delikado|danger|kain|\beat|food|pagkain|inom|drink|exercis|ehersisyo|lagnat|fever|suka|vomit|nause|hilo|dizz|cramp|puson|tiyan|ulo|discharge|ihi|\bpee|urin|contraction|hilab|labou?r|panganak|birth|ovulat|obul|fertile|regla|period|mens|cycle|check-?up|doctor|doktor|\bob\b|clinic|ospital|hospital|symptom|sintomas|breast|dede|gatas|milk|tulog|sleep|stress|anxi|weight|timbang|\bsex|contracep|\bpills?\b|condom|trimester|weeks?\b|linggo|swell|manas|maga|headache|bloat|kabag|kirot|hapdi|pagod|tired|manganak|pahinga|\brest\b|ihanda|prepar|tubig|water|kalinisan|hygien|maligo|\bbath|kape|coffee|caffeine|alak|alcohol|beer|wine|yosi|smok|\b(?:pwede|puwede)\s+ba\b|\bcan\s+i\b|\bshould\s+i\b|\bbawal\b|\bok(?:ay)?\s+lang\s+ba\b|travel|byahe|biyahe/i;
 const WORRY = /\b(?:kulang|konti|kaunti|walang|wala|problema|problem|worried|worry|nag-?aalala|ayaw|hindi|di|baka|maybe|parang|bakit|mahina|low|not\s+enough|trouble|hirap)\b/i;
+const MINE = /\b(?:ko|ako|akin|my|i\s+have|i'?ve|i\s+feel|i'?m|i\s+am|i\s+get|i\s+keep)\b/i;
 const ACK = /^\s*(?:ok(?:ay)?|okie|k|sige(?:\s+po)?|noted|got\s+it|alright|cool|nice|ayos|g|oo\s+sige|buti\s+naman|mabuti\s+naman|good|great|good\s+to\s+know|i\s+see|ah+\s+okay|gets)[\s.!]*$/i;
 const ASKING = /\?\s*$|\bba\b|^\s*(?:ano|bakit|paano|puwede|pwede|is\s+it|is\s+this|is\s+that|can\s+i|should\s+i|what|why|how)\b/i;
 
 // Her message without its question clauses: what she says is happening, not what she asks about.
 function statements(text: string): string {
   const clauses = text.match(/[^,.;!?]+[,.;!?]*/g) ?? [];
-  return clauses.filter((c) => !ASKING.test(c.trim())).join(' ');
+  // "Is it normal na masakit ulo ko?" still reports her own headache; "normal ba sumakit likod?" does not.
+  return clauses.filter((c) => !ASKING.test(c.trim()) || MINE.test(c)).join(' ');
 }
 const SINCE_BIRTH = /nanganak|panganak|since\s+(?:i\s+)?(?:gave\s+birth|birth|delivery|giving\s+birth)|after\s+(?:birth|delivery|giving\s+birth)|postpartum|\bold\b|gulang|\bpo?st-?partum\b|c-?section|\bcs\b/i;
 const YESTERDAY = /\b(?:kahapon|yesterday)\b/i;
 const BOTH_DAYS = /\b(?:kahapon|yesterday)\b.*\b(?:at|and|pati|tsaka|saka|hanggang|until)\s+(?:ngayon|today|kanina)\b|\b(?:ngayon|today)\s+(?:at|and|pati|tsaka|saka)\s+(?:kahapon|yesterday)\b/i;
 const CYCLE_QUESTION =
-  /\b(?:anong|what)\s+(?:araw|days?|petsa|dates?)\b.*\b(?:fertile|ovulat\w*|obul\w*|regla|period|mens)\b|\bwala\s+pa\s+(?:rin\s+|din\s+)?(?:akong\s+|ang\s+)?(?:regla|mens|dalaw|period)|\bhindi\s+pa\s+(?:rin\s+)?ako\s+(?:dinadatnan|nireregla|nagkakaregla)|\bperiod\s+(?:still\s+)?(?:has\s*n'?t|hasnt|did\s*n'?t|didnt)\s+(?:come|started|arrived)|\bilang\s+araw\s+(?:ang\s+|ba\s+ang\s+)?(?:regla|period|mens|dalaw)|\bhow\s+long\s+(?:is|does|do|will)\s+my\s+(?:period|cycle)|\bgaano\s+katagal\s+(?:ang\s+)?(?:regla|period|mens)|\b(?:delayed|late|delay)\s+(?:na\s+)?(?:ako|po)\b|\b(?:late|delayed|delay)\s+(?:na\s+)?(?:ang\s+|yung\s+)?(?:regla|period|mens|dalaw)|(?:regla|period|mens|dalaw)\s+(?:ko\s+)?(?:is\s+)?(?:late|delayed)|\baverage\s+(?:na\s+)?cycle\b|\bcycle\s+(?:length\s+)?ko\b|\bgaano\s+kahaba\s+(?:ang\s+)?(?:cycle|regla)\b|\bkailan\b.*(?:regla|period|mens|dalaw|fertile|obul|ovulat)|(?:regla|period|mens|dalaw).*\bkailan\b|\bwhen\b.*(?:period|next|fertile|ovulat)|next\s+(?:period|regla)|\bmy\s+fertile|fertile\s+(?:window\s+)?ko\b/i;
+  /\b(?:best|right|good)\s+(?:time|days?)\s+(?:to|para)\s+(?:get\s+pregnant|conceive|try\s+for\s+a\s+baby|mabuntis|magbuntis)\b|\bkailan\s+(?:ako\s+)?(?:pwede|puwede|dapat|madaling)\s+(?:mabuntis|magbuntis)\b|\b(?:anong|what)\s+(?:araw|days?|petsa|dates?)\b.*\b(?:fertile|ovulat\w*|obul\w*|regla|period|mens)\b|\bwala\s+pa\s+(?:rin\s+|din\s+)?(?:akong\s+|ang\s+)?(?:regla|mens|dalaw|period)|\bhindi\s+pa\s+(?:rin\s+)?ako\s+(?:dinadatnan|nireregla|nagkakaregla)|\bperiod\s+(?:still\s+)?(?:has\s*n'?t|hasnt|did\s*n'?t|didnt)\s+(?:come|started|arrived)|\bilang\s+araw\s+(?:ang\s+|ba\s+ang\s+)?(?:regla|period|mens|dalaw)|\bhow\s+long\s+(?:is|does|do|will)\s+my\s+(?:period|cycle)|\bgaano\s+katagal\s+(?:ang\s+)?(?:regla|period|mens)|\b(?:delayed|late|delay)\s+(?:na\s+)?(?:ako|po)\b|\b(?:late|delayed|delay)\s+(?:na\s+)?(?:ang\s+|yung\s+)?(?:regla|period|mens|dalaw)|(?:regla|period|mens|dalaw)\s+(?:ko\s+)?(?:is\s+)?(?:late|delayed)|\baverage\s+(?:na\s+)?cycle\b|\bcycle\s+(?:length\s+)?ko\b|\bgaano\s+kahaba\s+(?:ang\s+)?(?:cycle|regla)\b|\bkailan\b.*(?:regla|period|mens|dalaw|fertile|obul|ovulat)|(?:regla|period|mens|dalaw).*\bkailan\b|\bwhen\b.*(?:period|next|fertile|ovulat)|next\s+(?:period|regla)|\bmy\s+fertile|fertile\s+(?:window\s+)?ko\b/i;
 
 
 
@@ -66,8 +68,11 @@ function flowOf(text: string, hasPeriodWord: boolean): Flow | null {
   return FLOW.find((f) => f.pattern.test(text) && (f.alone || hasPeriodWord))?.flow ?? null;
 }
 
-function activitiesOf(text: string): Activity[] {
-  const done = text.split(CLAUSE).filter((c) => !NEGATED.test(c));
+// A plan ("check-up ako bukas", "I will walk later") has not happened yet, so it is not a log.
+const AHEAD = /\b(?:bukas|tomorrow|mamaya|later|next\s+\w+|sa\s+susunod|will|magpapa-?\w*|pupunta|balak|plano|plan\s+to|going\s+to|gonna)\b/i;
+
+function activitiesOf(text: string, today: string): Activity[] {
+  const done = text.split(CLAUSE).filter((c) => !NEGATED.test(c) && !AHEAD.test(c) && !namesComingDate(c, today));
   return ACTIVITIES.filter((a) => done.some((c) => ACTIVITY[a].test(c)));
 }
 
@@ -127,7 +132,7 @@ export function readActions(text: string, today: string): AgentAction[] {
   if (discharge) out.push({ tool: 'discharge', date: dateWord(text, now, today), discharge });
   const moods = readMoods(told);
   if (moods.length) out.push({ tool: 'moods', date: dateWord(text, now, today), moods });
-  const activities = question ? [] : activitiesOf(text);
+  const activities = question ? [] : activitiesOf(text, today);
   if (activities.length) out.push({ tool: 'activities', date: dateWord(text, now, today), activities });
   // "2 weeks na mula nanganak ako" counts time since birth, not weeks pregnant.
   const weeks = SINCE_BIRTH.test(text) ? null : readWeeks(text);

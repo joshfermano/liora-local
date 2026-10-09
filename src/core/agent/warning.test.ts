@@ -34,11 +34,11 @@ describe('warningSignsCard', () => {
 });
 
 describe('signs after birth on the WHO go-soon list', () => {
-  it.each(['masakit ang tahi ko', 'namamaga at may nana ang sugat ng cs ko', 'my stitches hurt', 'hirap akong umihi', 'mabahong discharge', 'namamaga at pula ang dede ko'])('shows the card for "%s"', (text) => {
+  it.each(['masakit ang tahi ko', 'namamaga at may nana ang sugat ng cs ko', 'my stitches hurt', 'my c-section wound is red', 'hirap akong umihi', 'mabahong discharge', 'namamaga at pula ang dede ko'])('shows the card for "%s"', (text) => {
     expect(afterBirthCard(text)).toBe('pcpnc-m4-danger-soon');
   });
 
-  it.each(['pagod ako', 'masakit ulo ko', 'nagpapadede ako'])('leaves "%s" alone', (text) => {
+  it.each(['pagod ako', 'masakit ulo ko', 'nagpapadede ako', 'may sugat ako sa daliri, masakit', 'my knee wound hurts'])('leaves "%s" alone', (text) => {
     expect(afterBirthCard(text)).toBeNull();
   });
 });

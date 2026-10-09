@@ -297,7 +297,11 @@ describe('following on from what Liora just did', () => {
     [['masakit ulo ko', 'hindi naman masyado'], 'reply.noted'],
     [['i had cramps last monday'], 'reply.saved.gentle | logged:symptoms'],
     [['nagsimula regla ko', 'kahapon'], 'reply.saved | logged:period_start'],
-    [['nagsimula regla ko noong Oct 7', 'natapos regla ko'], 'reply.saved | logged:period_end'],
+    [['nagsimula regla ko noong Oct 7', 'natapos regla ko'], 'reply.confirm | confirm:period_end'],
+    [['nagsimula regla ko noong Oct 7', 'natapos regla ko', 'kahapon'], 'reply.saved | logged:period_end'],
+    [['nagsimula regla ko', 'oo'], 'reply.which_day'],
+    [['call me Bea', 'oo'], 'reply.saved'],
+    [['call me Bea', 'hindi'], 'reply.not_saved'],
     [['log headache and open calendar'], 'reply.saved.gentle | logged:symptoms'],
     [['masakit ulo ko kahapon at ngayon'], 'reply.saved.gentle | logged:symptoms+symptoms'],
   ] as [string[], string][])('%j', async (texts, expected) => {
@@ -311,6 +315,17 @@ describe('following on from what Liora just did', () => {
     ['kailan next period ko?', 'reply.cycle.next'],
   ])('answers "%s" directly from three logged periods', async (question, key) => {
     expect(await talk('neither', ['nagsimula regla ko noong Aug 14', 'nagsimula regla ko noong Sept 12', 'nagsimula regla ko noong Oct 9', question])).toBe(`${key} | cycle_answer`);
+  });
+
+  it('never marks a period saved before she gives its day', async () => {
+    await talk('neither', ['nagsimula regla ko']);
+    const block = useCompanionStore.getState().messages.at(-1)!.blocks!.find((b) => b.kind === 'confirm');
+    if (block?.kind !== 'confirm') throw new Error('expected a confirm block');
+    expect(useCompanionStore.getState().confirm(block.confirmId, true)).toBe('needs_date');
+    expect(useLogStore.getState().periods).toEqual([]);
+    const yesterday = new Date(Date.now() - 864e5).toLocaleDateString('en-CA');
+    expect(useCompanionStore.getState().confirm(block.confirmId, true, yesterday)).toBe('saved');
+    expect(useLogStore.getState().periods.map((p) => p.start)).toEqual([yesterday]);
   });
 
   it('replaces the mood she takes back', async () => {

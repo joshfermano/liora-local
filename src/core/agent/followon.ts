@@ -18,8 +18,13 @@ const EMOTION =
 
 // Feelings that are too much ("sobrang lungkot ko, hindi ko kaya"), with no pain in them: a caring
 // line, the mood check and her contact, never the pain reply.
+// "Sobrang" alone only counts for a low, heavy mood; worry or stress needs "hindi ko kaya" as well.
+const LOW =
+  /lungkot|malungkot|\bsad\b|umiiyak|naiiyak|\bcrying\b|bigat\s+(?:ng\s+)?(?:pakiramdam|loob|kalooban)|hopeless|overwhelm\w*|depress\w*|mag-?isa\s+(?:lang\s+)?ako|\balone\b/i;
+
 export function heavyHeart(text: string): boolean {
-  return (CANNOT_BEAR.test(text) || SEVERE_CUE.test(text)) && EMOTION.test(text) && !PAIN.test(text);
+  if (PAIN.test(text)) return false;
+  return (CANNOT_BEAR.test(text) && EMOTION.test(text)) || (SEVERE_CUE.test(text) && LOW.test(text));
 }
 
 // She says the pain is more than she can bear: a fixed caring line and her contact, never chit-chat.

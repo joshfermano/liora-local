@@ -1,4 +1,4 @@
-import { format, isValid, parseISO } from 'date-fns';
+import { differenceInCalendarDays, format, isValid, parseISO } from 'date-fns';
 import type { DateWord } from './types';
 
 const DAYS_AGO = /(\d{1,2})\s*(?:araw\s+na|days?\s+ago|araw\s+(?:ang\s+)?(?:nakaraan|nakalipas))/i;
@@ -41,6 +41,8 @@ const WEEKDAY = /\b(?:last|nung|noong|nitong|this\s+past|on)\s+(sunday|sun|monda
 function weekdayDate(text: string, today: string): string | null {
   const m = WEEKDAY.exec(text);
   if (!m) return null;
+  // "Nitong linggo" is "this week", not "this Sunday".
+  if (m[1]!.toLowerCase() === 'linggo' && /^nitong$/i.test(m[0].split(/\s+/)[0]!)) return null;
   const want = WEEKDAYS[m[1]!.toLowerCase()]!;
   const now = parseISO(today);
   const back = ((now.getDay() - want + 7) % 7) || 7;
@@ -59,4 +61,16 @@ export function dateWord(text: string, fallback: DateWord, today: string): DateW
   if (ago) return { kind: 'days_ago', n: Number(ago[1]) };
   if (/\b(?:ngayon|today|kanina)\b/i.test(text)) return { kind: 'today' };
   return fallback;
+}
+
+// A named day still ahead this year ("sa Oct 20" on Oct 10): she means a plan, not last year.
+export function namesComingDate(text: string, today: string): boolean {
+  const a = MONTH_DAY.exec(text);
+  const b = a ? null : DAY_MONTH.exec(text);
+  const name = a?.[1] ?? b?.[2];
+  const day = Number(a?.[2] ?? b?.[1]);
+  if (!name) return false;
+  const iso = `${today.slice(0, 4)}-${String(MONTHS[name.toLowerCase()]).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+  const d = parseISO(iso);
+  return isValid(d) && iso > today && differenceInCalendarDays(d, parseISO(today)) <= 90;
 }

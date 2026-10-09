@@ -1,4 +1,4 @@
-import { format, parseISO } from 'date-fns';
+import { format, parseISO, subDays } from 'date-fns';
 import { useRouter } from 'expo-router';
 import { useEffect, useRef, useState } from 'react';
 import { Linking, View } from 'react-native';
@@ -7,6 +7,7 @@ import { CARDS } from '../../content/cards';
 import { CRISIS_HOTLINE } from '../../content/phq9';
 import { en } from '../../content/copy';
 import type { QuickAction, ReplyBlock } from '../../core/companion';
+import { needsDate } from '../../core/agent/carry';
 import { resolvePeriodDate } from '../../core/cycle';
 import { useLogStore } from '../../store/log';
 import { useTellStore } from '../../store/tell';
@@ -263,7 +264,8 @@ function Logged({ block }: { block: Extract<ReplyBlock, { kind: 'logged' }> }) {
 }
 
 function Confirm({ block }: { block: Extract<ReplyBlock, { kind: 'confirm' }> }) {
-  const [state, setState] = useState<'ask' | 'saved' | 'skipped'>('ask');
+  const [state, setState] = useState<'ask' | 'saved' | 'skipped' | 'unchanged'>('ask');
+  if (state === 'unchanged') return <Text variant="subheadline" tone="secondary">{en('agent.confirm.unchanged')}</Text>;
   if (state === 'saved') {
     return (
       <View className="flex-row items-center gap-xxs">
@@ -277,12 +279,36 @@ function Confirm({ block }: { block: Extract<ReplyBlock, { kind: 'confirm' }> })
   if (state === 'skipped') return null;
   const lines = block.actions.map((a) => confirmLine(a)).filter((l): l is string => l !== null);
   if (lines.length === 0) return null;
-  const answer = (yes: boolean) => {
-    if (yes) confirm();
+  const settle = (result: ReturnType<ReturnType<typeof agentStore>['confirm']>) => {
+    if (result === 'saved') confirm();
     else tap();
-    void agentStore().confirm?.(block.confirmId, yes);
-    setState(yes ? 'saved' : 'skipped');
+    setState(result === 'saved' ? 'saved' : result === 'unchanged' ? 'unchanged' : 'skipped');
   };
+  const answer = (yes: boolean) => settle(agentStore().confirm(block.confirmId, yes));
+  // No day yet: saving needs one, so she picks it here or types it.
+  if (needsDate(block.actions)) {
+    const onDay = (date: string) => settle(agentStore().confirm(block.confirmId, true, date));
+    return (
+      <View className="gap-xs">
+        <Text variant="headline" accessibilityRole="header">
+          {en('agent.confirm.title')}
+        </Text>
+        {lines.map((l, i) => (
+          <Text key={i} variant="body">
+            {l}
+          </Text>
+        ))}
+        <View className="flex-row flex-wrap gap-xs">
+          <ActionPill label={en('agent.confirm.today')} sf="calendar" fallback="calendar" onPress={() => onDay(ymd(new Date()))} />
+          <ActionPill label={en('agent.confirm.yesterday')} sf="calendar" fallback="calendar" onPress={() => onDay(ymd(subDays(new Date(), 1)))} />
+          <ActionPill label={en('agent.confirm.no')} sf="xmark" fallback="close" onPress={() => answer(false)} />
+        </View>
+        <Text variant="footnote" tone="secondary">
+          {en('agent.confirm.type_day')}
+        </Text>
+      </View>
+    );
+  }
   return (
     <View className="gap-xs">
       <SwipeCard onAnswer={answer}>

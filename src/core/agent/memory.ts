@@ -79,17 +79,34 @@ const ASKS = /\?|^\s*(?:sino|ano|kailan|saan|who|what|when|where|which)\b/i;
 const QUIET = new Set([
   ...STOP, 'ko', 'my', 'is', 'are', 'was', 'sino', 'ano', 'who', 'what', 'when', 'where', 'which', 'kailan', 'saan', 'ang', 'ng', 'si', 'ni',
   'ba', 'po', 'mo', 'sa', 'na', 'ka', 'ay', 'ang', 'do', 'did', 'have', 'me', 'akin', 'ko?', 'next', 'yung', 'i', 'am',
+  // Dates and words about the app say nothing about which note she means.
+  'kelan', 'today', 'ngayon', 'kahapon', 'yesterday', 'bukas', 'tomorrow', 'log', 'logs', 'logged', 'nilog', 'note', 'notes', 'lang',
+  'period', 'periods', 'regla', 'mens', 'cycle', 'week', 'weeks', 'day', 'days', 'araw', 'linggo', 'time', 'can', 'should', 'will',
+  'pwede', 'puwede', 'dapat', 'how', 'many', 'much', 'ilang', 'ilan', 'gaano', 'there', 'any', 'it',
 ]);
 const words = (s: string) => (s.toLowerCase().match(/[\p{L}\p{N}][\p{L}\p{N}-]*/gu) ?? []).filter((t) => t.length >= 2 && !QUIET.has(t));
 
 // A question her notes answer, in her own words: the matching notes, every note when she asks what
 // Liora remembers, or null when the question is not about her notes.
 export function recall(text: string, notes: string[]): string[] | null {
-  if (ALL_NOTES.test(text)) return notes;
+  if (ALL_NOTES.test(text) && (ASKS.test(text) || /\b(?:show|list|ipakita)\b/i.test(text))) return notes;
   if (!ASKS.test(text)) return null;
   const want = new Set(words(text));
   // Same stem counts: "allergy" finds "allergic".
   const stems = new Set([...want].map((t) => t.slice(0, 5)));
   const found = notes.filter((n) => words(n).some((t) => want.has(t) || (t.length >= 5 && stems.has(t.slice(0, 5)))));
   return found.length > 0 ? found : null;
+}
+
+// A visit she has coming up ("check-up ko bukas"): worth offering to remember, behind her tap.
+const EVENT = /check[-\s]?up|prenatal|appointment|ultrasound|\blab(?:oratory)?\b|bakuna|vaccin\w*|\bob\b|doctor|doktor|clinic|klinika|ospital|hospital|schedule/i;
+const AHEAD =
+  /\b(?:bukas|tomorrow|mamaya|later|next\s+\w+|sa\s+susunod|(?:on|sa)\s+(?:mon|tue|wed|thu|fri|sat|sun)\w*|sa\s+(?:lunes|martes|miyerkules|miyerkoles|huwebes|biyernes|sabado)|(?:on|sa)\s+(?:jan|feb|mar|apr|may|jun|jul|aug|sep|sept|oct|nov|dec)\w*\.?\s+\d{1,2})\b/i;
+const DONE = /\b(?:nag|kanina|kahapon|yesterday|had|went|did|was|tapos)\b/i;
+const QUESTION = /\?|^\s*(?:sino|ano|anong|kailan|kelan|saan|who|what|when|where|which|how|ilang)\b/i;
+
+export function planNote(text: string): string | null {
+  if (!EVENT.test(text) || !AHEAD.test(text) || DONE.test(text) || QUESTION.test(text) || REMEMBER.test(text) || FORGET.test(text)) return null;
+  const note = tidy(text).slice(0, NOTE_CHARS).trim();
+  return note || null;
 }

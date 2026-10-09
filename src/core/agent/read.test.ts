@@ -232,3 +232,37 @@ describe('readActions: periods she did not get', () => {
   });
 });
 
+describe('readActions: a question that also reports', () => {
+  it('logs "is it normal na masakit ulo ko?"', () => {
+    expect(readActions('is it normal na masakit ulo ko?', TODAY).map((a) => a.tool)).toContain('symptoms');
+  });
+
+  it('does not log a general question', () => {
+    expect(readActions('normal ba sumakit likod pag buntis?', TODAY).map((a) => a.tool)).not.toContain('symptoms');
+    expect(readActions('ano pwede kong gawin para hindi mapagod?', TODAY).map((a) => a.tool)).not.toContain('symptoms');
+  });
+
+  it('reads "best time to get pregnant" as a cycle question', () => {
+    expect(readActions("what's the best time to get pregnant?", TODAY)).toEqual([{ tool: 'cycle_question' }]);
+  });
+
+  it('reads "nitong linggo" as this week, not Sunday', () => {
+    expect(readActions('masakit puson ko nitong linggo', TODAY)[0]).toMatchObject({ date: { kind: 'today' } });
+  });
+
+  it('skips renaming her to the name she already has', () => {
+    const data = { periods: [], dayLogs: [], cycleSettings: {}, setup: { name: 'Ana' } };
+    expect(planActions([{ tool: 'set_name', name: 'Ana' }], data, 'neither', TODAY)).toEqual({ apply: [], confirm: [] });
+  });
+});
+
+describe('readActions: plans are not logs', () => {
+  it.each(['regular checkup ako bukas', 'magpapa-check-up ako bukas', 'mag-walk ako mamaya', 'I will go for a walk tomorrow', 'check-up ko sa Oct 20'])('logs nothing for "%s"', (text) => {
+    expect(readActions(text, TODAY).some((a) => a.tool === 'activities')).toBe(false);
+  });
+
+  it('still logs what already happened', () => {
+    expect(readActions('nag-check up ako kanina', TODAY)).toEqual([{ tool: 'activities', date: { kind: 'today' }, activities: ['checkup_visit'] }]);
+  });
+});
+

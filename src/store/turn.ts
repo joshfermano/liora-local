@@ -11,6 +11,7 @@ import {
   resolveDate,
   recall,
   smalltalkKind,
+  planNote,
   herAnswer,
   cycleTopic,
   stepsOf,
@@ -211,6 +212,12 @@ export async function runTurn(
   outcome.noteNotFound = actions.some((a) => a.tool === 'forget') && !outcome.saved.some((i) => i.kind === 'forgot');
   if (done) attachments.push({ kind: 'logged', items: done.saved, undoId: done.undoId });
   if (confirm.length > 0) attachments.push({ kind: 'confirm', actions: confirm, confirmId: newId() });
+  // A visit she has coming up and nothing else to save: offer to remember it, behind her tap.
+  const upcoming = !done && confirm.length === 0 && calm ? planNote(text) : null;
+  if (upcoming) {
+    attachments.push({ kind: 'confirm', actions: [{ tool: 'remember', note: upcoming }], confirmId: newId() });
+    outcome.waiting = true;
+  }
 
   const log = useLogStore.getState();
   const data = dataNow();
@@ -283,7 +290,10 @@ export async function runTurn(
   if (offerCheck) attachments.push({ kind: 'actions', items: ['mood_check'] });
   const dayLog = outcome.day?.hasData ? data.dayLogs.find((l) => l.date === outcome.day!.date) : undefined;
   const dayReply: Fallback | null = dayLog && planned.key === 'reply.day' && dayLine(dayLog) ? { key: 'her.day', params: { date: format(parseISO(dayLog.date), 'MMM d'), list: dayLine(dayLog) } } : null;
-  const fallback = dayReply ?? (cycleReply && planned.key === 'reply.cycle' ? cycleReply : sameStatus ? { key: 'reply.status.same' } : offerCheck && planned.key.startsWith('reply.saved') ? { key: 'reply.saved.mood_check' } : planned);
+  // "My name is Ana" when it already is: say so rather than a generic line.
+  const renamed = pick(actions, 'set_name');
+  const sameName: Fallback | null = renamed && renamed.name === profile.name && outcome.saved.length === 0 ? { key: 'reply.name', params: { name: renamed.name } } : null;
+  const fallback = upcoming ? { key: 'reply.offer_remember' } : sameName ?? dayReply ?? (cycleReply && planned.key === 'reply.cycle' ? cycleReply : sameStatus ? { key: 'reply.status.same' } : offerCheck && planned.key.startsWith('reply.saved') ? { key: 'reply.saved.mood_check' } : planned);
   if (attachments.length === 0) {
     if (asksAboutHerData) attachments.push({ kind: 'actions', items: ['calendar'] });
     else if (facts.no_action_taken === true) attachments.push({ kind: 'actions', items: [...HOME] });

@@ -25,7 +25,7 @@ describe('feelings that are too much', () => {
     expect(painTooMuch(text)).toBe(false);
   });
 
-  it.each(['sobrang sakit ng tiyan ko, hindi ko kaya', 'malungkot ako'])('leaves "%s" to the other replies', (text) => {
+  it.each(['sobrang sakit ng tiyan ko, hindi ko kaya', 'malungkot ako', 'sobrang stressed ako sa work', 'sobrang kinakabahan ako sa panganganak'])('leaves "%s" to the other replies', (text) => {
     expect(heavyHeart(text)).toBe(false);
   });
 });

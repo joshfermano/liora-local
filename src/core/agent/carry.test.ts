@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { carryOver, continuesTopic, corrects, dateAnswer } from './carry';
+import { carryOver, confirmAnswer, continuesTopic, corrects, dateAnswer, needsDate, withDate } from './carry';
 import type { SavedItem } from './types';
 
 const TODAY = '2026-10-10';
@@ -19,8 +19,12 @@ describe('carrying the last turn into a short reply', () => {
     ]);
   });
 
-  it.each(['natapos na ngayon', 'tapos na', 'it ended today', 'huminto na'])('ends the period she just logged for "%s"', (text) => {
+  it.each(['natapos na ngayon', 'it ended today'])('ends the period she just logged for "%s"', (text) => {
     expect(carryOver(text, START, TODAY)).toEqual([{ tool: 'period_end', date: { kind: 'date', date: TODAY } }]);
+  });
+
+  it.each(['tapos na', 'huminto na'])('ends it but asks which day for "%s"', (text) => {
+    expect(carryOver(text, START, TODAY)).toEqual([{ tool: 'period_end', date: { kind: 'unknown' } }]);
   });
 
   it.each(['burahin mo', 'tanggalin mo yan', 'undo that', 'delete it', 'cancel'])('undoes it for "%s"', (text) => {
@@ -73,5 +77,42 @@ describe('a correction of what Liora just saved', () => {
   it('needs something saved just before', () => {
     expect(corrects('hindi pala, malungkot ako', [])).toBe(false);
     expect(corrects('malungkot ako', HEADACHE)).toBe(false);
+  });
+});
+
+describe('short replies that carry their own log', () => {
+  it.each(['masaya din ako kahapon', 'nag-walk din ako kahapon', 'malakas din regla ko kahapon'])('logs her own words for "%s", not the last log again', (text) => {
+    expect(carryOver(text, HEADACHE, TODAY)).toBeNull();
+  });
+
+  it('does not read "sorry" as taking the last log back', () => {
+    expect(corrects('sorry, masakit puson ko', HEADACHE)).toBe(false);
+  });
+});
+
+describe('a typed answer to "Shall I save this?"', () => {
+  it.each(['oo', 'yes', 'ok', 'sige', 'save it', 'i-save mo', 'opo', 'yes please'])('"%s" saves', (text) => {
+    expect(confirmAnswer(text)).toBe('yes');
+  });
+
+  it.each(['hindi', 'no', 'wag', 'huwag na', 'not now', 'cancel'])('"%s" does not', (text) => {
+    expect(confirmAnswer(text)).toBe('no');
+  });
+
+  it.each(['oo masakit ulo ko', 'okay lang ba?', 'hindi ako buntis'])('"%s" is not a bare answer', (text) => {
+    expect(confirmAnswer(text)).toBeNull();
+  });
+});
+
+describe('a confirm that still needs its day', () => {
+  const start = [{ tool: 'set_status' as const, status: 'neither' as const }, { tool: 'period_start' as const, date: { kind: 'unknown' as const }, flow: null }];
+
+  it('knows the day is missing', () => {
+    expect(needsDate(start)).toBe(true);
+    expect(needsDate([{ tool: 'set_name', name: 'Bea' }])).toBe(false);
+  });
+
+  it('fills the missing day and leaves the rest', () => {
+    expect(withDate(start, '2026-10-09')).toEqual([start[0], { tool: 'period_start', date: { kind: 'date', date: '2026-10-09' }, flow: null }]);
   });
 });

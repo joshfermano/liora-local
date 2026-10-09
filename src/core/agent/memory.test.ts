@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { applyMemory, MAX_NOTES, NOTE_CHARS, readMemory, withoutMemory, recall } from './memory';
+import { applyMemory, MAX_NOTES, NOTE_CHARS, planNote, readMemory, withoutMemory, recall } from './memory';
 import { readActions } from './read';
 import { triage } from './triage';
 import type { AgentAction } from './types';
@@ -120,7 +120,7 @@ describe('triage of a memory request', () => {
 });
 
 describe('recalling what she asked Liora to remember', () => {
-  const notes = ['my OB is Dr. Santos', 'allergic ako sa penicillin', 'check-up ko sa Oct 20'];
+  const notes = ['my OB is Dr. Santos', 'allergic ako sa penicillin', 'check-up ko sa Oct 20', 'uminom ako ng gamot today'];
 
   it.each([
     ['sino OB ko?', ['my OB is Dr. Santos']],
@@ -136,7 +136,22 @@ describe('recalling what she asked Liora to remember', () => {
     expect(recall(text, [])).toEqual([]);
   });
 
-  it.each(['masakit ulo ko', 'ano ang preeclampsia?', 'kailan next period ko?'])('leaves "%s" to the other tools', (text) => {
+  it.each(['masakit ulo ko', 'ano ang preeclampsia?', 'kailan next period ko?', 'note ko lang, masaya ako', 'what did I log today?'])('leaves "%s" to the other tools', (text) => {
     expect(recall(text, notes)).toBeNull();
+  });
+});
+
+describe('a plan worth remembering', () => {
+  it.each([
+    ['regular checkup ako bukas', 'regular checkup ako bukas'],
+    ['check-up ko sa Oct 20', 'check-up ko sa Oct 20'],
+    ['I have an ultrasound on Monday.', 'I have an ultrasound on Monday'],
+    ['may appointment ako sa OB next week', 'may appointment ako sa OB next week'],
+  ])('offers to keep "%s"', (text, note) => {
+    expect(planNote(text)).toBe(note);
+  });
+
+  it.each(['nag-check up ako kanina', 'kailan check-up ko?', 'masakit ulo ko bukas pa', 'remember that my check-up is Oct 20'])('leaves "%s" alone', (text) => {
+    expect(planNote(text)).toBeNull();
   });
 });
