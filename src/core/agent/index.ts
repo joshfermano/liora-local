@@ -20,3 +20,4 @@ export { moodsOn, replyStyle, type ReplyStyle } from './style';
 export { guardWarm } from './guard';
 export { createVad, type Vad } from './vad';
 export { cycleTopic, type CycleTopic } from './cycle-topic';
+export { herAnswer, type HerAnswer } from './her-data';

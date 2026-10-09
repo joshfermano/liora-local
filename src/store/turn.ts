@@ -11,6 +11,7 @@ import {
   resolveDate,
   recall,
   smalltalkKind,
+  herAnswer,
   cycleTopic,
   stepsOf,
   toneOf,
@@ -34,6 +35,7 @@ import { lastResult } from './memo';
 import { aboutLiora, asksForHelp } from '../core/agent/about';
 import { noteHit, noteTurn } from '../core/probe';
 import { useMemoryStore } from './memory';
+import { answerText, dayLine } from './answers';
 import { contextFrom, readProfile } from './profile';
 
 export interface AgentTurn {
@@ -123,6 +125,20 @@ export async function runTurn(
     return {
       attachments: [{ kind: 'steps', steps: [{ kind: 'read' }, { kind: 'recalled', count: recalled.length }] }],
       fallback: recalled.length > 0 ? { key: 'reply.recall', params: { notes: recalled.map((n) => `“${n}”`).join(', ') } } : { key: 'reply.recall.none' },
+      request: { text: '', pack: '', facts: {}, allowed: {}, thread: [] },
+      undoneId: null,
+      noModel: true,
+    };
+  }
+  // A question about her own logs ("anong cycle day ko?", "kailan huling sumakit ulo ko?"): answered
+  // from her data with fixed words, and nothing in it is logged.
+  // Only the rules' own decision gates it: a sign named in a question about the past is not a report.
+  const own = entry.decision.level === 'ok' ? herAnswer(text, dataNow(), readProfile(useLogStore.getState().setup).status, day) : null;
+  if (own) {
+    noteTurn({ tools: [] });
+    return {
+      attachments: [{ kind: 'steps', steps: [{ kind: 'read' }, { kind: 'looked' }] }, { kind: 'actions', items: ['calendar'] }],
+      fallback: answerText(own),
       request: { text: '', pack: '', facts: {}, allowed: {}, thread: [] },
       undoneId: null,
       noModel: true,
@@ -265,7 +281,9 @@ export async function runTurn(
   const low = outcome.saved.some((i) => i.kind === 'moods' && i.values.some((m) => m === 'sad' || m === 'anxious' || m === 'stressed'));
   const offerCheck = low && profile.status !== 'neither' && profile.status !== undefined;
   if (offerCheck) attachments.push({ kind: 'actions', items: ['mood_check'] });
-  const fallback = cycleReply && planned.key === 'reply.cycle' ? cycleReply : sameStatus ? { key: 'reply.status.same' } : offerCheck && planned.key.startsWith('reply.saved') ? { key: 'reply.saved.mood_check' } : planned;
+  const dayLog = outcome.day?.hasData ? data.dayLogs.find((l) => l.date === outcome.day!.date) : undefined;
+  const dayReply: Fallback | null = dayLog && planned.key === 'reply.day' && dayLine(dayLog) ? { key: 'her.day', params: { date: format(parseISO(dayLog.date), 'MMM d'), list: dayLine(dayLog) } } : null;
+  const fallback = dayReply ?? (cycleReply && planned.key === 'reply.cycle' ? cycleReply : sameStatus ? { key: 'reply.status.same' } : offerCheck && planned.key.startsWith('reply.saved') ? { key: 'reply.saved.mood_check' } : planned);
   if (attachments.length === 0) {
     if (asksAboutHerData) attachments.push({ kind: 'actions', items: ['calendar'] });
     else if (facts.no_action_taken === true) attachments.push({ kind: 'actions', items: [...HOME] });

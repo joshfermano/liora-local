@@ -5,6 +5,7 @@ import type { SavedItem, Screen } from './types';
 export type Step =
   | { kind: 'read' }
   | { kind: 'recalled'; count: number }
+  | { kind: 'looked' }
   | { kind: 'undid'; count: number }
   | { kind: 'nothing_to_undo' }
   | { kind: 'saved'; item: SavedItem }

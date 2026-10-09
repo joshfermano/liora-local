@@ -167,7 +167,7 @@ const CASES: [Status, string, string][] = [
   ['pregnant', 'ayoko na sa buhay ko', CRISIS],
   ['neither', 'period started today', 'reply.saved | logged:period_start'],
   ['neither', 'dinatnan ako kanina', 'reply.saved | logged:period_start'],
-  ['neither', 'ano ang average cycle ko?', 'companion.cycle.no_data'],
+  ['neither', 'ano ang average cycle ko?', 'her.no_periods'],
   ['pregnant', 'nag-yoga ako', 'reply.saved | logged:activities'],
   ['pregnant', 'naiinis ako', 'reply.saved.gentle | logged:moods'],
   ['pregnant', 'bakit ka nandito?', IDENTITY],
@@ -221,7 +221,7 @@ const CASES: [Status, string, string][] = [
   ['pregnant', 'hindi ko na kaya, sobrang bigat ng pakiramdam ko', 'companion.heavy_heart | contact'],
   ['pregnant', 'di ako makahinga ng maayos pag nakahiga', FOLLOW],
   ['postpartum', '2 weeks na mula nanganak ako', 'reply.other'],
-  ['neither', 'ilang araw ang regla ko usually?', 'companion.cycle.no_data'],
+  ['neither', 'ilang araw ang regla ko usually?', 'her.no_periods'],
   ['neither', 'ano gagawin ko?', 'reply.other'],
   ['neither', 'buti naman', 'reply.chat'],
   ['pregnant', 'wala akong gana kumain', 'reply.saved.gentle | logged:symptoms | decision:ok'],
@@ -329,3 +329,48 @@ describe('the chat, end to end, without a model', () => {
     expect(await ask(status, text)).toBe(expected);
   });
 });
+
+// A real account after three months of use, not an empty one: questions about her own data must be
+// answered from it, directly. Today is the day the tests run, so the dates are built from it.
+describe('answering from a lived-in account', () => {
+  const at = (n: number) => new Date(Date.now() + n * 864e5).toLocaleDateString('en-CA');
+  const P = (id: string, start: number, end: number | null) => ({ id, start: at(start), end: end === null ? null : at(end), flow_by_day: {}, source: 'calendar' as const });
+  const D = (n: number, part: Record<string, unknown>) => ({ date: at(n), flow: null, symptoms: [], moods: [], activities: [], ...part });
+
+  async function lived(text: string): Promise<string> {
+    disk.clear();
+    useCompanionStore.setState({ messages: [], history: [], thinking: false });
+    useMemoryStore.getState().setNotes(['my OB is Dr. Santos']);
+    useLogStore.setState({
+      entries: [],
+      setup: { status: 'neither', name: 'Ana' },
+      moods: [],
+      cycleSettings: {},
+      periods: [P('a', -86, -82), P('b', -57, -53), P('c', -28, -23), P('d', -1, null)] as never,
+      dayLogs: [D(-1, { flow: 'heavy', symptoms: ['cramps'], moods: ['irritable'] }), D(-2, { symptoms: ['headache'], moods: ['anxious'] })] as never,
+    });
+    await useCompanionStore.getState().send(text);
+    return summary(useCompanionStore.getState().messages.at(-1)!.blocks ?? []);
+  }
+
+  it.each([
+    ['anong cycle day ko ngayon?', 'her.cycle_day'],
+    ['kailan nagsimula huling regla ko?', 'her.last_period'],
+    ['gaano kahaba ang cycle ko?', 'her.cycle_length'],
+    ['ilang araw usually ang regla ko?', 'her.period_length'],
+    ['regular ba ang cycle ko?', 'her.cycle_range'],
+    ['may regla ba ako ngayon?', 'her.on_period.yes'],
+    ['late ba ako?', 'her.late.on_period'],
+    ['fertile ba ako ngayon?', 'her.fertile.no'],
+    ['kailan huling sumakit ulo ko?', 'her.last_sign'],
+    ['how have I been feeling lately?', 'her.moods'],
+    ['ano nilog ko this week?', 'her.week'],
+    ['ano nilog ko kahapon?', 'her.day'],
+    ['when is my next ovulation?', 'reply.cycle.ovulation | cycle_answer'],
+    ['kailan next period ko?', 'reply.cycle.next | cycle_answer'],
+    ['sino OB ko?', 'reply.recall'],
+  ])('"%s"', async (text, expected) => {
+    expect(await lived(text)).toBe(expected);
+  });
+});
+

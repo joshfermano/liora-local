@@ -333,8 +333,8 @@ export const useCompanionStore = create<CompanionState>()(
             return;
           }
           // "Ilang weeks na ako?": her weeks are in her profile, so even without a model she gets them.
-          const asksWeeks = /\bilang\s+(?:weeks|linggo)\b|\bhow\s+many\s+weeks\b|\bwhat\s+week\b|\bpang-?ilang\s+(?:week|linggo)\b/i.test(text);
-          const asksDue = /\bkailan\s+(?:ako\s+)?(?:manganganak|manganak)\b|\bdue\s+date\b|\bkabuwanan\s+ko\b|\bwhen\s+(?:will|am|do)\s+i\s+(?:give\s+birth|deliver|due)\b|\bwhen\s+is\s+(?:my\s+)?(?:baby|due)\b/i.test(text);
+          const asksWeeks = /\btrimester\b|\bilang\s+(?:months|buwan)\s+(?:na\s+)?(?:ako|akong)|\bhow\s+many\s+months\b|\bilang\s+(?:weeks|linggo)\b(?!\s+pa\b)|\bhow\s+many\s+weeks\b|\bwhat\s+week\b|\bpang-?ilang\s+(?:week|linggo)\b/i.test(text);
+          const asksDue = /\bilang\s+(?:weeks|linggo|araw|buwan)\s+pa\b|\bhow\s+(?:many|long)\b.*\b(?:until|till|before)\b.*\b(?:birth|deliver|due|labou?r)\b|\bkailan\s+(?:ako\s+)?(?:manganganak|manganak)\b|\bdue\s+date\b|\bkabuwanan\s+ko\b|\bwhen\s+(?:will|am|do)\s+i\s+(?:give\s+birth|deliver|due)\b|\bwhen\s+is\s+(?:my\s+)?(?:baby|due)\b/i.test(text);
           const quiet = !turn.attachments.some((b) => b.kind === 'logged' || b.kind === 'confirm');
           if ((asksWeeks || asksDue) && profile.status === 'pregnant' && profile.weeks !== undefined && quiet) {
             turn = { ...turn, fallback: { key: asksDue ? 'reply.due' : 'reply.weeks', params: { n: String(profile.weeks) } }, attachments: turn.attachments.filter((b) => b.kind !== 'actions' || asksWeeks) };
