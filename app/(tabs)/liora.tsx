@@ -105,9 +105,10 @@ export default function Liora() {
                     <PressableSurface
                       key={k}
                       label={en(k)}
+                      // A starter is a whole message: tapping sends it, rather than leaving it in the box.
                       onPress={() => {
                         tap();
-                        setText(en(k));
+                        void useCompanionStore.getState().send(en(k));
                       }}
                       pressScale={0.98}
                       className="self-start"
