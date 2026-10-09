@@ -88,6 +88,18 @@ export default function Home() {
             )}
             {offline ? <StatusRow icon="phone">{en('home.offline')}</StatusRow> : null}
           </View>
+          <View className="flex-row gap-lg">
+            <Link href="/calendar">
+              <Text variant="footnote" tone="secondary">
+                {en('home.calendar')}
+              </Text>
+            </Link>
+            <Link href="/log">
+              <Text variant="footnote" tone="secondary">
+                {en('home.log')}
+              </Text>
+            </Link>
+          </View>
           {setupDone ? null : (
             <Link href="/setup" className="self-start">
               <Text variant="footnote" tone="secondary">

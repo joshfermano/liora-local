@@ -27,6 +27,8 @@ export const COPY = {
   'home.error': med(),
   'home.dev_native': ui('Native model test'),
   'home.setup': ui('Get Liora ready for offline'),
+  'home.calendar': ui('Calendar'),
+  'home.log': ui('My log'),
   'home.checklist.hint': ui('Opens the checklist'),
 
   'result.show_nurse': ui('Show this to the nurse'),
