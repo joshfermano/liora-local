@@ -180,11 +180,18 @@ describe('companion agent turn', () => {
   });
 
   describe('tools', () => {
+    it('adds no steps when she only says hello', async () => {
+      core.readActions.mockReturnValue([{ tool: 'smalltalk' }]);
+      await send('hello');
+      expect(kinds()).not.toContain('steps');
+    });
+
     it('saves a clear log at once under the reply, with Undo', async () => {
       core.readActions.mockReturnValue([START]);
       await send('Niregla ako today');
       expect(useLogStore.getState().periods).toEqual([PERIOD]);
-      expect(kinds()).toEqual(['reply', 'logged']);
+      expect(kinds()).toEqual(['reply', 'steps', 'logged']);
+      expect(blocks().find((b) => b.kind === 'steps')).toMatchObject({ steps: [{ kind: 'read' }, { kind: 'saved' }] });
       expect(reply().fallback.key).toBe('reply.saved');
       expect(kinds()).not.toContain('period_confirm');
     });
@@ -208,7 +215,7 @@ describe('companion agent turn', () => {
       core.applyActions.mockReturnValue({ data: {}, undo: {}, saved: [] });
       await send('Remove the period from today');
       expect(reply().fallback.key).toBe('reply.not_found');
-      expect(kinds()).toEqual(['reply']);
+      expect(kinds()).toEqual(['reply', 'steps']);
     });
 
     it('undo_last puts the old data back, drops the old Undo and says so', async () => {
