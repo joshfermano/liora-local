@@ -210,6 +210,9 @@ export const useCompanionStore = create<CompanionState>()(
       name: 'tell-liora-thread',
       storage: createJSONStorage(() => storage),
       partialize: ({ messages, history }) => ({ messages, history }),
+      // Loading from disk happens once, when the app starts fresh: she meets an empty chat, and the
+      // conversation she left goes to history. Leaving the tab or backgrounding the app keeps it.
+      onRehydrateStorage: () => (state) => state?.clear(),
     },
   ),
 );
