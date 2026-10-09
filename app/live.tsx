@@ -61,7 +61,7 @@ export default function Live() {
   const size = Math.min(width * 0.9, 380);
   const reduce = useReducedMotion();
   const c = useColors();
-  const colors = { deepColor: c.dusk, upperColor: c.tint, lowerColor: c.peach, highlightColor: c['tint-soft'], launchColor: c['tint-fill'], spinnerColor: c.tint };
+  const colors = { deepColor: c.dusk, upperColor: c.tint, lowerColor: c['light-dawn-source'], highlightColor: c['tint-soft'], launchColor: c['tint-fill'], spinnerColor: c.tint };
   const closing = useRef(false);
   const live = useLive((href) => close(href));
   const chime = useAudioPlayer(require('../assets/sounds/live-in.wav'));
