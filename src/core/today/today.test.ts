@@ -30,7 +30,7 @@ const input = (over: Partial<TodayInput> = {}): TodayInput => ({
   ...over,
 });
 
-// Starts 28, 29, 27 and 29 days apart: next around Oct 23, window Oct 21 to 25.
+// Starts 28, 29, 27 and 29 days apart; the newest leads: next around Oct 24, window Oct 22 to 26.
 const PERIODS = [period('2026-06-04', '2026-06-08'), period('2026-07-02', '2026-07-07'), period('2026-07-31', '2026-08-04'), period('2026-08-27', '2026-08-31'), period('2026-09-25', '2026-09-29')];
 
 describe('the answer at the top of Today', () => {
@@ -39,7 +39,7 @@ describe('the answer at the top of Today', () => {
   });
 
   it('counts down to the estimated window', () => {
-    expect(today(input({ periods: PERIODS })).answer).toEqual({ kind: 'countdown', from: 11, to: 15, cycleDay: 16, confidence: 'high', basis: 'history' });
+    expect(today(input({ periods: PERIODS })).answer).toEqual({ kind: 'countdown', from: 12, to: 16, cycleDay: 16, confidence: 'high', basis: 'history' });
   });
 
   it('says the period could start any day inside the window', () => {
@@ -74,13 +74,13 @@ describe('the two-week strip', () => {
   it('marks logged days and the same estimated days as the calendar', () => {
     const strip = today(input({ periods: PERIODS, today: '2026-10-18' })).strip;
     const marked = strip.filter((d) => d.period === 'estimated').map((d) => d.date);
-    expect(marked).toEqual(['2026-10-23', '2026-10-24', '2026-10-25', '2026-10-26', '2026-10-27']);
+    expect(marked).toEqual(['2026-10-24', '2026-10-25', '2026-10-26', '2026-10-27', '2026-10-28']);
   });
 });
 
 describe('the next period', () => {
   it('gives the window and how many days until the likely start', () => {
-    expect(today(input({ periods: PERIODS })).next).toMatchObject({ next_start: '2026-10-23', window: { from: '2026-10-21', to: '2026-10-25' }, inDays: 13 });
+    expect(today(input({ periods: PERIODS })).next).toMatchObject({ next_start: '2026-10-24', window: { from: '2026-10-22', to: '2026-10-26' }, inDays: 14 });
   });
 
   it('drops the estimate once the window has passed', () => {
@@ -112,7 +112,7 @@ describe('your cycles', () => {
     expect(current[15]).toBe('day');
     expect(current[16]).toBe('ahead');
     expect(current.at(-1)).toBe('ahead');
-    expect(current).toHaveLength(28);
+    expect(current).toHaveLength(29);
   });
 
   it('counts the cycles she has logged', () => {

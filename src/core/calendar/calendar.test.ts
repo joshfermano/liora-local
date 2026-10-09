@@ -29,9 +29,9 @@ describe('her usual period length', () => {
 describe('estimates ahead', () => {
   it('draws three cycles ahead when her cycles are steady, each window wider and less sure', () => {
     expect(estimatedPeriods(input())).toEqual([
-      { start: '2026-10-23', end: '2026-10-27', window: { from: '2026-10-21', to: '2026-10-25' }, confidence: 'high' },
-      { start: '2026-11-20', end: '2026-11-24', window: { from: '2026-11-17', to: '2026-11-23' }, confidence: 'medium' },
-      { start: '2026-12-18', end: '2026-12-22', window: { from: '2026-12-14', to: '2026-12-22' }, confidence: 'low' },
+      { start: '2026-10-24', end: '2026-10-28', window: { from: '2026-10-22', to: '2026-10-26' }, confidence: 'high' },
+      { start: '2026-11-22', end: '2026-11-26', window: { from: '2026-11-19', to: '2026-11-25' }, confidence: 'medium' },
+      { start: '2026-12-21', end: '2026-12-25', window: { from: '2026-12-17', to: '2026-12-25' }, confidence: 'low' },
     ]);
   });
 
@@ -57,15 +57,15 @@ describe('a month of marks', () => {
 
     const oct = markMonth(input({ dayLogs: [log('2026-10-03')], entries: [checkIn('2026-10-05')] }), '2026-10');
     expect(oct[9]).toMatchObject({ date: TODAY, isToday: true, future: false, cycleDay: 16 });
-    expect(oct[22]).toMatchObject({ date: '2026-10-23', period: 'estimated', periodDay: 1, future: true, cycleDay: 1 });
-    expect(oct[26]).toMatchObject({ date: '2026-10-27', period: 'estimated', periodDay: 5 });
+    expect(oct[23]).toMatchObject({ date: '2026-10-24', period: 'estimated', periodDay: 1, future: true, cycleDay: 1 });
+    expect(oct[27]).toMatchObject({ date: '2026-10-28', period: 'estimated', periodDay: 5 });
     expect(oct.filter((d) => d.hasLog).map((d) => d.date)).toEqual(['2026-10-03', '2026-10-05']);
   });
 
   it('describes a day in words for its sheet', () => {
-    const detail = describeDay(input({ dayLogs: [log('2026-10-24')] }), '2026-10-24');
+    const detail = describeDay(input({ dayLogs: [log('2026-10-25')] }), '2026-10-25');
     expect(detail.mark).toMatchObject({ period: 'estimated', periodDay: 2 });
-    expect(detail.estimate).toMatchObject({ start: '2026-10-23', confidence: 'high' });
+    expect(detail.estimate).toMatchObject({ start: '2026-10-24', confidence: 'high' });
     expect(detail.log?.symptoms).toEqual(['cramps']);
     expect(detail.checkIns).toBe(0);
   });

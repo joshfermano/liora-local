@@ -74,7 +74,7 @@ describe('predictNext', () => {
     expect(p?.next_start).toBe('2026-08-05');
   });
 
-  it('uses only the last 6 lengths', () => {
+  it('uses up to the last 12 lengths, the newest weighing most', () => {
     const starts = ['2026-01-01', '2026-01-21'];
     let d = new Date(2026, 0, 21);
     for (let i = 0; i < 6; i++) {
@@ -84,8 +84,32 @@ describe('predictNext', () => {
       );
     }
     const p = predictNext(recs(...starts), {}, TODAY);
-    expect(p?.cycles_used).toBe(6);
+    expect(p?.cycles_used).toBe(7);
     expect(p?.next_start).toBe('2026-08-19');
+  });
+
+  it('leaves out a forgotten period: a cycle twice her steady length', () => {
+    // 28, 28, 56, 28, 28: the 56 is two cycles with a start she did not log
+    const p = predictNext(recs('2026-01-01', '2026-01-29', '2026-02-26', '2026-04-23', '2026-05-21', '2026-06-18'), {}, TODAY);
+    expect(p).toEqual({
+      next_start: '2026-07-16',
+      window: { from: '2026-07-14', to: '2026-07-18' },
+      basis: 'history',
+      cycles_used: 4,
+      confidence: 'high',
+    });
+  });
+
+  it('is not pulled off by one odd cycle', () => {
+    // 28, 29, 40, 28, 29: an average would say 31; the weighted median says 29
+    const p = predictNext(recs('2026-01-01', '2026-01-29', '2026-02-27', '2026-04-08', '2026-05-06', '2026-06-04'), {}, TODAY);
+    expect(p?.next_start).toBe('2026-07-03');
+  });
+
+  it('follows a recent change in her cycles', () => {
+    // 32, 32, 32, then 27, 27, 27: an average would say 30; recent cycles say 27
+    const p = predictNext(recs('2026-01-01', '2026-02-02', '2026-03-06', '2026-04-07', '2026-05-04', '2026-05-31', '2026-06-27'), {}, TODAY);
+    expect(p?.next_start).toBe('2026-07-24');
   });
 
   it('falls back to the stated length: plus or minus 3, low', () => {

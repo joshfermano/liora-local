@@ -163,7 +163,7 @@ passages; every decision is transparent arithmetic or a rule table.
 | Danger signs (FR-4) | Deterministic decision table from WHO ANC.DT.01 / DT.17 and DOH warning signs | Rules |
 | Follow-up questions (FR-4) | Fixed question table; skip resolves to serious | Rules |
 | Mood check (FR-10) | PHQ-9 validated sum score (0 to 27), cut-off 10, item-9 short-circuit | Scoring |
-| Next-period estimate (FR-18) | Simple moving average of the last up to 6 cycle lengths, range-based window, rule-based confidence label | Arithmetic |
+| Next-period estimate (FR-18) | Recency-weighted median of the last up to 12 cycle lengths, forgotten periods left out, range-based window, rule-based confidence label | Arithmetic |
 | Source cards (FR-8) | Nearest-neighbour search by cosine similarity over multimodal embeddings (EmbeddingGemma 2: text and images in one space), with a threshold | Retrieval |
 | Embedding matcher (safety) | Cosine similarity to hand-written symptom prototypes, add-only | Retrieval |
 | Understanding text (FR-2, FR-4) | Jev-style typed decisions on Gemma 4 E2B: each question (choice, score or yes/no) is answered by restricting the next-token softmax to its listed options; the probabilities are the confidence | Model (translate only) |
@@ -353,9 +353,10 @@ evaluate(findings: Finding[], context: Context): Decision
 
 ### Cycle prediction (`src/core/cycle/`)
 
-A second deterministic model, also pure functions with tests. The algorithm is a **simple moving
-average** (SMA) of her recent cycle lengths, with a range-based window and a rule-based confidence
-label. Its only data is her own confirmed dates; there is no population dataset and no training.
+A second deterministic model, also pure functions with tests. The algorithm is a **recency-weighted
+median** of her recent cycle lengths (each older cycle weighs 0.85 of the next), with cycles that hold
+a forgotten period left out, a range-based window and a rule-based confidence label (switched from a
+simple moving average on 2026-10-10; see "Why the weighted median" below). Its only data is her own confirmed dates; there is no population dataset and no training.
 It is **not** the calendar / rhythm method, which estimates fertile days for contraception; Liora
 does not do that.
 
@@ -367,11 +368,13 @@ predictNext(periods: PeriodRecord[], settings: CycleSettings, today: string): Pr
 starts  = confirmed period start dates, oldest first
 lengths = days between each start and the next
 lengths = keep only 15..90                      # drop missed logs
-recent  = last 6 of lengths
+lengths = drop forgotten periods                # near 2x, 3x her median while the rest are steady
+recent  = last 12 of lengths, newest first
 
 if len(recent) >= 2:
-    L      = round(mean(recent))                # nearest whole day
-    spread = max(recent) - min(recent)
+    L      = round(weighted_median(recent, decay = 0.85))
+    near   = first 6 of recent
+    spread = max(near) - min(near)
     half   = max(2, ceil(spread / 2))
     basis  = 'history'
     confidence = 'high'   if len(recent) >= 3 and spread <= 7
@@ -387,23 +390,27 @@ window     = next_start - half .. next_start + half
 ```
 
 **Worked example (use it as a unit test):** starts Jul 1, Jul 29, Aug 27, Sep 24 give
-lengths 28, 29, 28; mean 28.33 rounds to 28; next start
+lengths 28, 29, 28; weighted median 28; next start
 Sep 24 + 28 = Oct 22; spread 1, so half = max(2, 1) = 2; window Oct 20 to Oct 24; 3 cycles with
 spread ≤ 7, so `high`. Irregular lengths 26, 35, 30 give L = 30, spread 9, half 5, `medium`.
 
-**Considered alternative:** the median of `recent` is more robust to one unusual cycle (28, 29, 45
-gives a mean of 34 but a median of 29). The team kept the mean for the hackathon; switching is a
-one-line change plus test updates.
+**Why the weighted median (2026-10-10, user's call after a comparison):** on seeded simulated
+histories (800 women per scenario; simulated, never quoted as results) the mean and the weighted
+median were within a tenth of a day on tidy logs, but with 15% of periods unlogged the mean was off
+by about 4.6 days against 1.5 for the weighted median with forgotten periods left out, and one
+unusually long cycle moved the mean by about 0.6 days more. Forgotten-period rule: a cycle at least
+1.6 times the median of her other cycles and within 0.2 of a whole multiple, when those others are
+steady (1.4826 x MAD / median <= 0.15); basis: Li, Urteaga et al., JAMIA 2022, on skipped logging.
 
 - **Cycle lengths** are the day gaps between consecutive confirmed period starts. Gaps outside
   15 to 90 days are treated as missing logs, not cycles (a data-sanity bound, not a medical one).
-- **Basis:** `history` when at least 2 cycle lengths exist (mean of the last up to 6, rounded to
-  the nearest whole day); otherwise
+- **Basis:** `history` when at least 2 cycle lengths exist (recency-weighted median of the last up
+  to 12, rounded to the nearest whole day); otherwise
   `stated` when she gave a usual cycle length; otherwise no prediction ("Log two periods and Liora
   will estimate the next one").
 - **Next start** = last confirmed start + the (rounded) cycle length.
 - **Window:** next start ± ceil(spread / 2) days, where spread = longest minus shortest of the
-  lengths used; never narrower than ±2 days. With `stated` basis the window is ±3 days.
+  latest 6 lengths used; never narrower than ±2 days. With `stated` basis the window is ±3 days.
 - **Demo data:** a fresh install has no history. For the demo, log past periods through Tell
   Liora or the calendar on the demo phones; if seeded dates are used, label them as sample data.
 - **Confidence** (a display heuristic, not a medical threshold, and labelled as such in the

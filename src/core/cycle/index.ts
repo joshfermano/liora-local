@@ -4,7 +4,9 @@ import type { Context, CycleSettings, Extraction, PeriodRecord, Prediction } fro
 const fmt = (d: Date) => format(d, 'yyyy-MM-dd');
 const MIN_CYCLE = 15;
 const MAX_CYCLE = 90;
-const MAX_RECENT = 6;
+const MAX_RECENT = 12;
+const SPREAD_CYCLES = 6;
+const DECAY = 0.85;
 const DEFAULT_PERIOD_LENGTH = 5;
 
 export function cycleLengths(periods: PeriodRecord[]): number[] {
@@ -15,6 +17,37 @@ export function cycleLengths(periods: PeriodRecord[]): number[] {
     if (gap >= MIN_CYCLE && gap <= MAX_CYCLE) lengths.push(gap);
   }
   return lengths;
+}
+
+const median = (xs: number[]) => {
+  const s = [...xs].sort((a, b) => a - b);
+  const m = s.length >> 1;
+  return s.length % 2 ? s[m]! : (s[m - 1]! + s[m]!) / 2;
+};
+
+// Each older cycle weighs 0.85 of the next, so recent cycles lead and one odd cycle cannot.
+export function weightedMedian(newestFirst: number[]): number {
+  const items = newestFirst.map((v, i) => ({ v, w: DECAY ** i })).sort((a, b) => a.v - b.v);
+  const half = items.reduce((sum, it) => sum + it.w, 0) / 2;
+  let acc = 0;
+  for (const it of items) {
+    acc += it.w;
+    if (acc >= half) return it.v;
+  }
+  return items[items.length - 1]!.v;
+}
+
+// A cycle near a whole multiple of her usual length, when her other cycles are steady, holds a
+// period she did not log (Li, Urteaga et al., JAMIA 2022, on skipped logging in cycle tracking).
+export function withoutForgottenPeriods(newestFirst: number[]): number[] {
+  if (newestFirst.length < 4) return newestFirst;
+  return newestFirst.filter((c, i) => {
+    const others = newestFirst.filter((_, j) => j !== i);
+    const m = median(others);
+    const steady = (1.4826 * median(others.map((x) => Math.abs(x - m)))) / m <= 0.15;
+    const ratio = c / m;
+    return !(steady && ratio >= 1.6 && Math.abs(ratio - Math.round(ratio)) <= 0.2);
+  });
 }
 
 export function predictNext(
@@ -28,15 +61,16 @@ export function predictNext(
   const last = starts[starts.length - 1];
   if (!last) return null;
 
-  const recent = cycleLengths(periods).slice(-MAX_RECENT);
+  const recent = withoutForgottenPeriods(cycleLengths(periods).reverse()).slice(0, MAX_RECENT);
   let L: number;
   let half: number;
   let basis: Prediction['basis'];
   let confidence: Prediction['confidence'];
 
   if (recent.length >= 2) {
-    L = Math.round(recent.reduce((a, b) => a + b, 0) / recent.length);
-    const spread = Math.max(...recent) - Math.min(...recent);
+    L = Math.round(weightedMedian(recent));
+    const near = recent.slice(0, SPREAD_CYCLES);
+    const spread = Math.max(...near) - Math.min(...near);
     half = Math.max(2, Math.ceil(spread / 2));
     basis = 'history';
     confidence = recent.length >= 3 ? (spread <= 7 ? 'high' : 'medium') : 'low';
