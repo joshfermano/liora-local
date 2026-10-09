@@ -204,7 +204,7 @@ export default function Eval() {
   const gemma: LoadTarget = { model: 'gemma4-q4f16', embeddings };
   const embedder: LoadTarget = { model: 'embeddinggemma2-text' };
   const mobile: LoadTarget = { model: 'gemma4-qat-mobile' };
-  const report = JSON.stringify({ facts, runs }, null, 2);
+  const report = JSON.stringify({ facts, previous, runs }, null, 2);
 
   async function copy() {
     try {
