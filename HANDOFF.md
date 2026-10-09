@@ -1,6 +1,6 @@
 # HANDOFF: Tell Liora (liora-local)
 
-**Last updated:** 2026-10-09, 6:00 PM Manila, end of the planning session.
+**Last updated:** 2026-10-10, 1:00 AM Manila (full-app redesign under way).
 **Deadline:** code freeze and submission **10:00 AM, 10 Oct 2026**, on
 cerebralvalley.ai/e/appbuildersph-hackathon-2026. One submission, no edits after.
 **Read next:** `docs/superpowers/specs/2026-10-09-tell-liora-design.md` (the build spec, v3),
@@ -41,25 +41,24 @@ Update section 1 and section 2 of this file as work completes, so any session ca
 | GitHub repo / Pages | Public repo `joshfermano/liora-local`; Pages live at https://joshfermano.github.io/liora-local/ (deploys from `main` through Actions). Quick phone testing through `pnpm expo start --tunnel`. |
 | S1 findings         | iPhone Safari 27.0.1: WebGPU on, shader-f16 on, largest GPU buffer 1,024 MB, not cross-origin isolated, about 39 GB storage. Gemma 4 E2B's 1,120 MB token-embedding table is too big for the GPU, so it was moved to the CPU (f928688). **Then the tab was killed at 1,763 of 2,985 MB downloaded (179 s, about 10 MB/s):** Transformers.js holds each whole file in memory until it finishes, and Gemma 4 E2B q4f16 needs about 3 GB at once, plus 1.5 GB of CPU memory for the token embeddings. As packaged, Gemma 4 E2B does not fit a browser tab. Nothing was cached. |
 | Typed decisions     | Code in a866603 (`src/ai/typed-decisions.ts`, `workers/decide.ts`). Laptop observation only (4-bit decoder on CPU, about 0.7 s per question): phrase 1 go-now, phrase 2 calm, phrase 3 go-now instead of the headache follow-up. Causes: the "very ill" question says yes to any ache; the severity score says "moderate" when the message does not say. A yes/no rewording fixed phrase 3 and the "very ill" question but read "medyo masakit" as neither mild nor severe; not applied yet. |
-| Timeline            | At midnight: code is feature-complete for the demo; what is left needs the phones and people (Filipino copy, eval phrases, video, submission). |
+| Timeline            | 1 AM: the user asked for a full, premium, Apple-native app: native Liquid Glass tabs (Today, Calendar, Liora, Profile), a Liora companion thread that reads her logs and shows the rules' decision with the nurse card inline, and a profile with age, height and weight. Skeleton on main (4706107 to 2725062); three agents build the tabs in parallel worktrees. |
 
 ## 2. Next steps, in order
 
-1. **Phone check (LUM-79 and every In Review ticket):** the iPhone must be visible to the Mac
-   (plugged in, or unlocked on the same Wi-Fi). A background watcher builds as soon as it is; or run
-   the Terminal build in `.tmp/EXTRAS.md`. Test: home → the three demo phrases → go-now, follow-up,
-   calm, "Why?", "How Liora decided"; the mic; setup; checklist; calendar; log; mood → crisis.
-2. **Demo iPhones (iPhone 17 and 17 Pro):** plug each into the Mac once, Developer Mode on, trust
-   the developer; build to each (UDID from `xcrun devicectl list devices`); download Gemma 4 via setup.
-3. **Measurements (LUM-77):** on both demo phones, the native test screen's load and answer times,
-   and the eval phrases; then fill the README table (only demo-phone numbers).
-4. **Team content:** Filipino copy (LUM-47 lists every key); confirm the breathing sign and the
-   headache split (LUM-54); decide whether a question-9 answer is saved (LUM-63); open doh.gov.ph in
-   a browser to confirm the 1553 hotline (LUM-46); team names for the README.
-5. **Optional if time:** EmbeddingGemma 2 card search (LUM-69); Tagalog PHQ-9; period extraction
-   for the calendar's date chip; Ivan's d1 model only if it runs on the iPhone and beats Gemma.
-6. **Submission:** README numbers and team (LUM-78), 1-minute video and X/LinkedIn post (LUM-48),
-   submit on Cerebral Valley before 10:00 AM (LUM-49). Repo is already public.
+1. **Merge the three tab branches** (worktrees under `.claude/worktrees/`): Liora companion thread
+   (LUM-84), calendar and period tracking (LUM-65), profile and Today (LUM-85, LUM-60). Resolve the
+   copy.ts blocks, run `pnpm test`, `pnpm typecheck`, `npx expo export -p web`, push.
+2. **Build to the iPhone 17 Pro ("Breezy", UDID in `.tmp/EXTRAS.md`)** with the Terminal build on the
+   Mac; prebuild already ran for the new native modules (glass, symbols, haptics, blur, gradient).
+   Test: every tab, the three demo phrases in Liora and on Today, go-now and nurse card, the mic,
+   calendar logging, profile fields, Face ID lock, mood → crisis.
+3. **iPhone 17:** plug into the Mac once, Developer Mode on, build, trust the developer, download
+   the models in setup.
+4. **Measurements (LUM-77):** load and answer times and the eval phrases on both demo phones; fill
+   the README table with demo-phone numbers only.
+5. **Team content (Ivan):** Filipino copy (LUM-47), eval phrases (LUM-77), confirmations (LUM-54).
+6. **Submission:** README (LUM-78), 1-minute video and post (LUM-48), final demo build without
+   `EXPO_PUBLIC_SHOW_DEV`, submit on Cerebral Valley before 10:00 AM (LUM-49).
 
 ## 3. The product in one paragraph
 
