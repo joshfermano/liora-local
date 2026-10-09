@@ -91,7 +91,7 @@ text.
 | FR-7 | **Calm answer with source card** | When no rule fires: fixed calm copy for the logged entries, the "go now if you notice" list, and the best-matching source card (FR-8) or "Ask at your check-up" if none clears the threshold. |
 | FR-8 | **Source cards (RAG)** | On-device multimodal embedding search (EmbeddingGemma 2) over 30 to 50 cited WHO/DOH passages. Shown verbatim with source and page. On a "go now" result, "Why?" shows the card linked to the fired rule by ID (direct link, not retrieval). |
 | FR-9 | **My log** | Entries newest first, grouped as period, symptoms, mood, pregnancy. Delete one; delete everything. |
-| FR-10 | **Mood check (EPDS)** | 10 items, one per screen, fixed scoring 0 to 30. Total of 13 or more shows "consider talking to someone" copy. Any non-zero answer on item 10 (self-harm) immediately shows the crisis screen with the hotline, before finishing the questionnaire. |
+| FR-10 | **Mood check (PHQ-9; was EPDS until 2026-10-09)** | 9 items word for word from the official PHQ-9 form, one per screen, scoring 0 to 27. Total of 10 or more (Kroenke, Spitzer and Williams 2001) shows "talk to a health worker" copy. Any non-zero answer on item 9 (self-harm) immediately shows the crisis screen with the NCMH hotline, before finishing. Switched from the EPDS for licensing: the PHQ-9 form says "No permission required to reproduce, translate, display or distribute". |
 | FR-11 | **AI-off checklist** | If the text model is unavailable, Liora shows "AI off, checklist on" and offers a tap-the-signs checklist that feeds the same decision model. |
 | FR-12 | **"How Liora decided" drawer** | On every result: findings per source (word list, embeddings, the AI's typed decisions with their confidence), the rule IDs that fired with sources, and model IDs and versions. |
 | FR-13 | **Privacy surface** | Persistent "Stays on this phone" note. "Delete everything" wipes IndexedDB entries, setup answers, mood results and period history. |
@@ -162,7 +162,7 @@ passages; every decision is transparent arithmetic or a rule table.
 | --- | --- | --- |
 | Danger signs (FR-4) | Deterministic decision table from WHO ANC.DT.01 / DT.17 and DOH warning signs | Rules |
 | Follow-up questions (FR-4) | Fixed question table; skip resolves to serious | Rules |
-| Mood check (FR-10) | EPDS validated sum score (0 to 30), cut-off 13, item-10 short-circuit | Scoring |
+| Mood check (FR-10) | PHQ-9 validated sum score (0 to 27), cut-off 10, item-9 short-circuit | Scoring |
 | Next-period estimate (FR-18) | Simple moving average of the last up to 6 cycle lengths, range-based window, rule-based confidence label | Arithmetic |
 | Source cards (FR-8) | Nearest-neighbour search by cosine similarity over multimodal embeddings (EmbeddingGemma 2: text and images in one space), with a threshold | Retrieval |
 | Embedding matcher (safety) | Cosine similarity to hand-written symptom prototypes, add-only | Retrieval |
