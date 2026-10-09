@@ -18,7 +18,8 @@ export function GoNow({ entry }: { entry: Entry }) {
   const margin = useMargin();
   const fired = entry.decision.fired;
   const codes = [...new Set(fired.flatMap((f) => f.codes))];
-  const sources = fired.map((f) => sourceFor(f.rule_id)).filter((s) => s !== null);
+  // Several signs can fire the same WHO table; show each source once.
+  const sources = [...new Set(fired.map((f) => sourceFor(f.rule_id)).filter((s) => s !== null))];
   const firstRule = fired[0]?.rule_id;
 
   return (

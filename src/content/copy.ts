@@ -10,6 +10,8 @@ interface Entry {
 
 const ui = (en: string, fil: string | null = null): Entry => ({ fil, en });
 const med = (): Entry => ({ fil: null, en: null, medical: true });
+// English quoted from the WHO ANC DAK danger-sign check (p. 73); the Filipino is the team's to write.
+const who = (en: string): Entry => ({ fil: null, en, medical: true });
 
 export const COPY = {
   'home.prompt': ui('How are you feeling?', "Ano'ng nararamdaman mo?"),
@@ -51,6 +53,25 @@ export const COPY = {
   'nurse.signs': med(),
   'nurse.logged': med(),
   'nurse.bp': med(),
+
+  'sign.vaginal_bleeding': who('Bleeding vaginally'),
+  'sign.convulsions': who('Convulsing'),
+  'sign.fever': who('Fever'),
+  'sign.severe_headache': who('Headache'),
+  'sign.visual_disturbance': who('Visual disturbance'),
+  'sign.imminent_delivery': who('Imminent delivery'),
+  'sign.labour': who('Labour'),
+  'sign.looks_very_ill': who('Looks very ill'),
+  'sign.severe_vomiting': who('Vomiting'),
+  'sign.severe_pain': who('Pain'),
+  'sign.severe_abdominal_pain': who('Abdominal pain'),
+  'sign.unconscious': who('Unconscious'),
+  'sign.central_cyanosis': who('Central cyanosis'),
+
+  'severity.severe': ui('severe'),
+  'severity.moderate': ui('moderate'),
+  'severity.mild': ui('mild'),
+  'severity.unknown': ui('not sure yet'),
 
   'why.title': ui('Why?'),
   'why.none': ui('Ask at your check-up'),
