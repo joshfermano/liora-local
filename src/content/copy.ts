@@ -650,6 +650,7 @@ export const COPY = {
   'em.call': ui('Call {name}'),
   'em.text': ui('Text {name}'),
   'em.sms': ui('I need help. I am going to the hospital now.'),
+  'em.sms.crisis': ui('I need help. Please call me.'),
   'em.footer': ui('Only you see this. Liora never calls or texts anyone on its own.'),
   'blood.title': ui('Blood type'),
   'blood.unknown': ui("I don't know"),

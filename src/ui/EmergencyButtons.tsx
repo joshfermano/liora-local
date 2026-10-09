@@ -8,7 +8,7 @@ const fill = (s: string, name: string) => s.replace('{name}', name);
 const open = (url: string) => void Linking.openURL(url).catch(() => {});
 
 // Opens her phone's own call and message apps; the app itself sends nothing.
-export function EmergencyButtons({ onAlarm = false }: { onAlarm?: boolean }) {
+export function EmergencyButtons({ onAlarm = false, message = 'em.sms' }: { onAlarm?: boolean; message?: 'em.sms' | 'em.sms.crisis' }) {
   const router = useRouter();
   const { emergency } = useProfile();
   const variant = onAlarm ? 'onAlarm' : 'neutral';
@@ -24,7 +24,7 @@ export function EmergencyButtons({ onAlarm = false }: { onAlarm?: boolean }) {
       <CapsuleButton
         variant={variant}
         label={fill(en('em.text'), emergency.name)}
-        onPress={() => open(`sms:${number}${join}body=${encodeURIComponent(en('em.sms'))}`)}
+        onPress={() => open(`sms:${number}${join}body=${encodeURIComponent(en(message))}`)}
       />
     </View>
   );

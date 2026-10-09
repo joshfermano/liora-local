@@ -31,7 +31,7 @@ export default function Crisis() {
         <Text variant="caption1" tone="secondary">
           {en('crisis.source')}
         </Text>
-        <EmergencyButtons />
+        <EmergencyButtons message="em.sms.crisis" />
       </View>
     </Screen>
   );
