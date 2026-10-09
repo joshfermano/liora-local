@@ -3,6 +3,7 @@ import { COPY, en, signKey } from '../../content/copy';
 import type { HandoffReport } from '../../core/handoff';
 import { DANGER_CODES } from '../../core/vocabulary';
 import { sourceFor } from '../ruleSource';
+import { formatPhPhone } from '../../core/phone';
 
 // One shape for the screen and the PDF, so the two can never say different things.
 export type Level = 'go_now' | 'follow_up' | 'ok';
@@ -211,7 +212,7 @@ export function reportModel(report: HandoffReport, extras: ReportExtras = {}): R
           title: en('handoff.emergency'),
           name: emergency.name,
           relation: emergency.relation ? { label: en('em.relation'), value: emergency.relation } : undefined,
-          phone: { label: en('em.phone'), value: emergency.phone },
+          phone: { label: en('em.phone'), value: formatPhPhone(emergency.phone) ?? emergency.phone },
           dial: emergency.phone,
           callLabel: fill('handoff.call', { name: emergency.name }),
         }
