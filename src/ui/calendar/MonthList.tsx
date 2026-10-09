@@ -91,8 +91,8 @@ export function MonthList({ months, focus, input, picked, onDay, thisMonth, onAw
     (e: NativeSyntheticEvent<NativeScrollEvent>) => {
       const y = e.nativeEvent.contentOffset.y;
       const start = offsets[thisIndex] ?? 0;
-      // Only scrolling down past this month's title offers the way back; looking back stays quiet.
-      onAway(y > start + TITLE);
+      // A title's height either way of this month's top counts as away.
+      onAway(Math.abs(y - start) > TITLE);
     },
     [offsets, thisIndex, onAway],
   );
