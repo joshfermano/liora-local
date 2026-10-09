@@ -42,6 +42,30 @@ describe('agent router', () => {
     expect(out).toEqual([{ tool: 'symptoms', date: { kind: 'today' }, symptoms: ['cramps'] }]);
   });
 
+  it('reads delete, clear, undo, look-up and open requests', () => {
+    expect(
+      parseActions({
+        actions: [
+          { tool: 'delete_period', date: 'today' },
+          { tool: 'clear_day', date: 'yesterday', what: 'moods' },
+          { tool: 'undo_last' },
+          { tool: 'ask_day', date: 'days_ago', n: 2 },
+          { tool: 'open', screen: 'calendar' },
+        ],
+      }),
+    ).toEqual([
+      { tool: 'delete_period', date: { kind: 'today' } },
+      { tool: 'clear_day', date: { kind: 'yesterday' }, what: 'moods' },
+      { tool: 'undo_last' },
+      { tool: 'ask_day', date: { kind: 'days_ago', n: 2 } },
+      { tool: 'open', screen: 'calendar' },
+    ]);
+  });
+
+  it('drops a clear with no part and an open with no screen, so nothing is wiped by a guess', () => {
+    expect(parseActions({ actions: [{ tool: 'clear_day', date: 'today' }, { tool: 'open' }, { tool: 'open', screen: 'settings' }] })).toEqual([]);
+  });
+
   it('never lets a danger code through', () => {
     const text = JSON.stringify(ROUTER_SCHEMA);
     for (const code of ['vaginal_bleeding', 'convulsions', 'severe_headache', 'fever']) expect(text).not.toContain(code);

@@ -1,11 +1,13 @@
 import { z } from 'zod';
-import { WRITE_TOOLS, type AgentAction, type DateWord } from '../core/agent';
+import { WRITE_TOOLS, type AgentAction, type DateWord, type Screen } from '../core/agent';
 import { ActivitySchema, FlowSchema, MoodSchema, SymptomSchema } from '../core/types';
 import { ACTIVITIES, FLOWS, MOODS, SYMPTOMS } from '../core/vocabulary';
 import { runJson } from './gemma-session';
 
-const TOOLS = [...WRITE_TOOLS, 'cycle_question', 'health_question', 'smalltalk'] as const;
+const TOOLS = [...WRITE_TOOLS, 'undo_last', 'ask_day', 'open', 'cycle_question', 'health_question', 'smalltalk'] as const;
 const DATES = ['today', 'yesterday', 'days_ago', 'unknown'] as const;
+const PARTS = ['all', 'flow', 'symptoms', 'moods', 'activities'] as const;
+const SCREENS = ['calendar', 'mood_check', 'checklist', 'profile', 'log_day'] as const satisfies readonly Screen[];
 export const ROUTER_TIMEOUT_MS = 4000;
 
 // Closed on purpose: every field is an enum or a small integer, so nothing she says can become free text.
@@ -26,6 +28,8 @@ export const ROUTER_SCHEMA = {
           moods: { type: 'array', maxItems: 4, items: { enum: [...MOODS] } },
           activities: { type: 'array', maxItems: 4, items: { enum: [...ACTIVITIES] } },
           weeks: { type: 'integer', minimum: 1, maximum: 45 },
+          what: { enum: [...PARTS] },
+          screen: { enum: [...SCREENS] },
         },
         required: ['tool'],
         additionalProperties: false,
@@ -45,6 +49,8 @@ const Item = z.object({
   moods: z.array(MoodSchema).optional(),
   activities: z.array(ActivitySchema).optional(),
   weeks: z.number().int().min(1).max(45).optional(),
+  what: z.enum(PARTS).optional(),
+  screen: z.enum(SCREENS).optional(),
 });
 type Item = z.infer<typeof Item>;
 
@@ -88,12 +94,20 @@ function toAction(item: Item): AgentAction | null {
     }
     case 'weeks':
       return item.weeks === undefined ? null : { tool: 'weeks', weeks: item.weeks };
+    case 'delete_period':
+      return { tool: 'delete_period', date: dateOf(item) };
+    // A clear with no part named would wipe a whole day; leave it out.
+    case 'clear_day':
+      return item.what ? { tool: 'clear_day', date: dateOf(item), what: item.what } : null;
+    case 'ask_day':
+      return { tool: 'ask_day', date: dateOf(item) };
+    case 'open':
+      return item.screen ? { tool: 'open', screen: item.screen } : null;
+    case 'undo_last':
     case 'cycle_question':
     case 'health_question':
     case 'smalltalk':
       return { tool: item.tool };
-    default:
-      return null;
   }
 }
 
@@ -115,6 +129,8 @@ export function routerPrompt(text: string): string {
     'Read the message of a pregnant woman or new mother (Tagalog, Taglish, Cebuano or English). ' +
     'List what she wants noted or asked, using only the allowed tools. Say nothing else.\n' +
     'Tools: period_start, period_end, flow, symptoms, moods, activities, weeks (weeks pregnant), ' +
+    'delete_period (remove a logged period), clear_day (remove one part of a day: what is all, flow, symptoms, moods or activities), ' +
+    'undo_last (take back the last change), ask_day (what she logged on a day), open (screen is calendar, mood_check, checklist, profile or log_day), ' +
     'cycle_question (asks about her next period), health_question, smalltalk.\n' +
     'date is today, yesterday, days_ago (with n) or unknown. Leave out what she did not say.\n\n' +
     'Message: "Niregla ako kahapon, medyo malakas"\n' +
@@ -122,7 +138,11 @@ export function routerPrompt(text: string): string {
     'Message: "pagod at stressed ako ngayon"\n' +
     '{"actions":[{"tool":"moods","date":"today","moods":["tired","stressed"]}]}\n' +
     'Message: "kumusta"\n' +
-    '{"actions":[{"tool":"smalltalk"}]}\n\n' +
+    '{"actions":[{"tool":"smalltalk"}]}\n' +
+    'Message: "Remove the logged period from today"\n' +
+    '{"actions":[{"tool":"delete_period","date":"today"}]}\n' +
+    'Message: "buksan mo ang calendar"\n' +
+    '{"actions":[{"tool":"open","screen":"calendar"}]}\n\n' +
     `Message: "${text.replace(/"/g, "'")}"`
   );
 }

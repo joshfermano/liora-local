@@ -2,6 +2,7 @@ export * from './types';
 export { cycleFacts, dayFacts, guardReply } from './facts';
 export { contextPack, type ContextInput, type ContextPack } from './context';
 export { scopeAnswers, triage, type Purpose, type Triage, type TypedScope } from './triage';
+export { dayHasData, replyPlan, smalltalkKind, type Fallback, type Outcome, type ReplyRequest, type Turn } from './outcome';
 export { readActions, mergeActions } from './read';
 export { resolveDate } from './dates';
 export { planActions } from './plan';
