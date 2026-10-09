@@ -3,6 +3,8 @@ import { WRITE_TOOLS, type AgentAction, type DateWord, type Screen } from '../co
 import { ActivitySchema, FlowSchema, MoodSchema, SymptomSchema } from '../core/types';
 import { ACTIVITIES, FLOWS, MOODS, SYMPTOMS } from '../core/vocabulary';
 import { runJson } from './gemma-session';
+import { notePrompt } from '../core/probe';
+import { fill, PROMPTS } from './prompts';
 
 const TOOLS = [...WRITE_TOOLS.filter((t) => t !== 'set_status'), 'undo_last', 'ask_day', 'open', 'cycle_question', 'health_question', 'smalltalk'] as const;
 const DATES = ['today', 'yesterday', 'days_ago', 'unknown'] as const;
@@ -125,30 +127,12 @@ export function parseActions(raw: unknown): AgentAction[] {
 }
 
 export function routerPrompt(text: string): string {
-  return (
-    'Read the message of a pregnant woman or new mother (Tagalog, Taglish, Cebuano or English). ' +
-    'List what she wants noted or asked, using only the allowed tools. Say nothing else.\n' +
-    'Tools: period_start, period_end, flow, symptoms, moods, activities, weeks (weeks pregnant), ' +
-    'delete_period (remove a logged period), clear_day (remove one part of a day: what is all, flow, symptoms, moods or activities), ' +
-    'undo_last (take back the last change), ask_day (what she logged on a day), open (screen is calendar, mood_check, checklist, profile or log_day), ' +
-    'cycle_question (asks about her next period), health_question, smalltalk.\n' +
-    'date is today, yesterday, days_ago (with n) or unknown. Leave out what she did not say.\n\n' +
-    'Message: "Niregla ako kahapon, medyo malakas"\n' +
-    '{"actions":[{"tool":"period_start","date":"yesterday","flow":"heavy"}]}\n' +
-    'Message: "pagod at stressed ako ngayon"\n' +
-    '{"actions":[{"tool":"moods","date":"today","moods":["tired","stressed"]}]}\n' +
-    'Message: "kumusta"\n' +
-    '{"actions":[{"tool":"smalltalk"}]}\n' +
-    'Message: "Remove the logged period from today"\n' +
-    '{"actions":[{"tool":"delete_period","date":"today"}]}\n' +
-    'Message: "buksan mo ang calendar"\n' +
-    '{"actions":[{"tool":"open","screen":"calendar"}]}\n\n' +
-    `Message: "${text.replace(/"/g, "'")}"`
-  );
+  return fill(PROMPTS.router.text, { message: text.replace(/"/g, "'") });
 }
 
 // Errors and timeouts mean no actions; the word rules have already read what they could.
 export async function routeWithGemma(text: string): Promise<AgentAction[]> {
+  notePrompt('router', PROMPTS.router.version);
   let timer: ReturnType<typeof setTimeout> | undefined;
   const timeout = new Promise<null>((resolve) => {
     timer = setTimeout(() => resolve(null), ROUTER_TIMEOUT_MS);

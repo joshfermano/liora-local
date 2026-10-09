@@ -10,6 +10,7 @@ vi.mock('./storage', () => ({
   },
 }));
 
+import { EntrySchema } from '../core/types';
 import { useLogStore } from './log';
 import { setAskModel, setRetrieveCard, useTellStore } from './tell';
 
@@ -173,5 +174,47 @@ describe("triage decides which of Gemma's danger answers count", () => {
     useLogStore.setState({ setup: { status: 'pregnant', weeks: 20 } });
     const entry = await useTellStore.getState().submit('Niregla ako today');
     expect(entry.decision.level).toBe('go_now');
+  });
+});
+
+describe('the typed answer cache', () => {
+  const ref = { role: 'llm' as const, id: 'test', version: '1', prompts: { typed: '1.abc' } };
+
+  it('answers a repeated message without asking Gemma again, and the rules still decide', async () => {
+    const ask = vi.fn(async () => HEADACHE);
+    setAskModel(ask, ref);
+    const first = await useTellStore.getState().submit('masakit ulo ko');
+    const again = await useTellStore.getState().submit('  Masakit ulo ko! ');
+    expect(ask).toHaveBeenCalledTimes(1);
+    expect(again.decision.level).toBe(first.decision.level);
+    expect(again.findings).toEqual(first.findings);
+  });
+
+  it('asks again when the model or the typed prompt changed', async () => {
+    const ask = vi.fn(async () => HEADACHE);
+    setAskModel(ask, ref);
+    await useTellStore.getState().submit('masakit ulo ko');
+    setAskModel(ask, { ...ref, prompts: { typed: '2.abc' } });
+    await useTellStore.getState().submit('masakit ulo ko');
+    expect(ask).toHaveBeenCalledTimes(2);
+  });
+
+  it('does not keep a failed answer', async () => {
+    const ask = vi.fn().mockRejectedValueOnce(new Error('boom')).mockResolvedValue(HEADACHE);
+    setAskModel(ask, ref);
+    await useTellStore.getState().submit('masakit ulo ko');
+    await useTellStore.getState().submit('masakit ulo ko');
+    expect(ask).toHaveBeenCalledTimes(2);
+  });
+
+  it('records the prompt versions on the model that answered', async () => {
+    setAskModel(async () => HEADACHE, ref);
+    const entry = await useTellStore.getState().submit('masakit ulo ko');
+    expect(entry.models).toEqual([ref]);
+    expect(EntrySchema.safeParse(entry).success).toBe(true);
+  });
+
+  it('still reads entries saved before prompt versions were recorded', () => {
+    expect(EntrySchema.shape.models.safeParse([ref]).success).toBe(true);
   });
 });

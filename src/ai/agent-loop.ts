@@ -1,23 +1,12 @@
 import { guardReply, type ReplyRequest } from '../core/agent';
+import { noteDropped, notePrompt } from '../core/probe';
 import type { SayMessage } from './gemma-model';
 import { runSay } from './gemma-session';
+import { PROMPTS } from './prompts';
 
 export const REPLY_TIMEOUT_MS = 4000;
 
-// Liora's voice. The words are Gemma's, the facts are code's, and guardReply is the last word.
-export const PERSONA =
-  'You are Liora, a smart, friendly companion inside a cycle and pregnancy app for Filipino women. ' +
-  'You know her data below and use it to answer: her cycle, period and fertile windows, likely ovulation, ' +
-  'pregnancy week, moods, symptoms, activities and patterns. ' +
-  'Answer like a helpful friend: clear, specific, upbeat, one to four short sentences, in her language ' +
-  '(Tagalog, Taglish or English). ' +
-  'Quote dates and numbers exactly as written in HER DATA; never invent or calculate new ones. ' +
-  'Say exactly what WHAT YOU JUST DID lists, no more and no less; if it lists nothing, say you did not change anything and ask what she meant. ' +
-  'Windows are estimates: say so, and never present a fertile window as birth control. ' +
-  'You do not give medical advice, diagnoses, medicine or dose advice, and you never say a symptom is normal or safe. ' +
-  'For a health question, say a reviewed source is shown below if one was found, otherwise suggest asking at her check-up. ' +
-  'Comfort her only when she says she is sad, scared or tired; otherwise stay light: do not be gloomy, ' +
-  'do not tell her to breathe, do not talk about hard times. No emojis, no lists.';
+export const PERSONA = PROMPTS.persona.text;
 
 export function replyMessages({ text, pack, facts, thread }: ReplyRequest): SayMessage[] {
   const parts: string[] = [];
@@ -41,7 +30,10 @@ export function completeSentences(streamed: string): string {
 }
 
 // Only sentences that passed the guard ever reach onText; a failure or a late answer keeps what already passed.
+const sentenceCount = (text: string | null) => (text ? text.split(/(?<=[.!?…])\s+|\n+/).filter((s) => s.trim()).length : 0);
+
 export async function sayReply(req: ReplyRequest, onText?: (guarded: string) => void): Promise<string | null> {
+  notePrompt('persona', PROMPTS.persona.version);
   let shown: string | null = null;
   let finished = false;
   let sentences = '';
@@ -69,7 +61,10 @@ export async function sayReply(req: ReplyRequest, onText?: (guarded: string) => 
       }),
       timeout,
     ]);
-    return said === null ? shown : guardReply(said, req.allowed);
+    if (said === null) return shown;
+    const guarded = guardReply(said, req.allowed);
+    noteDropped(Math.max(0, sentenceCount(said) - sentenceCount(guarded)));
+    return guarded;
   } catch {
     return shown;
   } finally {

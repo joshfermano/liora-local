@@ -1,3 +1,5 @@
+import { GEMMA_PROMPTS } from './prompt-refs';
+
 // Shared by gemma-native.ts (web stub) and gemma-native.native.ts; neither may import the other.
 export const GEMMA_GGUF = {
   url: 'https://huggingface.co/ggml-org/gemma-4-E2B-it-GGUF/resolve/main/gemma-4-E2B-it-Q4_0.gguf',
@@ -15,6 +17,7 @@ export const GEMMA_MODEL_REF = {
   role: 'llm' as const,
   id: 'gemma-4-E2B-it Q4_0 (ggml-org/gemma-4-E2B-it-GGUF)',
   version: 'llama.rn 0.13.0-rc.7',
+  prompts: GEMMA_PROMPTS,
 };
 
 export interface SayMessage {

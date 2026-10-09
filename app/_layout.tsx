@@ -3,9 +3,14 @@ import { Marcellus_400Regular, useFonts } from '@expo-google-fonts/marcellus';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect } from 'react';
+import { setCardVectorStorage } from '../src/ai/card-index';
 import { bootGemma } from '../src/ai/gemma-boot';
 import { gemmaSession } from '../src/ai/gemma-session';
+import { storage } from '../src/store/storage';
 import { useAiStatus } from '../src/ui/status';
+
+// Card vectors are kept on the phone so a later launch embeds only new or changed cards.
+setCardVectorStorage(storage);
 
 export default function RootLayout() {
   // Marcellus only sets calm titles; a failed load must never block an urgent screen.

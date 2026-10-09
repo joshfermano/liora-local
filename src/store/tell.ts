@@ -5,6 +5,8 @@ import { useLogStore } from './log';
 import { contextFrom, readProfile } from './profile';
 import { scopeAnswers, triage } from '../core/agent/triage';
 import { format } from 'date-fns';
+import { typedCache, typedKey } from '../core/cache/typed-cache';
+import { noteHit, notePrompt, timed } from '../core/probe';
 
 export type TellStatus = 'idle' | 'thinking' | 'done' | 'error';
 
@@ -55,17 +57,29 @@ async function cardFor(text: string, context: Context): Promise<string | null> {
 export function setAskModel(fn: AskModel | null, ref: ModelRef | null = null): void {
   askModel = fn;
   modelRef = fn ? ref : null;
+  typedCache.clear();
 }
 
 // SR-2: the lexicon alone still decides when the model is missing, fails or is slow.
 async function typedAnswers(text: string): Promise<Record<string, number[]> | undefined> {
-  if (!askModel) return undefined;
+  const ask = askModel;
+  if (!ask) return undefined;
+  if (modelRef?.prompts?.typed) notePrompt('typed', modelRef.prompts.typed);
+  const key = modelRef ? typedKey(text, modelRef) : null;
+  const cached = key ? typedCache.get(key) : undefined;
+  if (cached) {
+    noteHit('typed');
+    return cached;
+  }
   let timer: ReturnType<typeof setTimeout> | undefined;
   const timeout = new Promise<undefined>((resolve) => {
     timer = setTimeout(() => resolve(undefined), MODEL_TIMEOUT_MS);
   });
   try {
-    return await Promise.race([askModel(text), timeout]);
+    const answers = await timed('typed', () => Promise.race([ask(text), timeout]));
+    // Only a finished answer is kept; a timeout or an error is asked again next time.
+    if (answers && key) typedCache.set(key, answers);
+    return answers;
   } catch {
     return undefined;
   } finally {

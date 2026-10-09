@@ -9,6 +9,8 @@ import {
   toneOf,
   withoutMemory,
   type AgentAction,
+  type AgentData,
+  type ContextInput,
   type Fallback,
   type Outcome,
   type ReplyRequest,
@@ -16,9 +18,11 @@ import {
   type Turn,
 } from '../core/agent';
 import { composeReply, type ReplyBlock } from '../core/companion';
-import type { Entry } from '../core/types';
+import type { Entry, MoodResult } from '../core/types';
 import { commit, dataNow, plan, revertLatest, understand } from './agent';
 import { useLogStore } from './log';
+import { lastResult } from './memo';
+import { noteHit, noteTurn } from '../core/probe';
 import { useMemoryStore } from './memory';
 import { contextFrom, readProfile } from './profile';
 
@@ -33,6 +37,30 @@ export interface AgentTurn {
 }
 
 const newId = () => `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
+// Her data only changes when a log slice is replaced, so the same slices give the same pack.
+export const packFor = lastResult(
+  (
+    periods: AgentData['periods'],
+    dayLogs: AgentData['dayLogs'],
+    cycleSettings: AgentData['cycleSettings'],
+    setup: AgentData['setup'],
+    entries: Entry[],
+    moodChecks: MoodResult[],
+    notes: string[],
+    language: NonNullable<ContextInput['memory']>['language'],
+    day: string,
+  ) => {
+    const profile = readProfile(setup);
+    return contextPack({
+      data: { periods, dayLogs, cycleSettings, setup },
+      entries,
+      moodChecks,
+      profile: { name: profile.name, age: profile.age, status: profile.status, weeks: profile.weeks },
+      today: day,
+      memory: { notes, language },
+    });
+  },
+);
 const HOME = ['checklist', 'mood_check', 'calendar'] as const;
 
 function pick<T extends AgentAction['tool']>(actions: AgentAction[], tool: T): Extract<AgentAction, { tool: T }> | undefined {
@@ -48,6 +76,7 @@ export async function runTurn(text: string, entry: Entry, day: string, thread: T
   // A note is stored only on a calm turn: never when the rules or the model saw a danger sign.
   const calm = read.purpose !== 'urgent' && entry.decision.level === 'ok';
   const actions = calm ? understood : withoutMemory(understood);
+  noteTurn({ tools: actions.map((a) => a.tool) });
   const outcome: Outcome = {
     saved: [],
     waiting: false,
@@ -134,14 +163,9 @@ export async function runTurn(text: string, entry: Entry, day: string, thread: T
     else if (facts.no_action_taken === true) attachments.push({ kind: 'actions', items: [...HOME] });
   }
 
-  const pack = contextPack({
-    data,
-    entries: log.entries,
-    moodChecks: log.moods,
-    profile: { name: profile.name, age: profile.age, status: profile.status, weeks: profile.weeks },
-    today: day,
-    memory: { notes: useMemoryStore.getState().notes, language: useMemoryStore.getState().language },
-  });
+  const memory = useMemoryStore.getState();
+  const { value: pack, hit } = packFor(data.periods, data.dayLogs, data.cycleSettings, data.setup, log.entries, log.moods, memory.notes, memory.language, day);
+  if (hit) noteHit('context');
   return {
     attachments,
     fallback,

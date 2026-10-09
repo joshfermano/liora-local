@@ -1,6 +1,7 @@
 import { applyActions, applyMemory, mergeActions, planActions, undoable, type AgentAction, type JournalEntry, type ReplyRequest, type SavedItem, type Undo } from '../core/agent';
 import { useJournalStore } from './journal';
 import { useLogStore } from './log';
+import { timed } from '../core/probe';
 import { useMemoryStore } from './memory';
 import { readProfile } from './profile';
 
@@ -24,13 +25,14 @@ export const canSay = () => sayReply !== null;
 const ROUTE_TIMEOUT_MS = 4500;
 
 async function routed(text: string): Promise<AgentAction[]> {
-  if (!routeActions) return [];
+  const route = routeActions;
+  if (!route) return [];
   let timer: ReturnType<typeof setTimeout> | undefined;
   const timeout = new Promise<AgentAction[]>((resolve) => {
     timer = setTimeout(() => resolve([]), ROUTE_TIMEOUT_MS);
   });
   try {
-    return await Promise.race([routeActions(text), timeout]);
+    return await timed('route', () => Promise.race([route(text), timeout]));
   } catch {
     return [];
   } finally {
@@ -111,9 +113,10 @@ export function revertLatest(): { id: string; saved: SavedItem[] } | null {
 
 // Null means the screen shows the fixed line.
 export async function say(req: ReplyRequest, onText?: (guarded: string) => void): Promise<string | null> {
-  if (!sayReply) return null;
+  const reply = sayReply;
+  if (!reply) return null;
   try {
-    return await sayReply(req, onText);
+    return await timed('reply', () => reply(req, onText));
   } catch {
     return null;
   }

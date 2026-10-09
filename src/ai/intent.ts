@@ -1,4 +1,5 @@
 import type { Intent } from '../core/companion';
+import { fill, PROMPTS } from './prompts';
 
 // Single letters are single tokens, so the restricted softmax can score every choice.
 export const INTENT_OPTIONS = ['a', 'b', 'c', 'd', 'e', 'f', 'g'] as const;
@@ -16,12 +17,8 @@ const CHOICES: { intent: Intent; text: string }[] = [
 export const INTENT_MIN = 0.5;
 
 export function intentPrompt(message: string): string {
-  const list = CHOICES.map((c, i) => `${INTENT_OPTIONS[i]!.toUpperCase()}) ${c.text}`).join('\n');
-  return (
-    'A pregnant woman or new mother wrote this message. It may be in Tagalog, Taglish, Cebuano or English.\n\n' +
-    `Message: "${message}"\n\n` +
-    `What is the message mainly about? Answer with one letter.\n${list}`
-  );
+  const choices = CHOICES.map((c, i) => `${INTENT_OPTIONS[i]!.toUpperCase()}) ${c.text}`).join('\n');
+  return fill(PROMPTS.intent.text, { message, choices });
 }
 
 // Symptoms are left to the word list and the typed danger questions; this only routes the reply.
