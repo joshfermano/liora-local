@@ -97,11 +97,15 @@ function Decision({ block }: { block: Extract<ReplyBlock, { kind: 'decision' }> 
   const router = useRouter();
   const open = () => router.push(`/result/${block.entryId}`);
   const live = useTellStore((s) => s.current?.id === block.entryId && s.current.decision.level === 'follow_up');
+  // The decision as it stands now: answering a follow-up replaces the entry in her log under the same id,
+  // so an answered question shows its outcome rather than the old 'Answer the question' button.
+  const level = useLogStore((s) => s.entries.find((e) => e.id === block.entryId)?.decision.level) ?? block.level;
+  const question = useTellStore((s) => (s.current?.id === block.entryId ? s.current.decision.follow_up?.question_id : undefined));
   useEffect(() => {
-    if (block.level === 'go_now') warn();
-  }, [block.level]);
+    if (level === 'go_now') warn();
+  }, [level]);
 
-  if (block.level === 'go_now') {
+  if (level === 'go_now') {
     return (
       <View className={`${SURFACE.alarm} rounded-pane p-md gap-sm`} accessibilityRole="alert">
         <Text variant="title3" tone="onUrgent">
@@ -115,8 +119,9 @@ function Decision({ block }: { block: Extract<ReplyBlock, { kind: 'decision' }> 
       </View>
     );
   }
-  if (block.level === 'follow_up') {
-    if (live) return <FollowUpInline entryId={block.entryId} />;
+  if (level === 'follow_up') {
+    // Keyed by question: a second follow-up gets a fresh card.
+    if (live) return <FollowUpInline key={question} entryId={block.entryId} />;
     return (
       <GlassCard interactive className="p-md gap-sm">
         <CapsuleButton variant="filled" label={en('liora.followup.open')} onPress={() => { tap(); open(); }} />
