@@ -1,6 +1,7 @@
 import { File, Paths } from 'expo-file-system';
 import { initLlama } from 'llama.rn';
 import { GEMMA_GGUF, type NativeGemma } from './gemma-model';
+import { withRetries } from './retry';
 import { PROVISIONAL_THRESHOLDS } from '../core/merge';
 import {
   followUpQuestions,
@@ -22,11 +23,16 @@ export function modelBytesOnDisk(): number {
   return file.exists ? (file.size ?? 0) : 0;
 }
 
+// A 2.7 GB download over home Wi-Fi drops now and then ("network connection was lost" on the phone).
 export async function downloadModel(onProgress: (written: number, total: number) => void): Promise<void> {
-  await File.downloadFileAsync(GEMMA_GGUF.url, model(), {
-    idempotent: true,
-    onProgress: ({ bytesWritten, totalBytes }) => onProgress(bytesWritten, totalBytes),
-  });
+  await withRetries(
+    () =>
+      File.downloadFileAsync(GEMMA_GGUF.url, model(), {
+        idempotent: true,
+        onProgress: ({ bytesWritten, totalBytes }) => onProgress(bytesWritten, totalBytes),
+      }),
+    { attempts: 3 },
+  );
 }
 
 export async function loadGemma(): Promise<NativeGemma> {

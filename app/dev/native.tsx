@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
 import { Pressable, ScrollView, Share, Text } from 'react-native';
 import { CHECK_PHRASES, DEMO_PHRASES } from '../../src/ai/demo-phrases';
-import { downloadModel, loadGemma, modelBytesOnDisk, type NativeGemma } from '../../src/ai/gemma-native';
+import { downloadModel, modelBytesOnDisk, type NativeGemma } from '../../src/ai/gemma-native';
+import { gemmaSession, releaseGemma } from '../../src/ai/gemma-session';
 import { toFindings } from '../../src/ai/typed-decisions';
 import { PROVISIONAL_THRESHOLDS } from '../../src/core/merge';
 import { evaluate } from '../../src/core/rules';
@@ -58,8 +59,8 @@ export default function NativeModelTest() {
 
   const load = () =>
     run('load', async () => {
-      await gemma.current?.release();
-      gemma.current = await loadGemma();
+      await releaseGemma();
+      gemma.current = await gemmaSession();
       const { loadMs, gpu, reasonNoGPU } = gemma.current;
       record({ step: 'load', ok: true, ms: loadMs, gpu, reasonNoGPU });
     });
