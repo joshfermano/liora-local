@@ -17,6 +17,13 @@ describe('readActions: period', () => {
     'reads "%s" as a start with an unknown date',
     (text) => expect(one(text, 'period_start')?.date).toEqual({ kind: 'unknown' }),
   );
+  it.each(['Nagsimula regla ko', 'nagsimula na ang regla ko', 'nag-simula ang mens ko', 'nag-start na period ko', 'I started my period'])(
+    'reads "%s", with the verb first, as a period start',
+    (text) => expect(one(text, 'period_start')?.date).toEqual({ kind: 'unknown' }),
+  );
+  it('reads the chat starter "Nagsimula regla ko ngayon" as a start today', () => {
+    expect(one('Nagsimula regla ko ngayon', 'period_start')?.date).toEqual({ kind: 'today' });
+  });
   it('reads "3 araw na" and "2 days ago" as days_ago', () => {
     expect(one('niregla ako 3 araw na', 'period_start')?.date).toEqual({ kind: 'days_ago', n: 3 });
     expect(one('got my period 2 days ago', 'period_start')?.date).toEqual({ kind: 'days_ago', n: 2 });
