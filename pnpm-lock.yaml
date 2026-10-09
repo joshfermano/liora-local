@@ -23,6 +23,9 @@ importers:
       '@huggingface/transformers':
         specifier: 4.3.1
         version: 4.3.1(@types/node@26.6.4)
+      '@react-native-masked-view/masked-view':
+        specifier: 0.3.2
+        version: 0.3.2(react-native@0.86.3(@babel/core@7.29.7)(@react-native/metro-config@0.86.3(@babel/core@7.29.7))(@types/react@19.2.18)(react@19.2.3))(react@19.2.3)
       date-fns:
         specifier: ^4
         version: 4.4.0

@@ -11,6 +11,14 @@ export function useMargin(): number {
 
 const TAB_BAR_CLEARANCE = 64;
 
+// The space under a pinned footer: beside the tab bar it tucks into the bar's generous clearance; over
+// the keyboard it sits right on it.
+export function useFooterGap({ tabBar = false, keyboardUp = false }: { tabBar?: boolean; keyboardUp?: boolean }): number {
+  const insets = useSafeAreaInsets();
+  const bottom = keyboardUp ? 0 : insets.bottom + (tabBar ? TAB_BAR_CLEARANCE : 0);
+  return tabBar && !keyboardUp ? bottom - 8 : bottom + 12;
+}
+
 export function Screen({
   children,
   field = true,
@@ -36,8 +44,7 @@ export function Screen({
   const insets = useSafeAreaInsets();
   const margin = useMargin();
   const bottom = keyboardUp ? 0 : insets.bottom + (tabBar ? TAB_BAR_CLEARANCE : 0);
-  // Beside the tab bar the footer tucks into its clearance, which is generous, to sit just above the bar.
-  const footerGap = tabBar && !keyboardUp ? bottom - 8 : bottom + 12;
+  const footerGap = useFooterGap({ tabBar, keyboardUp });
   const body = (
     <View
       className="w-full max-w-column self-center flex-1"
