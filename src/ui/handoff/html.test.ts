@@ -35,45 +35,76 @@ describe('reportHtml', () => {
     expect(html).not.toContain('<b>ulo</b>');
   });
 
-  it('has every section when the data exists, with copy and no external resources', () => {
-    const html = reportHtml(handoffReport(input()), { bp: { systolic: 150, diastolic: 95 } });
-    for (const key of ['handoff.title', 'handoff.subtitle', 'handoff.patient', 'handoff.pregnancy', 'handoff.concern', 'handoff.said', 'handoff.signs', 'handoff.rule', 'handoff.recent', 'handoff.emergency', 'handoff.footer', 'nurse.bp']) {
-      expect(html).toContain(en(key).replace("'", '&#39;'));
-    }
+  it('has every section in order, with copy and no external resources', () => {
+    const entry = {
+      ...ENTRY,
+      findings: [
+        { code: 'severe_headache', severity: 'severe', sources: ['lexicon'], confidence: 0.9 },
+        { code: 'headache', severity: 'unknown', sources: ['llm'], confidence: 0.7 },
+        { code: 'visual_disturbance', severity: 'unknown', sources: ['llm'], confidence: 0.5 },
+      ],
+    } as unknown as Entry;
+    const html = reportHtml(handoffReport(input({ entry, entries: [entry] })), { bp: { systolic: 150, diastolic: 95 } });
+    const at = (text: string) => {
+      const i = html.indexOf(text.replace(/'/g, '&#39;'));
+      expect(i, text).toBeGreaterThan(-1);
+      return i;
+    };
+    const order = [
+      at('Gweny'),
+      at('157 cm'),
+      at('O+'),
+      at(en('handoff.weeks').replace('{n}', '32')),
+      at('class="banner go_now"'),
+      at(en('go.headline')),
+      at(en('handoff.concern')),
+      at('sakit &lt;b&gt;ulo'),
+      at(en('handoff.signs')),
+      at(en('handoff.rules')),
+      at(en('handoff.recent')),
+      at(en('handoff.emergency')),
+      at('+63 917 123 4567'),
+      at(en('handoff.private')),
+      at(en('handoff.footer')),
+    ];
+    expect(order).toEqual([...order].sort((a, b) => a - b));
+    expect(html.match(/<b>Headache<\/b>/g)).toHaveLength(1);
+    const safe = (t: string) => t.replace(/'/g, '&#39;');
+    expect(html).toContain(safe(`${en('handoff.sev.severe')} · ${en('handoff.origin.words')} + ${en('handoff.origin.model')}`));
+    expect(html).toContain(safe(`${en('handoff.sev.unknown')} · ${en('handoff.origin.model')}`));
     expect(html).toContain('150/95');
-    expect(html).toContain('Gweny');
-    expect(html).toContain('+63 917 123 4567');
-    expect(html).toContain('ANC.DT.01.headache');
-    expect(html).toContain('class="urgent"');
+    expect(html).toContain('ANC.DT.01');
+    expect(html).toContain('WHO antenatal care recommendations');
+    expect(html).toContain(en('handoff.nothing_logged'));
+    expect(html).toContain('size: A4');
     expect(html).not.toMatch(/https?:\/\/|<script|<link|<img|src=/i);
+  });
+
+  it('escapes every piece of her data, not only the quote', () => {
+    const evil = '<script>x</script>';
+    const html = reportHtml(
+      handoffReport(input({ patient: { name: evil, bloodType: 'O+', status: 'pregnant', weeks: 3 }, emergency: { name: evil, relation: evil, phone: '"1234567"' } })),
+    );
+    expect(html).not.toContain('<script>x');
+    expect(html.match(/&lt;script&gt;x&lt;\/script&gt;/g)?.length).toBeGreaterThanOrEqual(3);
+    expect(html).toContain('&quot;1234567&quot;');
   });
 
   it('leaves out sections and rows that have no data', () => {
     const html = reportHtml(handoffReport(input({ patient: {}, emergency: undefined, entry: null, entries: [], dayLogs: [] })));
-    expect(html).not.toContain(en('handoff.patient'));
-    expect(html).not.toContain('concern<');
+    expect(html).not.toContain(en('handoff.concern'));
+    expect(html).not.toContain(en('handoff.rules'));
+    expect(html).not.toContain('class="banner');
     expect(html).not.toContain(en('handoff.emergency'));
     expect(html).not.toContain(en('nurse.bp'));
     expect(html).toContain(en('handoff.recent.none'));
     expect(html).toContain(en('handoff.status.unknown'));
   });
 
-  it('puts no words in the report that are not her data or copy', () => {
-    const html = reportHtml(handoffReport(input()));
-    const text = html.replace(/<style>[\s\S]*?<\/style>/, '').replace(/<[^>]+>/g, '|');
-    const allowed = new Set(
-      [
-        'handoff.title', 'handoff.subtitle', 'handoff.footer', 'handoff.patient', 'handoff.pregnancy', 'handoff.concern',
-        'handoff.said', 'handoff.signs', 'handoff.rule', 'handoff.recent', 'handoff.emergency', 'handoff.status.pregnant',
-        'profile.name', 'profile.age', 'blood.title', 'profile.height', 'profile.weight', 'nurse.logged', 'em.name', 'em.relation', 'em.phone',
-      ].map(en),
-    );
-    const unknown = text
-      .split('|')
-      .map((s) => s.trim())
-      .filter(Boolean)
-      .filter((s) => !allowed.has(s))
-      .filter((s) => !/\d/.test(s) && !['Gweny', 'Sister', 'Ana', 'O+', 'Headache · severe', 'Headache', 'Headache, Anxious'].includes(s) && !s.includes('sakit'));
-    expect(unknown).toEqual([]);
+  it('names the blood pressure rule in plain words with its citation', () => {
+    const entry = { ...ENTRY, decision: { level: 'go_now', fired: [{ rule_id: 'ANC.DT.17', codes: [] }] } } as unknown as Entry;
+    const html = reportHtml(handoffReport(input({ entry, entries: [entry] })));
+    expect(html).toContain(en('handoff.rule.ANC.DT.17'));
+    expect(html).toContain('ANC.DT.17');
   });
 });

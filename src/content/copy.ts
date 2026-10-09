@@ -680,6 +680,25 @@ export const COPY = {
   'handoff.summary': ui('Health summary'),
   // handoff ui (LUM-61)
   'handoff.share.error': ui('Could not make the PDF. Try again.'),
+  // handoff report redesign
+  'handoff.flow': ui('Flow'),
+  'handoff.how.text': ui('Typed'),
+  'handoff.how.voice': ui('Voice'),
+  'handoff.how.checklist': ui('Checklist'),
+  'handoff.said_at': ui('Said'),
+  'handoff.how': ui('How'),
+  'handoff.sev.severe': ui('very bad'),
+  'handoff.sev.not_severe': ui('not very bad'),
+  'handoff.sev.unknown': ui('not asked yet'),
+  'handoff.origin.words': ui('her words'),
+  'handoff.origin.model': ui("model's reading"),
+  'handoff.rules': ui('WHO rules that fired'),
+  'handoff.rule.sign': ui('Danger sign: {sign}'),
+  'handoff.rule.ANC.DT.17': ui('Blood pressure and protein in urine'),
+  'handoff.cite.section': ui('Section'),
+  'handoff.nothing_logged': ui('Nothing logged'),
+  'handoff.private': ui('Made on her phone. Nothing was sent anywhere.'),
+  'handoff.call': ui('Call {name}'),
 } as const satisfies Record<string, Entry>;
 
 export type CopyKey = keyof typeof COPY;
