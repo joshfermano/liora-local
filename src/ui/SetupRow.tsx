@@ -1,40 +1,46 @@
 import { View } from 'react-native';
+import { en } from '../content/copy';
+import { Icon } from './Icon';
+import { formatSize } from './setup/sizes';
 import { Text } from './Text';
-import { EDGE, SURFACE } from './theme';
+import { SURFACE } from './theme';
 
 export type RowState = 'idle' | 'busy' | 'done' | 'failed' | 'web';
 
-const SQUARES = 10;
-
-// Real megabytes from the download plus ten squares; never a bare percentage.
+// One lattice row: the name, its size known up front, a slim progress line, and a check when ready.
 export function SetupRow({
   name,
   state,
   written,
   total,
-  status,
+  expected,
 }: {
   name: string;
   state: RowState;
   written: number;
   total: number;
-  status: string;
+  expected: number;
 }) {
-  const lit = state === 'done' ? SQUARES : total > 0 ? Math.floor((written / total) * SQUARES) : 0;
-  const mb = (n: number) => Math.round(n / 1_000_000);
+  const size = total > 0 ? total : expected;
+  const fraction = state === 'done' ? 1 : state === 'busy' && size > 0 ? Math.min(1, written / size) : 0;
   const detail =
-    state === 'busy' || state === 'done' ? `${mb(written)}${total > 0 ? ` / ${mb(total)}` : ''} ${status}` : status;
+    state === 'web'
+      ? en('setup.web')
+      : state === 'failed'
+        ? en('setup.failed')
+        : state === 'done'
+          ? `${formatSize(size)}, ${en('setup.done')}`
+          : state === 'busy'
+            ? `${formatSize(written)} / ${formatSize(size)}`
+            : formatSize(size);
   return (
-    <View
-      accessible
-      accessibilityLabel={`${name}. ${detail}`}
-      className={`${SURFACE.surface} ${EDGE} rounded-pane px-md py-sm gap-xs`}
-    >
-      <Text variant="headline">{name}</Text>
-      <View className="flex-row gap-xxs">
-        {Array.from({ length: SQUARES }, (_, i) => (
-          <View key={i} className={`h-3 flex-1 rounded-sm ${i < lit ? SURFACE.tintFill : SURFACE.fill}`} />
-        ))}
+    <View accessible accessibilityLabel={`${name}. ${detail}`} className="gap-xs px-md py-sm">
+      <View className="flex-row items-center justify-between gap-sm">
+        <Text variant="headline">{name}</Text>
+        {state === 'done' ? <Icon name="check" tone="tint" /> : null}
+      </View>
+      <View className={`h-1 overflow-hidden rounded-full ${SURFACE.fill}`}>
+        <View className={`h-1 rounded-full ${SURFACE.tintFill}`} style={{ width: `${Math.round(fraction * 100)}%` }} />
       </View>
       <Text variant="footnote" tone={state === 'failed' ? 'urgent' : 'secondary'}>
         {detail}
