@@ -64,7 +64,7 @@ export default function Liora() {
               }}
               surfaceClassName="min-h-tap min-w-tap items-center justify-center"
             >
-              <Symbol name="arrow.counterclockwise" fallback="reset" tone="tint" size={22} />
+              <Symbol name="arrow.counterclockwise.circle" fallback="reset" tone="tint" size={26} />
             </PressableSurface>
           ) : null}
         </View>
