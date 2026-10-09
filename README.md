@@ -76,7 +76,7 @@ reported.
 ## Features
 
 "Checked on a phone" means seen working on an iPhone 16 Pro Max during the build; the demo phones
-(iPhone 17 and 17 Pro) are checked before the demo.
+(the iPhone 17 Pro) is checked before the demo.
 
 | Feature | Status |
 | --- | --- |
@@ -106,19 +106,19 @@ about her body, her pregnancy and her mood never leave her phone. Answers come f
 itself, with no server round trip (measured times will be listed below). And with no per-question
 cost, Liora can keep it free for every mother.
 
-## Measured on the demo iPhones
+## Measured on the demo iPhone
 
-**Not measured yet.** Every number in this section will be measured on the iPhone 17 and
-iPhone 17 Pro (iOS 27.2, the native app). No number is quoted from vendors, and numbers from other
-phones are not listed here.
+**Not measured yet.** Every number in this section will be measured on the demo phone, an iPhone
+17 Pro (iOS 27.2, the native app, release build). No number is quoted from vendors, and numbers
+from other phones are not listed here.
 
-| Measurement | iPhone 17 | iPhone 17 Pro |
-| --- | --- | --- |
-| First download size | not measured | not measured |
-| Cold and warm load time | not measured | not measured |
-| Time from message to result | not measured | not measured |
-| Transcription time for a 10 s clip | not measured | not measured |
-| Danger-sign recall on the 30-case Taglish test set | not measured | not measured |
+| Measurement | iPhone 17 Pro |
+| --- | --- |
+| First download size | not measured |
+| Cold and warm load time | not measured |
+| Time from message to result | not measured |
+| Transcription time for a 10 s clip | not measured |
+| Danger-sign recall on the 30-case Taglish test set | not measured |
 
 ## Models
 

@@ -42,8 +42,9 @@ next-period estimate. Everything runs on the device.
   disqualify the team.
 - **All code is written fresh, in this repo, during the hackathon.** Never copy code from another
   project or repo.
-- **Verify on the real devices:** iPhone 17 and iPhone 17 Pro, iOS 27.2, Safari and Home Screen
-  web app. Desktop Chrome is a convenience, not evidence for iPhone.
+- **Verify on the real device:** the iPhone 17 Pro (iOS 27.2, the native app) is the demo phone and
+  the only phone for measured numbers (team decision, 2026-10-10). Ivan develops on his iPhone 17.
+  Desktop Chrome is a convenience, not evidence for iPhone.
 - **Ask before outward actions:** creating or publishing a repo, enabling Pages, posting anything.
   Pushing verified commits to `main` is pre-approved by the user (2026-10-09).
 

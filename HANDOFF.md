@@ -53,10 +53,11 @@ Update section 1 and section 2 of this file as work completes, so any session ca
 2. **Check every screen on the iPhone 17 Pro** while it live-reloads, then swap the drawn marks into
    Today (season mark) and the day log (log marks) once the art kit lands. Older screens still in
    the first design: result screens, nurse card, checklist, mood check, My log.
-3. **iPhone 17:** plug into the Mac once, Developer Mode on, build, trust the developer, download
-   the models in setup.
-4. **Measurements (LUM-77):** load and answer times and the eval phrases on both demo phones; fill
-   the README table with demo-phone numbers only.
+3. **Release build on the iPhone 17 Pro** for measurements (`.tmp/build.command`, with the test
+   screen on): the live-reload build is a debug build and its timings do not count.
+4. **Measurements (LUM-77):** load and answer times and the eval phrases on the iPhone 17 Pro only
+   (team decision, 10 Oct); fill the README table. Ivan develops on his own iPhone 17 and pushes to
+   `main` too: pull before every push.
 5. **Team content (Ivan):** Filipino copy (LUM-47), eval phrases (LUM-77), confirmations (LUM-54).
 6. **Submission:** README (LUM-78), 1-minute video and post (LUM-48), final demo build without
    `EXPO_PUBLIC_SHOW_DEV`, submit on Cerebral Valley before 10:00 AM (LUM-49).
@@ -112,7 +113,8 @@ check shows a crisis hotline on any self-harm answer. Nothing leaves the phone.
 
 - **Laptop:** Fedora Linux 44, Node 24.18, pnpm 9.15, Google Chrome, `gh` logged in as
   `joshfermano`, `uv` available. No Mac.
-- **Demo devices:** iPhone 17 and iPhone 17 Pro, both iOS 27.2.
+- **Demo device:** iPhone 17 Pro, iOS 27.2 (the only phone for measured numbers). Ivan develops on
+  his iPhone 17.
 
 ## 7. Verified versions (checked 2026-10-09)
 
