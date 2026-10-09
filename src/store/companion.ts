@@ -3,12 +3,14 @@ import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
 import { languageOf, triage } from '../core/agent';
 import { composeReply, ruleIntent, type ReplyBlock } from '../core/companion';
+import { beginProbe, endProbe, noteTurn, timedSync } from '../core/probe';
 import { canSay, commit, revert, say } from './agent';
 import { contextFrom, readProfile } from './profile';
 import { useMemoryStore } from './memory';
 import { useLogStore } from './log';
 import { storage } from './storage';
 import { useTellStore } from './tell';
+import { toTrace, useTraceStore } from './trace';
 import { recentTurns } from './thread';
 import { runTurn, type AgentTurn } from './turn';
 
@@ -128,6 +130,7 @@ export const useCompanionStore = create<CompanionState>()(
         set((s) => ({ messages: [...s.messages, her], thinking: true }));
         useMemoryStore.getState().setLanguage(languageOf(get().messages.filter((m) => m.role === 'her').map((m) => m.text ?? '')));
         const t0 = Date.now();
+        beginProbe();
         const mark = (stage: string) => {
           if (dev) console.log(`[chat] ${stage} at ${Date.now() - t0} ms`);
         };
@@ -144,7 +147,8 @@ export const useCompanionStore = create<CompanionState>()(
           const { setup, cycleSettings } = useLogStore.getState();
           const profile = readProfile(setup);
           const day = today();
-          const read = triage(text, day, profile.status);
+          const read = timedSync('triage', () => triage(text, day, profile.status));
+          noteTurn({ purpose: read.purpose, typedScope: read.typed, tools: read.actions.map((a) => a.tool) });
           // A danger turn gets the rules' fixed decision block and no model-written words.
           const urgent = entry.decision.level === 'go_now' || entry.decision.level === 'follow_up' || read.purpose === 'urgent';
           let turn: AgentTurn | null = null;
@@ -177,6 +181,7 @@ export const useCompanionStore = create<CompanionState>()(
           if (canSay()) {
             const final = await say(turn.request, (guarded) => putReply(set, id, guarded));
             putReply(set, id, final);
+            noteTurn({ fallback: final === null });
           }
         };
         let timer: ReturnType<typeof setTimeout> | undefined;
@@ -191,6 +196,8 @@ export const useCompanionStore = create<CompanionState>()(
           if (!added) add([{ kind: 'text', key: 'liora.error' }]);
         } finally {
           clearTimeout(timer);
+          const draft = endProbe();
+          if (draft) useTraceStore.getState().add(toTrace(draft, Date.now() - t0));
           mark('replied');
           set(() => ({ thinking: false }));
         }

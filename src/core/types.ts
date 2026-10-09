@@ -60,7 +60,13 @@ export const EntrySchema = z.object({
   decision: DecisionSchema,
   card_ids: z.array(z.string()),
   models: z.array(
-    z.object({ role: z.enum(['llm', 'asr', 'embedding', 'ocr']), id: z.string(), version: z.string() }),
+    z.object({
+      role: z.enum(['llm', 'asr', 'embedding', 'ocr']),
+      id: z.string(),
+      version: z.string(),
+      // Which prompt versions this model was given; entries saved before this field have none.
+      prompts: z.record(z.string(), z.string()).optional(),
+    }),
   ),
 });
 

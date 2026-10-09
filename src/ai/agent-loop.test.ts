@@ -6,6 +6,7 @@ const guardReply = vi.fn();
 vi.mock('./gemma-session', () => ({ runJson: vi.fn(), runSay: (...args: unknown[]) => runSay(...args) }));
 vi.mock('../core/agent', () => ({ guardReply: (t: string, f: unknown) => guardReply(t, f) }));
 
+import { beginProbe, endProbe } from '../core/probe';
 import { completeSentences, PERSONA, replyMessages, REPLY_TIMEOUT_MS, sayReply } from './agent-loop';
 
 const req = (over: Partial<ReplyRequest> = {}): ReplyRequest => ({
@@ -126,6 +127,16 @@ describe('sayReply', () => {
     late('Ayos! Next one. Too late. More');
     expect(shown).toEqual(['Ayos!']);
     vi.useRealTimers();
+  });
+
+  it('tells the turn trace the persona version and how many sentences the guard removed', async () => {
+    runSay.mockResolvedValue('Ayos! Uminom ka ng tubig. Next one.');
+    guardReply.mockImplementation((t: string) => t.replace('Uminom ka ng tubig. ', ''));
+    beginProbe();
+    await sayReply(req());
+    const draft = endProbe()!;
+    expect(draft.prompts).toEqual({ persona: '1' });
+    expect(draft.guardDropped).toBe(1);
   });
 
   it('gives null on failure with nothing shown', async () => {

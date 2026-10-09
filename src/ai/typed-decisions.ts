@@ -1,6 +1,7 @@
 import { fromTypedDecision, type Thresholds } from '../core/merge';
 import type { DangerCode, Finding, Severity } from '../core/types';
 import { DANGER_CODES } from '../core/vocabulary';
+import { fill, PROMPTS } from './prompts';
 
 // What each WHO ANC.DT.01 code looks like in her words. These are reading questions for the
 // model, never shown to her and never advice.
@@ -69,11 +70,7 @@ export function followUpQuestions(answers: Record<string, number[]>, { tauLo }: 
 }
 
 export function promptFor(message: string, question: Question) {
-  return (
-    'A pregnant woman or new mother wrote this message. It may be in Tagalog, Taglish, Cebuano or English.\n\n' +
-    `Message: "${message}"\n\n` +
-    question.text
-  );
+  return fill(PROMPTS.typed.text, { message, question: question.text });
 }
 
 type Scores = { readonly [tokenId: number]: number | undefined };

@@ -2,6 +2,7 @@ import { File, Paths } from 'expo-file-system';
 import { initLlama } from 'llama.rn';
 import { GEMMA_GGUF, GEMMA_VOICE, type NativeGemma } from './gemma-model';
 import { INTENT_OPTIONS, intentPrompt } from './intent';
+import { PROMPTS } from './prompts';
 import { withRetries } from './retry';
 import { PROVISIONAL_THRESHOLDS } from '../core/merge';
 import { transcriptOnly } from './transcript';
@@ -40,10 +41,6 @@ export async function downloadVoice(onProgress: (written: number, total: number)
     { attempts: 3 },
   );
 }
-
-const TRANSCRIBE =
-  'Write down exactly what is said in this recording, word for word, in the language it is spoken ' +
-  '(Tagalog, Taglish, Cebuano or English). Write only the words that are said.';
 
 // A 2.7 GB download over home Wi-Fi drops now and then ("network connection was lost" on the phone).
 export async function downloadModel(onProgress: (written: number, total: number) => void): Promise<void> {
@@ -131,7 +128,7 @@ export async function loadGemma(): Promise<NativeGemma> {
           {
             role: 'user',
             content: [
-              { type: 'text', text: TRANSCRIBE },
+              { type: 'text', text: PROMPTS.transcribe.text },
               { type: 'input_audio', input_audio: { format: 'wav', url: wavUri } },
             ],
           },
