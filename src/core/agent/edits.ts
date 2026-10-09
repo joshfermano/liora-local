@@ -15,7 +15,7 @@ const PARTS: { pattern: RegExp; what: Extract<AgentAction, { tool: 'clear_day' }
   { pattern: /\bflow\b|daloy/i, what: 'flow' },
 ];
 const LOGGED = /nilog|na-?log|\blogs?\b|\blogged\b|\bentry\b|\bentries\b|lahat|everything/i;
-const ASK_DAY = /\b(?:ano|anong)\b.*\b(?:nilog|na-?log|naitala)\b|\bwhat\b.*\b(?:did\s+i\s+log|i\s+logged|logged|my\s+log)\b/i;
+const ASK_DAY = /\bshow\s+(?:me\s+)?(?:my\s+)?(?:logs?|entries)\b|\bano(?:ng)?\s+(?:ang\s+)?nangyari\s+(?:sa\s+akin|sakin)\b|\bwhat\s+happened\s+(?:to\s+me\s+)?(?:on|last|yesterday)\b|\b(?:ano|anong)\b.*\b(?:nilog|na-?log|naitala)\b|\bwhat\b.*\b(?:did\s+i\s+log|i\s+logged|logged|my\s+log)\b/i;
 const OPEN_VERB = /\b(?:open|buksan|pumunta|punta|go\s+to|show|ipakita)\b/i;
 const SCREENS: { pattern: RegExp; screen: Screen }[] = [
   { pattern: /calendar|kalendaryo/i, screen: 'calendar' },

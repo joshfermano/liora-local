@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { carryOver, continuesTopic, dateAnswer } from './carry';
+import { carryOver, continuesTopic, corrects, dateAnswer } from './carry';
 import type { SavedItem } from './types';
 
 const TODAY = '2026-10-10';
@@ -38,8 +38,8 @@ describe('carrying the last turn into a short reply', () => {
     expect(carryOver('tapos na', HEADACHE, TODAY)).toBeNull();
   });
 
-  it('does not log the same day twice', () => {
-    expect(carryOver('pati ngayon', HEADACHE, TODAY)).toBeNull();
+  it('does not log the same day twice, and says so', () => {
+    expect(carryOver('pati ngayon', HEADACHE, TODAY)).toEqual([]);
   });
 });
 
@@ -62,5 +62,16 @@ describe('a date given after Liora asked which day', () => {
   it('needs a bare date and something waiting', () => {
     expect(dateAnswer('masakit ulo ko kahapon', waiting, TODAY)).toBeNull();
     expect(dateAnswer('kahapon', [], TODAY)).toBeNull();
+  });
+});
+
+describe('a correction of what Liora just saved', () => {
+  it.each(['hindi pala, malungkot ako', 'actually I am tired', 'mali, masakit puson ko'])('hears "%s"', (text) => {
+    expect(corrects(text, HEADACHE)).toBe(true);
+  });
+
+  it('needs something saved just before', () => {
+    expect(corrects('hindi pala, malungkot ako', [])).toBe(false);
+    expect(corrects('malungkot ako', HEADACHE)).toBe(false);
   });
 });

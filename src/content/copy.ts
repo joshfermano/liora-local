@@ -748,6 +748,8 @@ export const COPY = {
   'reply.howareyou': ui('I am doing well, thank you for asking! How are you feeling today?'),
   'reply.noted': ui('Okay, thank you for telling me. It stays in your log.'),
   'reply.saved.mood_check': ui('It is saved. Thank you for telling me how you feel. If it would help, the mood check is one tap away below.'),
+  'reply.already': ui('That is already in your log for that day.'),
+  'reply.status.same': ui('Your profile already says that, so there is nothing to change.'),
   'reply.contact': ui('I cannot call or text by myself, but you can reach your emergency contact with the buttons below.'),
   'reply.contact.bright': ui('I cannot call or text by myself, but the buttons below reach your emergency contact in one tap.'),
   'reply.contact.gentle': ui('I am here with you. I cannot call by myself, but the buttons below reach your emergency contact right away.'),

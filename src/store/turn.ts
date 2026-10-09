@@ -236,11 +236,14 @@ export async function runTurn(
   const { facts, fallback: planned, style } = replyPlan(outcome, { name: profile.name, tone, today: day, moods: moodsOn(data.dayLogs, day), said: pick(actions, 'moods')?.moods, hurting: Boolean(pick(actions, 'symptoms')) || entry.findings.length > 0,
     hurtingToday: (data.dayLogs.find((l) => l.date === day)?.symptoms.length ?? 0) > 0,
   });
+  // "Buntis ako" when her profile already says so: tell her, rather than a blank reply.
+  const stated = pick(actions, 'set_status');
+  const sameStatus = !!stated && stated.status === profile.status && outcome.saved.length === 0 && !outcome.waiting;
   // Low moods while pregnant or after birth: the mood check is one tap away, and the line says so.
   const low = outcome.saved.some((i) => i.kind === 'moods' && i.values.some((m) => m === 'sad' || m === 'anxious' || m === 'stressed'));
   const offerCheck = low && profile.status !== 'neither' && profile.status !== undefined;
   if (offerCheck) attachments.push({ kind: 'actions', items: ['mood_check'] });
-  const fallback = offerCheck && planned.key.startsWith('reply.saved') ? { key: 'reply.saved.mood_check' } : planned;
+  const fallback = sameStatus ? { key: 'reply.status.same' } : offerCheck && planned.key.startsWith('reply.saved') ? { key: 'reply.saved.mood_check' } : planned;
   if (attachments.length === 0) {
     if (asksAboutHerData) attachments.push({ kind: 'actions', items: ['calendar'] });
     else if (facts.no_action_taken === true) attachments.push({ kind: 'actions', items: [...HOME] });
