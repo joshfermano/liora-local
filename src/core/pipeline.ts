@@ -2,6 +2,7 @@ import { toFindings } from '../ai/typed-decisions';
 import { applyAnswer, type Answer } from './followups';
 import { readText, readWeeks } from './lexicon';
 import { MILD_CUE, SEVERE_CUE } from './lexicon/entries';
+import { readPeriod } from './lexicon/period';
 import { mergeFindings, PROVISIONAL_THRESHOLDS } from './merge';
 import { evaluate } from './rules';
 import type { Context, Entry, Extraction, Finding } from './types';
@@ -16,10 +17,11 @@ export interface PipelineInput {
   models?: Entry['models'];
 }
 
-function extract(text: string): Extraction | null {
+function extract(text: string, now: Date): Extraction | null {
   const weeks = readWeeks(text);
-  if (weeks === null) return null;
-  return { period: null, symptoms: [], moods: [], danger_signs: [], pregnancy_weeks: weeks };
+  const period = readPeriod(text, now);
+  if (weeks === null && period === null) return null;
+  return { period, symptoms: [], moods: [], danger_signs: [], pregnancy_weeks: weeks };
 }
 
 // SR-1: the model may add caution but never remove a follow-up on its own. Its "mild" reading of a
@@ -43,7 +45,7 @@ export function runPipeline({ id, now, text, input, context, typedAnswers, model
     text,
     input,
     findings,
-    extraction: extract(text),
+    extraction: extract(text, now),
     decision: evaluate(findings, context),
     card_ids: [],
     models: models ?? [],

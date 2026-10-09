@@ -103,3 +103,10 @@ describe('the model can add caution but never remove a follow-up on its own (SR-
     expect(entry.findings.find((f) => f.code === 'severe_headache')?.severity).toBe('unknown');
   });
 });
+
+describe('period mentions', () => {
+  it('puts a period she mentions on the entry for the calendar to confirm', () => {
+    const entry = runPipeline({ id: 'p', now: new Date('2026-10-09T15:00:00+08:00'), text: 'Nagsimula regla ko kahapon', input: 'text', context: { status: 'neither' } });
+    expect(entry.extraction?.period).toMatchObject({ event: 'started', date: '2026-10-08' });
+  });
+});
