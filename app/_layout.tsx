@@ -22,7 +22,12 @@ export default function RootLayout() {
   return (
     <>
       <StatusBar style="auto" />
-      <Stack screenOptions={{ headerShown: false, animation: 'fade' }} />
+      <Stack screenOptions={{ headerShown: false, animation: 'fade' }}>
+        <Stack.Screen
+          name="period"
+          options={{ presentation: 'formSheet', animation: 'default', sheetGrabberVisible: true, sheetAllowedDetents: [0.7, 1] }}
+        />
+      </Stack>
     </>
   );
 }

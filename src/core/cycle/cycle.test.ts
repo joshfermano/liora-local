@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { periodLength, predictNext, resolvePeriodDate } from './index';
+import { cycleDay, cycleHistory, periodLength, predictNext, resolvePeriodDate } from './index';
 import type { PeriodRecord } from '../types';
 
 const rec = (start: string, end: string | null = null): PeriodRecord => ({
@@ -7,6 +7,21 @@ const rec = (start: string, end: string | null = null): PeriodRecord => ({
 });
 const recs = (...starts: string[]) => starts.map((s) => rec(s));
 const TODAY = '2026-10-09';
+
+describe('cycleHistory and cycleDay', () => {
+  it('lists cycles newest first with their lengths', () => {
+    expect(cycleHistory(recs('2026-08-01', '2026-08-29', '2026-09-27'))).toEqual([
+      { start: '2026-09-27', length: null },
+      { start: '2026-08-29', length: 29 },
+      { start: '2026-08-01', length: 28 },
+    ]);
+  });
+  it('counts the cycle day from the latest start', () => {
+    expect(cycleDay(recs('2026-10-01'), TODAY)).toBe(9);
+    expect(cycleDay([], TODAY)).toBeNull();
+    expect(cycleDay(recs('2026-10-12'), TODAY)).toBeNull();
+  });
+});
 
 describe('predictNext', () => {
   it('worked example 1: lengths 28, 29, 28 give Oct 22, Oct 20 to 24, high', () => {
