@@ -99,6 +99,65 @@ function Chip({ label, detail, danger }: { label: string; detail: string; danger
   );
 }
 
+// One AI typed decision: the sign and its severity, and a bar that fills to how sure the model was.
+function ConfidenceRow({ finding, danger }: { finding: Finding; danger: boolean }) {
+  const c = finding.confidence ?? 0;
+  const tone = danger ? 'urgent' : 'tintSoftInk';
+  return (
+    <View
+      accessible
+      accessibilityLabel={`${fil(signKey(finding.code))}, ${fil(severityKey(finding.severity))}, ${confidenceWord(c)} ${Math.round(c * 100)}%`}
+      className="gap-xs px-md py-sm"
+    >
+      <View className="flex-row items-center gap-xs">
+        {danger ? <Symbol name="exclamationmark.triangle.fill" fallback="danger" tone="urgent" size={14} /> : null}
+        <Text variant="body" className="flex-1 font-semibold">
+          {fil(signKey(finding.code))}
+        </Text>
+        <Text variant="subheadline" tone="secondary">
+          {fil(severityKey(finding.severity))}
+        </Text>
+      </View>
+      <View className={`h-1.5 overflow-hidden rounded-full ${SURFACE.fill}`}>
+        <View style={{ width: `${Math.round(c * 100)}%` }} className={`h-full rounded-full ${danger ? 'bg-urgent dark:bg-urgent-dark' : 'bg-tint dark:bg-tint-dark'}`} />
+      </View>
+      <Text variant="caption1" tone={tone} className="tabular-nums">
+        {`${confidenceWord(c).replace(/^./, (x) => x.toUpperCase())} · ${Math.round(c * 100)}%`}
+      </Text>
+    </View>
+  );
+}
+
+const MODEL_ICON: Record<Entry['models'][number]['role'], { sf: string; fallback: 'brain' | 'live' | 'list' | 'info' }> = {
+  llm: { sf: 'brain', fallback: 'brain' },
+  asr: { sf: 'waveform', fallback: 'live' },
+  embedding: { sf: 'magnifyingglass', fallback: 'list' },
+  ocr: { sf: 'doc.text.viewfinder', fallback: 'info' },
+};
+
+function ModelTile({ model }: { model: Entry['models'][number] }) {
+  const icon = MODEL_ICON[model.role];
+  return (
+    <View
+      accessible
+      accessibilityLabel={`${model.id}, ${en(`decided.role.${model.role}`)}, ${model.version}`}
+      className={`${SURFACE.surface} ${EDGE} rounded-pane flex-row items-center gap-sm px-md py-sm`}
+    >
+      <View className={`h-9 w-9 items-center justify-center rounded-full ${SURFACE.tintSoft}`}>
+        <Symbol name={icon.sf as never} fallback={icon.fallback} tone="tintSoftInk" size={18} />
+      </View>
+      <View className="flex-1">
+        <Text variant="subheadline" className="font-semibold">
+          {model.id}
+        </Text>
+        <Text variant="caption1" tone="secondary">
+          {`${en(`decided.role.${model.role}`)} · ${model.version}`}
+        </Text>
+      </View>
+    </View>
+  );
+}
+
 function Body({ entry, context, onBack }: { entry: Entry; context: Context; onBack: () => void }) {
   const checked = dangerRulesApply(context, entry.input, entry.text);
   const rules = [...new Set(entry.decision.fired.map((f) => f.rule_id))].map((id): [string, string | undefined] => {
@@ -149,18 +208,27 @@ function Body({ entry, context, onBack }: { entry: Entry; context: Context; onBa
                   <Text variant="footnote" tone="secondary">
                     {en(`decided.reader.${reader}`)}
                   </Text>
-                  <View className="flex-row flex-wrap gap-xs">
-                    {found.map((f) => (
-                      <Chip
-                        key={f.code}
-                        label={fil(signKey(f.code))}
-                        danger={checked && isDanger(f.code)}
-                        detail={`${fil(severityKey(f.severity))}${
-                          reader === 'llm' && f.confidence !== null ? ` · ${confidenceWord(f.confidence)} (${f.confidence.toFixed(2)})` : ''
-                        }`}
-                      />
-                    ))}
-                  </View>
+                  {reader === 'llm' ? (
+                    <View className={`${SURFACE.surface} ${EDGE} rounded-pane overflow-hidden`}>
+                      {found.map((f, i) => (
+                        <View key={f.code}>
+                          {i > 0 ? <View className={`h-px ${SEPARATOR}`} /> : null}
+                          <ConfidenceRow finding={f} danger={checked && isDanger(f.code)} />
+                        </View>
+                      ))}
+                    </View>
+                  ) : (
+                    <View className="flex-row flex-wrap gap-xs">
+                      {found.map((f) => (
+                        <Chip
+                          key={f.code}
+                          label={fil(signKey(f.code))}
+                          danger={checked && isDanger(f.code)}
+                          detail={fil(severityKey(f.severity))}
+                        />
+                      ))}
+                    </View>
+                  )}
                 </View>
               ))}
               {silent.length > 0 ? (
@@ -194,16 +262,9 @@ function Body({ entry, context, onBack }: { entry: Entry; context: Context; onBa
                   {en('decided.models.none')}
                 </Text>
               ) : (
-                <View className="flex-row flex-wrap gap-xs">
+                <View className="gap-xs">
                   {entry.models.map((m) => (
-                    <View key={`${m.role}-${m.id}`} className={`${SURFACE.surface} ${EDGE} rounded-sm gap-0.5 px-sm py-xs`}>
-                      <Text variant="subheadline" className="font-semibold">
-                        {m.id}
-                      </Text>
-                      <Text variant="caption1" tone="secondary">
-                        {`${m.role} · ${m.version}`}
-                      </Text>
-                    </View>
+                    <ModelTile key={`${m.role}-${m.id}`} model={m} />
                   ))}
                 </View>
               )}
