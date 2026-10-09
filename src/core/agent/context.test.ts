@@ -33,6 +33,12 @@ describe('what Liora knows about her, for the reply prompt', () => {
     expect(text).toMatch(/Likely ovulation: Oct 30 to Nov 1/);
   });
 
+  it('includes her blood type and emergency contact', () => {
+    const { text } = contextPack(input({ profile: { name: 'Gweny', status: 'neither', bloodType: 'O+', emergency: { name: 'Ana', relation: 'Sister', phone: '0917 123 4567' } } }));
+    expect(text).toContain('Blood type: O+');
+    expect(text).toContain('Emergency contact: Ana (Sister), 0917 123 4567');
+  });
+
   it('describes a pregnancy and leaves out every cycle estimate', () => {
     const { text } = contextPack(input({ profile: { name: 'Gweny', status: 'pregnant', weeks: 32 } }));
     expect(text).toContain('Pregnant, week 32');

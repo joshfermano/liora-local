@@ -5,6 +5,30 @@ import { useLogStore, type SetupAnswers } from './log';
 
 export type Status = Context['status'];
 
+export const BLOOD_TYPES = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-', 'unknown'] as const;
+export type BloodType = (typeof BLOOD_TYPES)[number];
+
+// Someone she chose to call in an emergency; kept only on this phone, never contacted on its own.
+export interface EmergencyContact {
+  name: string;
+  relation?: string;
+  phone: string;
+}
+
+// Digits and a leading plus, for tel: and sms: links.
+export const dialable = (phone: string): string => phone.trim().replace(/(?!^\+)[^\d]/g, '').replace(/^\+?/, (p) => p);
+
+function readContact(value: unknown): EmergencyContact | undefined {
+  if (!value || typeof value !== 'object') return undefined;
+  const c = value as Record<string, unknown>;
+  const name = typeof c.name === 'string' ? cleanName(c.name) : '';
+  const phone = typeof c.phone === 'string' ? c.phone.trim().slice(0, 24) : '';
+  const digits = dialable(phone).replace(/^\+/, '');
+  if (!name || digits.length < 7 || digits.length > 15) return undefined;
+  const relation = typeof c.relation === 'string' ? c.relation.trim().slice(0, 30) : '';
+  return relation ? { name, relation, phone } : { name, phone };
+}
+
 // Age, height and weight are shown to her and on the nurse card; they never feed the rules.
 export interface Profile {
   name?: string;
@@ -15,6 +39,8 @@ export interface Profile {
   weeks?: number;
   daysSinceBirth?: number;
   avatar?: AvatarMarkName;
+  bloodType?: BloodType;
+  emergency?: EmergencyContact;
   lock: boolean;
 }
 
@@ -39,6 +65,8 @@ export function readProfile(setup: SetupAnswers | null): Profile {
     weeks: status === 'pregnant' ? inRange(s.weeks, RANGES.weeks) : undefined,
     daysSinceBirth: status === 'postpartum' ? inRange(s.days_since_birth, RANGES.daysSinceBirth) : undefined,
     avatar: (AVATAR_MARKS as readonly unknown[]).includes(s.avatar) ? (s.avatar as AvatarMarkName) : undefined,
+    bloodType: (BLOOD_TYPES as readonly unknown[]).includes(s.bloodType) ? (s.bloodType as BloodType) : undefined,
+    emergency: readContact(s.emergency),
     lock: s.lock === true,
   };
   return Object.fromEntries(Object.entries(profile).filter(([, v]) => v !== undefined)) as Profile;

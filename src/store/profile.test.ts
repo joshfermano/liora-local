@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { contextFrom, readProfile } from './profile';
+import { contextFrom, dialable, readProfile } from './profile';
 
 describe('her profile', () => {
   it('reads the numbers she entered', () => {
@@ -35,5 +35,25 @@ describe('numbers saved as text', () => {
 
   it('still drops text that is not a number in range', () => {
     expect(readProfile({ weightKg: 'heavy', heightCm: '9000' })).toEqual({ lock: false });
+  });
+});
+
+describe('blood type and emergency contact', () => {
+  it('keeps a known blood type and a valid contact', () => {
+    expect(readProfile({ bloodType: 'O+', emergency: { name: 'Ana', relation: 'Sister', phone: '+63 917 123 4567' } })).toMatchObject({
+      bloodType: 'O+',
+      emergency: { name: 'Ana', relation: 'Sister', phone: '+63 917 123 4567' },
+    });
+  });
+
+  it('drops an unknown blood type and a contact without a usable number', () => {
+    const p = readProfile({ bloodType: 'Z', emergency: { name: 'Ana', phone: '12' } });
+    expect(p.bloodType).toBeUndefined();
+    expect(p.emergency).toBeUndefined();
+  });
+
+  it('turns a phone number into a dialable one', () => {
+    expect(dialable('+63 (917) 123-4567')).toBe('+639171234567');
+    expect(dialable('0917 123 4567')).toBe('09171234567');
   });
 });

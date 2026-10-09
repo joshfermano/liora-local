@@ -11,7 +11,7 @@ export interface ContextInput {
   data: AgentData;
   entries: Entry[];
   moodChecks: MoodResult[];
-  profile: { name?: string; age?: number; status?: 'pregnant' | 'postpartum' | 'neither'; weeks?: number };
+  profile: { name?: string; age?: number; status?: 'pregnant' | 'postpartum' | 'neither'; weeks?: number; bloodType?: string; emergency?: { name: string; relation?: string; phone: string } };
   today: string;
   // Her own notes and the language she writes in: they flavour the words, never the rules.
   memory?: { notes: string[]; language?: Language };
@@ -65,6 +65,11 @@ export function contextPack({ data, entries, moodChecks, profile, today, memory 
   const lines: string[] = [];
   if (profile.name) lines.push(`Name: ${profile.name}`);
   if (profile.age) lines.push(`Age: ${profile.age}`);
+  if (profile.bloodType && profile.bloodType !== 'unknown') lines.push(`Blood type: ${profile.bloodType}`);
+  if (profile.emergency) {
+    const { name, relation, phone } = profile.emergency;
+    lines.push(`Emergency contact: ${name}${relation ? ` (${relation})` : ''}, ${phone}`);
+  }
   lines.push(`Today: ${format(parseISO(today), 'EEEE')}, ${day(today)}`);
 
   if (status === 'pregnant') {
