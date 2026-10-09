@@ -4,11 +4,12 @@ import { FlatList, Platform, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { SafeAreaView } from 'react-native-screens/experimental';
 import { en } from '../../src/content/copy';
-import { loggedDays, periodsFromDays, toggleDay, usualLength } from '../../src/core/calendar';
+import { fertileWindows, loggedDays, periodsFromDays, toggleDay, usualLength } from '../../src/core/calendar';
 import { useLogStore } from '../../src/store/log';
 import { MonthList } from '../../src/ui/calendar/MonthList';
 import { fill, monthRange, useCalendarInput } from '../../src/ui/calendar/shared';
 import { YearView } from '../../src/ui/calendar/YearView';
+import { FertileLeaf } from '../../src/ui/art';
 import { GlassCard } from '../../src/ui/Glass';
 import { confirm, tap } from '../../src/ui/haptics';
 import { LockGate } from '../../src/ui/LockGate';
@@ -58,6 +59,7 @@ function Calendar() {
   const thisMonth = today.slice(0, 7);
   const months = useMemo(() => monthRange(new Date()), []);
   const usual = useMemo(() => usualLength(periods, cycleSettings), [periods, cycleSettings]);
+  const hasFertile = useMemo(() => fertileWindows(input, 1).length > 0, [input]);
   const listRef = useRef<FlatList<string>>(null);
 
   const [view, setView] = useState<'month' | 'year'>('month');
@@ -143,6 +145,23 @@ function Calendar() {
           </View>
         ) : null}
       </View>
+
+      {hasFertile && view === 'month' && !editing ? (
+        <View className="flex-row flex-wrap items-center justify-center gap-x-md gap-y-xxs px-md pt-xs">
+          <View className="flex-row items-center gap-xxs">
+            <FertileLeaf size={16} />
+            <Text variant="caption1" tone="secondary">
+              {en('fertile.key.window')}
+            </Text>
+          </View>
+          <View className="flex-row items-center gap-xxs">
+            <FertileLeaf size={16} filled />
+            <Text variant="caption1" tone="secondary">
+              {en('fertile.key.ovulation')}
+            </Text>
+          </View>
+        </View>
+      ) : null}
 
       {status === 'pregnant' && !editing ? (
         <Text variant="footnote" tone="secondary" className="px-md pt-xs text-center">

@@ -2,7 +2,8 @@ import { format, parseISO } from 'date-fns';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { View } from 'react-native';
 import { en } from '../src/content/copy';
-import { describeDay } from '../src/core/calendar';
+import { describeDay, fertileWindows } from '../src/core/calendar';
+import { FertileLeaf } from '../src/ui/art';
 import { CapsuleButton } from '../src/ui/CapsuleButton';
 import { fill, ymd, useCalendarInput } from '../src/ui/calendar/shared';
 import { Chip } from '../src/ui/Chip';
@@ -31,6 +32,9 @@ export default function DayPreview() {
     );
   }
 
+  const fertile = mark.period ? null : mark.fertile;
+  const fertileWindow = fertile ? fertileWindows(input).find((f) => f.from <= date && date <= f.to) : undefined;
+
   const chips = log
     ? [
         ...(log.flow ? [en(`cal.flow.${log.flow}`)] : []),
@@ -55,6 +59,32 @@ export default function DayPreview() {
                 {l}
               </Text>
             ))}
+          </View>
+        ) : null}
+
+        {fertile && fertileWindow ? (
+          <View className="gap-xs rounded-pane border border-fertile bg-fertile-soft p-md dark:border-fertile-dark dark:bg-fertile-soft-dark">
+            <View className="flex-row items-center gap-xs">
+              <FertileLeaf size={20} filled={fertile === 'ovulation'} />
+              <Text variant="headline" className="flex-1">
+                {en(fertile === 'ovulation' ? 'fertile.day.ovulation' : 'fertile.day.window')}
+              </Text>
+            </View>
+            <Text variant="subheadline">
+              {fill(en('fertile.range'), {
+                from: format(parseISO(fertileWindow.from), 'MMM d'),
+                to: format(parseISO(fertileWindow.to), 'MMM d'),
+              })}
+            </Text>
+            <Text variant="subheadline" className="font-bold">
+              {en('fertile.not_contraception')}
+            </Text>
+            <Text variant="subheadline" tone="secondary">
+              {en('fertile.basis')}
+            </Text>
+            <Text variant="caption1" tone="secondary">
+              {en('fertile.source')}
+            </Text>
           </View>
         ) : null}
 

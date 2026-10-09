@@ -483,3 +483,18 @@ export function LogMark({ size = 20, name, chosen = false }: { size?: number; na
     </Svg>
   );
 }
+
+// The fertile-window mark: a leaf, dashed for an estimated window day, filled for likely ovulation.
+const LEAF = 'M15 3 H26 A3 3 0 0 1 29 6 V17 A12 12 0 0 1 17 29 H6 A3 3 0 0 1 3 26 V15 A12 12 0 0 1 15 3 Z';
+export function FertileLeaf({ size = 32, filled = false }: { size?: number; filled?: boolean }) {
+  const c = useColors();
+  return (
+    <Svg width={size} height={size} viewBox="0 0 32 32" {...HIDDEN}>
+      {filled ? (
+        <Path d={LEAF} fill={c.fertile} />
+      ) : (
+        <Path d={LEAF} fill="none" stroke={c.fertile} strokeWidth={2} strokeDasharray="4 3" {...ROUND} />
+      )}
+    </Svg>
+  );
+}

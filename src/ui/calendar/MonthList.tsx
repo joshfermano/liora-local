@@ -16,6 +16,7 @@ function dayLabel(m: DayMark): string {
     format(parseISO(m.date), 'MMMM d'),
     m.isToday ? en('cal2.today') : null,
     m.period === 'logged' ? en('cal2.key.logged') : m.period === 'estimated' ? en('cal2.key.estimated') : null,
+    m.fertile === 'window' ? en('fertile.key.window') : m.fertile === 'ovulation' ? en('fertile.key.ovulation') : null,
   ]
     .filter(Boolean)
     .join(', ');
