@@ -227,6 +227,7 @@ export const COPY = {
   'companion.symptom.follow_up': ui("I'm here with you. Before anything else, one quick question so I understand how you feel."),
   'companion.go_now.still': ui("I hear you, and I am staying right here with you. What you told me still needs care now: go to the hospital or health centre, day or night."),
   'companion.symptom.go_soon': ui('Thank you for telling me. Here is what the WHO guide says to do.'),
+  'companion.pain.strong': ui("I'm here with you, and I'm sorry it hurts this much. If the pain is more than you can bear, please don't wait alone: go to the nearest health centre or hospital, or call someone you trust. Your emergency contact is one tap away below."),
   'companion.symptom.ok': ui('Thank you for telling me. Here is what the rules found.'),
   'companion.period.heard': ui('Shall I put this on your calendar?'),
   'companion.period.when': ui('When did it start? You can mark it on the calendar.'),

@@ -1,7 +1,7 @@
 import { format } from 'date-fns';
 import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
-import { languageOf, triage } from '../core/agent';
+import { languageOf, painTooMuch, severityOnly, triage } from '../core/agent';
 import { composeReply, ruleIntent, type ReplyBlock } from '../core/companion';
 import { dangerRulesApply } from '../core/pipeline';
 import { beginProbe, endProbe, noteTurn, timedSync } from '../core/probe';
@@ -85,6 +85,13 @@ function putReply(set: Set, id: string, text: string | null) {
   }));
 }
 
+// Her previous message, if it came in the last ten minutes.
+function lastHerText(messages: ThreadMessage[], now = Date.now()): string | null {
+  const m = [...messages].reverse().find((x) => x.role === 'her');
+  if (!m?.text || (m.at && now - Date.parse(m.at) > 10 * 60 * 1000)) return null;
+  return m.text;
+}
+
 // The go-now from earlier in this conversation (the last 30 minutes), as the decision stands now.
 function activeGoNow(messages: ThreadMessage[], now = Date.now()): string | null {
   const entries = useLogStore.getState().entries;
@@ -146,6 +153,9 @@ export const useCompanionStore = create<CompanionState>()(
         const thread = recentTurns(get().messages);
         const opening = isNewConversation(get().messages);
         const goNow = activeGoNow(get().messages);
+        // "Sobrang sakit" right after "masakit ulo ko" is about the headache: the rules read both together.
+        const before = lastHerText(get().messages);
+        const ruleText = before && severityOnly(text) ? `${before}. ${text}` : text;
         const her: ThreadMessage = { id: newId(), role: 'her', text, at: new Date().toISOString() };
         set((s) => ({ messages: [...s.messages, her], thinking: true }));
         useMemoryStore.getState().setLanguage(languageOf(get().messages.filter((m) => m.role === 'her').map((m) => m.text ?? '')));
@@ -162,16 +172,16 @@ export const useCompanionStore = create<CompanionState>()(
           return liora.id;
         };
         const work = async () => {
-          const entry = await useTellStore.getState().submit(text, input);
+          const entry = await useTellStore.getState().submit(ruleText, input);
           mark(`rules decided ${entry.decision.level}${entry.decision.follow_up ? ` (asks ${entry.decision.follow_up.question_id})` : ''}`);
           const { setup, cycleSettings } = useLogStore.getState();
           const profile = readProfile(setup);
           const day = today();
-          const read = timedSync('triage', () => triage(text, day, profile.status));
+          const read = timedSync('triage', () => triage(ruleText, day, profile.status));
           noteTurn({ purpose: read.purpose, typedScope: read.typed, tools: read.actions.map((a) => a.tool) });
           // A danger turn gets the rules' fixed decision block and no model-written words. When the
           // WHO rules do not cover her (not pregnant), a danger word is logged like any symptom.
-          const rulesApply = dangerRulesApply(contextFrom(profile), input, text);
+          const rulesApply = dangerRulesApply(contextFrom(profile), input, ruleText);
           const urgent = entry.decision.level !== 'ok' || (read.purpose === 'urgent' && rulesApply);
           let turn: AgentTurn | null = null;
           if (!urgent) {
@@ -198,9 +208,14 @@ export const useCompanionStore = create<CompanionState>()(
             return;
           }
           // A go-now earlier in this conversation stays in front of her: fixed words, the card again, no model.
+          const kept = turn.attachments.filter((b) => b.kind === 'logged' || b.kind === 'confirm');
           if (goNow) {
-            const kept = turn.attachments.filter((b) => b.kind === 'logged' || b.kind === 'confirm' || b.kind === 'contact');
             add([{ kind: 'text', key: 'companion.go_now.still' }, ...kept, { kind: 'decision', entryId: goNow, level: 'go_now' }]);
+            return;
+          }
+          // Pain she cannot bear gets a fixed caring line and her own Call and Text buttons, no model words.
+          if (painTooMuch(text)) {
+            add([{ kind: 'text', key: 'companion.pain.strong' }, ...kept, { kind: 'contact' }]);
             return;
           }
           const id = add([{ kind: 'reply', text: null, fallback: turn.fallback }, ...turn.attachments]);

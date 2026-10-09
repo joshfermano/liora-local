@@ -90,6 +90,28 @@ describe('companion thread with the real rules and no model', () => {
     expect(JSON.stringify(seen.at(-1)?.allowed)).toContain('my sister Ana is visiting today');
   });
 
+  it('reads "sobrang sakit" right after "masakit ulo ko" as a very painful headache in pregnancy', async () => {
+    useLogStore.setState({ setup: { status: 'pregnant', weeks: 32 } });
+    await send('masakit ulo ko');
+    await send('sobrang sakit');
+    expect(useTellStore.getState().current?.decision.level).toBe('go_now');
+    expect(useTellStore.getState().current?.text).toBe('masakit ulo ko. sobrang sakit');
+    expect(kinds()).toContain('decision');
+  });
+
+  it('meets "I cannot bear the pain" with a fixed caring line and her Call and Text buttons, no menu', async () => {
+    useLogStore.setState({ setup: { status: 'neither' } });
+    const sayFn = vi.fn(async () => 'Sana ay maging mas komportable ka.');
+    setSayReply(sayFn);
+    await send('masakit ulo ko');
+    sayFn.mockClear();
+    await send('Di ko kaya yung sakit');
+    expect(sayFn).not.toHaveBeenCalled();
+    expect(last().blocks?.find((b) => b.kind === 'text')).toMatchObject({ key: 'companion.pain.strong' });
+    expect(kinds()).toContain('contact');
+    expect(kinds()).not.toContain('actions');
+  });
+
   it('shows her own Call and Text buttons when she asks Liora to call her contact', async () => {
     await send('Can you call him?');
     expect(reply()?.fallback.key).toMatch(/^reply\.contact/);
