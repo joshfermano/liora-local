@@ -75,6 +75,31 @@ export function resolvePeriodDate(period: Extraction['period'], today: string): 
   }
 }
 
+export interface CycleSpan {
+  start: string;
+  length: number | null;
+}
+
+// Newest first. The latest cycle is still running, so it has no length yet.
+export function cycleHistory(periods: PeriodRecord[]): CycleSpan[] {
+  const starts = [...new Set(periods.map((p) => p.start))].sort();
+  return starts
+    .map((start, i) => {
+      const next = starts[i + 1];
+      return { start, length: next ? differenceInCalendarDays(parseISO(next), parseISO(start)) : null };
+    })
+    .reverse();
+}
+
+export function cycleDay(periods: PeriodRecord[], today: string): number | null {
+  const last = periods
+    .map((p) => p.start)
+    .filter((s) => s <= today)
+    .sort()
+    .pop();
+  return last ? differenceInCalendarDays(parseISO(today), parseISO(last)) + 1 : null;
+}
+
 export function periodLength(periods: PeriodRecord[], settings: CycleSettings): number {
   const logged = periods
     .filter((p): p is PeriodRecord & { end: string } => p.end !== null)
