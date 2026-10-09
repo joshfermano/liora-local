@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { LIORA_VOICES, lioraVoices, pickVoice, resolveVoice, tierOf, type VoiceInfo } from './voice';
+import { premiumVoices, pickVoice, resolveVoice, tierOf, type VoiceInfo } from './voice';
 
 // Apple's identifiers carry the quality: com.apple.voice.{compact|enhanced|premium}.en-US.Ava
 const v = (name: string, tier: 'compact' | 'enhanced' | 'premium' = 'compact', language = 'en-US'): VoiceInfo => ({
@@ -17,24 +17,28 @@ describe('tierOf', () => {
   });
 });
 
-describe('lioraVoices', () => {
-  it('offers only Ava and Zoe, in Premium or Enhanced, best first', () => {
-    const list = lioraVoices([v('Samantha', 'enhanced'), v('Ava'), v('Zoe', 'enhanced'), v('Ava', 'premium'), v('Aaron', 'premium')]);
-    expect(list.map((x) => x.identifier)).toEqual(['com.apple.voice.premium.en-US.Ava', 'com.apple.voice.enhanced.en-US.Zoe']);
+describe('premiumVoices', () => {
+  it('lists every downloaded English Premium voice, women first', () => {
+    const list = premiumVoices([
+      v('Samantha', 'enhanced'),
+      v('Ava'),
+      v('Evan', 'premium'),
+      v('Zoe', 'premium'),
+      v('Serena', 'premium', 'en-GB'),
+      v('Amélie', 'premium', 'fr-CA'),
+    ]);
+    expect(list.map((x) => x.name)).toEqual(['Zoe', 'Serena', 'Evan']);
   });
 
-  it('is empty when neither is downloaded', () => {
-    expect(lioraVoices([v('Samantha'), v('Ava')])).toEqual([]);
-  });
-
-  it('names the voices the picker offers', () => {
-    expect(LIORA_VOICES).toEqual(['Ava', 'Zoe']);
+  it('is empty when no Premium voice is downloaded', () => {
+    expect(premiumVoices([v('Samantha', 'enhanced'), v('Ava')])).toEqual([]);
   });
 });
 
 describe('pickVoice', () => {
-  it('takes the best Ava or Zoe on the phone', () => {
-    expect(pickVoice([v('Samantha', 'enhanced'), v('Zoe', 'enhanced'), v('Ava', 'premium')])).toBe('com.apple.voice.premium.en-US.Ava');
+  it("takes a Premium woman's voice first, then any Premium voice", () => {
+    expect(pickVoice([v('Samantha', 'enhanced'), v('Evan', 'premium'), v('Ava', 'premium')])).toBe('com.apple.voice.premium.en-US.Ava');
+    expect(pickVoice([v('Samantha', 'enhanced'), v('Evan', 'premium')])).toBe('com.apple.voice.premium.en-US.Evan');
   });
 
   it("falls back to the clearest woman's voice so Live is never silent", () => {
