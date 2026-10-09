@@ -82,9 +82,12 @@ export function Calm({ entry }: { entry: Entry }) {
               {card ? (
                 <SourceCard card={card} />
               ) : (
-                <Text variant="body" tone="secondary">
-                  {en('result.ask_checkup')}
-                </Text>
+                <View className={`${SURFACE.surface} ${EDGE} rounded-pane min-h-tap flex-row items-center gap-sm px-md py-sm`}>
+                  <Symbol name="info.circle" fallback="info" tone="secondary" size={18} />
+                  <Text variant="body" tone="secondary" className="flex-1">
+                    {en('result.ask_checkup')}
+                  </Text>
+                </View>
               )}
             </Appear>
           </>
