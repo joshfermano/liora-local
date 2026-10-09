@@ -10,6 +10,8 @@ interface Entry {
 
 const ui = (en: string, fil: string | null = null): Entry => ({ fil, en });
 const med = (): Entry => ({ fil: null, en: null, medical: true });
+// English quoted from the WHO ANC DAK danger-sign check (p. 73); the Filipino is the team's to write.
+const who = (en: string): Entry => ({ fil: null, en, medical: true });
 
 export const COPY = {
   'home.prompt': ui('How are you feeling?', "Ano'ng nararamdaman mo?"),
@@ -24,6 +26,8 @@ export const COPY = {
   'home.offline': ui('Offline'),
   'home.error': med(),
   'home.dev_native': ui('Native model test'),
+  'home.setup': ui('Get Liora ready for offline'),
+  'home.checklist.hint': ui('Opens the checklist'),
 
   'result.show_nurse': ui('Show this to the nurse'),
   'result.why': ui('Why?'),
@@ -51,6 +55,25 @@ export const COPY = {
   'nurse.signs': med(),
   'nurse.logged': med(),
   'nurse.bp': med(),
+
+  'sign.vaginal_bleeding': who('Bleeding vaginally'),
+  'sign.convulsions': who('Convulsing'),
+  'sign.fever': who('Fever'),
+  'sign.severe_headache': who('Headache'),
+  'sign.visual_disturbance': who('Visual disturbance'),
+  'sign.imminent_delivery': who('Imminent delivery'),
+  'sign.labour': who('Labour'),
+  'sign.looks_very_ill': who('Looks very ill'),
+  'sign.severe_vomiting': who('Vomiting'),
+  'sign.severe_pain': who('Pain'),
+  'sign.severe_abdominal_pain': who('Abdominal pain'),
+  'sign.unconscious': who('Unconscious'),
+  'sign.central_cyanosis': who('Central cyanosis'),
+
+  'severity.severe': ui('severe'),
+  'severity.moderate': ui('moderate'),
+  'severity.mild': ui('mild'),
+  'severity.unknown': ui('not sure yet'),
 
   'why.title': ui('Why?'),
   'why.none': ui('Ask at your check-up'),
@@ -91,6 +114,32 @@ export const COPY = {
   'log.delete_all': ui('Delete everything'),
   'log.delete_all.confirm': ui('Delete everything on this phone? This cannot be undone.'),
   'log.cancel': ui('Cancel'),
+
+  // setup and checklist (LUM-71, LUM-64)
+  'setup.title': ui('Getting Liora ready for offline'),
+  'setup.wifi': ui('Use Wi-Fi. The download is large.'),
+  'setup.model.gemma': ui('Gemma 4'),
+  'setup.model.voice': ui('Voice add-on'),
+  'setup.done': ui('Ready'),
+  'setup.web': ui('Not available on web'),
+  'setup.failed': ui('Download did not finish. Try again on Wi-Fi.'),
+  'setup.retry': ui('Try again'),
+  'setup.mb': ui('MB'),
+  'setup.download': ui('Download'),
+  'setup.q.status': ui('Where are you now?'),
+  'setup.status.pregnant': ui('Pregnant'),
+  'setup.status.postpartum': ui('Recently gave birth'),
+  'setup.status.neither': ui('Neither'),
+  'setup.weeks': ui('Weeks pregnant'),
+  'setup.days': ui('Days since birth'),
+  'setup.last_period': ui('Last period started (YYYY-MM-DD)'),
+  'setup.cycle_length': ui('Usual cycle length in days'),
+  'setup.invalid': ui('Check the number or date'),
+  'setup.save': ui('Save and continue'),
+  'setup.skip': ui('Skip for now'),
+  'checklist.title': ui('Check the signs'),
+  'checklist.check': ui('Check'),
+  'checklist.none': ui('Choose at least one'),
 } as const satisfies Record<string, Entry>;
 
 export type CopyKey = keyof typeof COPY;

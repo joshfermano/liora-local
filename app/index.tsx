@@ -1,7 +1,8 @@
 import { Link, useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
-import { KeyboardAvoidingView, Platform, View } from 'react-native';
+import { KeyboardAvoidingView, Platform, Pressable, View } from 'react-native';
 import { en, fil } from '../src/content/copy';
+import { useLogStore } from '../src/store/log';
 import { useTellStore } from '../src/store/tell';
 import { CapsuleButton } from '../src/ui/CapsuleButton';
 import { Icon } from '../src/ui/Icon';
@@ -20,6 +21,7 @@ export default function Home() {
   const submit = useTellStore((s) => s.submit);
   const status = useTellStore((s) => s.status);
   const aiOn = useAiStatus((s) => s.on);
+  const setupDone = useLogStore((s) => s.setup !== null);
   const offline = useOffline();
   const [text, setText] = useState('');
   const [recording, setRecording] = useState(false);
@@ -75,9 +77,24 @@ export default function Home() {
           </View>
           <View className="gap-xxs" accessible accessibilityLabel={[en('home.privacy'), aiOn ? en('home.ai.on') : en('home.ai.off'), offline ? en('home.offline') : ''].join('. ')}>
             <StatusRow icon="lock">{en('home.privacy')}</StatusRow>
-            <StatusRow icon="info">{aiOn ? en('home.ai.on') : en('home.ai.off')}</StatusRow>
+            {aiOn ? (
+              <StatusRow icon="info">{en('home.ai.on')}</StatusRow>
+            ) : (
+              <Link href="/checklist" asChild>
+                <Pressable accessibilityRole="link" accessibilityHint={en('home.checklist.hint')}>
+                  <StatusRow icon="info">{en('home.ai.off')}</StatusRow>
+                </Pressable>
+              </Link>
+            )}
             {offline ? <StatusRow icon="phone">{en('home.offline')}</StatusRow> : null}
           </View>
+          {setupDone ? null : (
+            <Link href="/setup" className="self-start">
+              <Text variant="footnote" tone="secondary">
+                {en('home.setup')}
+              </Text>
+            </Link>
+          )}
           {Platform.OS === 'web' ? null : (
             <Link href="/dev/native" className="self-start">
               <Text variant="footnote" tone="secondary">
