@@ -143,7 +143,7 @@ export const useCompanionStore = create<CompanionState>()(
         };
         const work = async () => {
           const entry = await useTellStore.getState().submit(text, input);
-          mark('rules decided');
+          mark(`rules decided ${entry.decision.level}${entry.decision.follow_up ? ` (asks ${entry.decision.follow_up.question_id})` : ''}`);
           const { setup, cycleSettings } = useLogStore.getState();
           const profile = readProfile(setup);
           const day = today();
