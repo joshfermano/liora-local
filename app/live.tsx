@@ -85,10 +85,19 @@ export default function Live() {
     chime.play();
   }, [chimeStatus.isLoaded, chime]);
 
+  // Recording while the chime still plays gets cut off when the chime ends, so listening waits for it.
+  const listening = useRef(false);
+  const startListening = live.listen;
   useEffect(() => {
-    const t = setTimeout(() => void live.listen(), 900);
-    return () => clearTimeout(t);
-  }, [live.listen]);
+    const begin = () => {
+      if (listening.current) return;
+      listening.current = true;
+      void startListening();
+    };
+    if (chimeStatus.didJustFinish) begin();
+    const fallback = setTimeout(begin, 2200);
+    return () => clearTimeout(fallback);
+  }, [chimeStatus.didJustFinish, startListening]);
 
   useEffect(() => {
     glow.value = withDelay(120, withTiming(1, { duration: 300 }));

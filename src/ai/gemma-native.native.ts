@@ -4,6 +4,7 @@ import { GEMMA_GGUF, GEMMA_VOICE, type NativeGemma } from './gemma-model';
 import { INTENT_OPTIONS, intentPrompt } from './intent';
 import { withRetries } from './retry';
 import { PROVISIONAL_THRESHOLDS } from '../core/merge';
+import { transcriptOnly } from './transcript';
 import {
   followUpQuestions,
   logScoresFromTopProbs,
@@ -118,8 +119,10 @@ export async function loadGemma(): Promise<NativeGemma> {
         ],
         n_predict: 160,
         temperature: 0,
+        jinja: true,
+        enable_thinking: false,
       });
-      return { text: result.text.trim(), ms: Date.now() - t };
+      return { text: transcriptOnly(result.text), ms: Date.now() - t };
     },
     async decide(message) {
       const t = Date.now();

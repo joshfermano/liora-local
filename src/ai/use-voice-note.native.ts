@@ -8,7 +8,7 @@ import {
   type RecordingOptions,
 } from 'expo-audio';
 import { File } from 'expo-file-system';
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { gemmaSession } from './gemma-session';
 import { MIC_DENIED, type VoiceNote, type VoiceNoteState } from './voice-note-types';
 
@@ -41,6 +41,7 @@ export function useVoiceNote(): VoiceNote {
   const status = useAudioRecorderState(recorder, 100);
   const [state, setState] = useState<VoiceNoteState>('idle');
   const [error, setError] = useState<string | null>(null);
+  const startedAt = useRef(0);
 
   async function start() {
     setError(null);
@@ -53,6 +54,7 @@ export function useVoiceNote(): VoiceNote {
     await setAudioModeAsync({ allowsRecording: true, playsInSilentMode: true });
     await recorder.prepareToRecordAsync();
     recorder.record();
+    startedAt.current = Date.now();
     setState('recording');
   }
 
@@ -74,6 +76,7 @@ export function useVoiceNote(): VoiceNote {
       }
       setState('transcribing');
       const size = new File(uri).size ?? 0;
+      if (__DEV__) console.log(`[voice] recorded ${Date.now() - startedAt.current} ms of wall time into ${size} bytes`);
       const gemma = await gemmaSession();
       const heard = await gemma.transcribe(uri);
       if (__DEV__) console.log(`[voice] ${size} bytes, ${heard.ms} ms, heard: ${JSON.stringify(heard.text)}`);
