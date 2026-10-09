@@ -11,7 +11,7 @@ import type { IconName } from '../Icon';
 import { PressableSurface } from '../PressableSurface';
 import { Symbol } from '../Symbol';
 import { Text } from '../Text';
-import { CapizWindow } from './art';
+import { HeroScene, SeasonMark, type Season } from '../art';
 import { answerText } from './text';
 
 // One staggered rise per group; the system Reduce Motion setting turns it into a plain appearance.
@@ -109,8 +109,12 @@ export function Strip({ strip }: { strip: StripDay[] }) {
   );
 }
 
+const seasonOf = (answer: Answer): Season =>
+  answer.kind === 'period' ? 'period' : answer.kind === 'pregnant' ? 'pregnant' : answer.kind === 'postpartum' ? 'postpartum' : 'calm';
+
 export function AnswerBlock({ answer }: { answer: Answer }) {
   const a = answerText(answer);
+  const season = seasonOf(answer);
   const conf = a.confidence ? en(`td.confidence.${a.confidence}`) : null;
   return (
     <View className="flex-row items-center gap-md">
@@ -118,7 +122,7 @@ export function AnswerBlock({ answer }: { answer: Answer }) {
         <Text variant="displayTitle">{a.title}</Text>
         {a.cycleDay !== null ? (
           <View className="flex-row items-center gap-xs">
-            <Symbol name="moon.fill" fallback="info" tone="tint" size={16} />
+            <SeasonMark season={season} size={18} />
             <Text variant="headline">{en('td.cycle_day').replace('{n}', String(a.cycleDay))}</Text>
           </View>
         ) : null}
@@ -133,7 +137,7 @@ export function AnswerBlock({ answer }: { answer: Answer }) {
           </Text>
         ) : null}
       </View>
-      <CapizWindow width={64} />
+      <HeroScene size={84} season={season} animate />
     </View>
   );
 }

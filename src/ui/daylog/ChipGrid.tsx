@@ -1,8 +1,7 @@
-import type { SFSymbol } from 'expo-symbols';
 import { View } from 'react-native';
 import { Icon } from '../Icon';
 import { PressableSurface } from '../PressableSurface';
-import { Symbol } from '../Symbol';
+import { LogMark, type LogMarkName } from '../art';
 import { Text } from '../Text';
 import { EDGE, SURFACE } from '../theme';
 import { tap } from '../haptics';
@@ -10,7 +9,7 @@ import { tap } from '../haptics';
 export interface ChipOption<T extends string> {
   id: T;
   label: string;
-  mark: SFSymbol;
+  mark: LogMarkName;
 }
 
 function Chip({
@@ -21,7 +20,7 @@ function Chip({
   onPress,
 }: {
   label: string;
-  mark: SFSymbol;
+  mark: LogMarkName;
   chosen: boolean;
   role: 'checkbox' | 'radio';
   onPress: () => void;
@@ -39,7 +38,7 @@ function Chip({
       }}
       surfaceClassName={`${chosen ? SURFACE.tintSoft : SURFACE.surface} ${EDGE} rounded-full h-tap pl-md pr-sm flex-row items-center gap-xs`}
     >
-      <Symbol name={mark} tone={tone} size={18} />
+      <LogMark name={mark} chosen={chosen} size={20} />
       <Text variant="subheadline" tone={tone} className="shrink" numberOfLines={1}>
         {label}
       </Text>

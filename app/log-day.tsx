@@ -1,6 +1,5 @@
 import { format } from 'date-fns';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import type { SFSymbol } from 'expo-symbols';
 import { useRef, useState } from 'react';
 import { TextInput, View } from 'react-native';
 import Animated, { FadeIn, useReducedMotion } from 'react-native-reanimated';
@@ -9,6 +8,7 @@ import { applyFlow } from '../src/core/daylog';
 import type { Activity, DayLog, Flow, Mood, Symptom } from '../src/core/types';
 import { ACTIVITIES, MOODS, SYMPTOMS } from '../src/core/vocabulary';
 import { useLogStore } from '../src/store/log';
+import type { LogMarkName } from '../src/ui/art';
 import { ChipSection } from '../src/ui/daylog/ChipGrid';
 import { WeekStrip } from '../src/ui/daylog/WeekStrip';
 import { PressableSurface } from '../src/ui/PressableSurface';
@@ -20,47 +20,20 @@ const ymd = (d: Date) => format(d, 'yyyy-MM-dd');
 type FlowChoice = 'none' | 'light' | 'medium' | 'heavy';
 const FLOW_CHOICES: FlowChoice[] = ['none', 'light', 'medium', 'heavy'];
 
-const FLOW_MARK: Record<FlowChoice, SFSymbol> = {
-  none: 'drop.degreesign.slash',
-  light: 'drop',
-  medium: 'drop.halffull',
-  heavy: 'drop.fill',
+const FLOW_MARK: Record<FlowChoice, LogMarkName> = {
+  none: 'flow_none',
+  light: 'flow_light',
+  medium: 'flow_medium',
+  heavy: 'flow_heavy',
 };
-const SYMPTOM_MARK: Record<Symptom, SFSymbol> = {
-  cramps: 'bolt',
-  headache: 'brain.head.profile',
-  back_pain: 'figure.stand',
-  bloating: 'circle.dotted',
-  fatigue: 'battery.25percent',
-  mood_changes: 'cloud.sun',
-  acne: 'circle.grid.2x2',
-  breast_tenderness: 'heart',
-  sleep_quality: 'moon.zzz',
-  energy: 'bolt.fill',
-  stress: 'waveform.path',
-  appetite: 'fork.knife',
-  nausea: 'wind',
-  pelvic_pain: 'exclamationmark.circle',
-};
-const MOOD_MARK: Record<Mood, SFSymbol> = {
-  calm: 'leaf',
-  joyful: 'sun.max',
-  energetic: 'sparkles',
-  romantic: 'heart.fill',
-  tired: 'zzz',
-  anxious: 'cloud.fog',
-  stressed: 'cloud.bolt',
-  irritable: 'flame',
-  sad: 'cloud.rain',
-};
-const ACTIVITY_MARK: Record<Activity, SFSymbol> = {
-  walk: 'figure.walk',
-  exercise: 'figure.run',
-  rest: 'sofa',
-  water: 'drop',
-  slept_well: 'bed.double',
-  checkup_visit: 'stethoscope',
-  medicine_taken: 'pills',
+const ACTIVITY_MARK: Record<Activity, LogMarkName> = {
+  walk: 'walk',
+  exercise: 'exercise',
+  rest: 'rest',
+  water: 'water',
+  slept_well: 'sleep_well',
+  checkup_visit: 'checkup',
+  medicine_taken: 'medicine',
 };
 
 function saved(date: string): DayLog {
@@ -182,14 +155,14 @@ export default function LogDaySheet() {
 
           <ChipSection<Symptom>
             title={en('daylog.symptoms')}
-            options={SYMPTOMS.map((id) => ({ id, mark: SYMPTOM_MARK[id], label: en(`symptom.${id}`) }))}
+            options={SYMPTOMS.map((id) => ({ id, mark: id, label: en(`symptom.${id}`) }))}
             chosen={log.symptoms}
             onToggle={(id) => commit({ ...log, symptoms: toggle(log.symptoms, id) })}
           />
 
           <ChipSection<Mood>
             title={en('daylog.moods')}
-            options={MOODS.map((id) => ({ id, mark: MOOD_MARK[id], label: en(`feeling.${id}`) }))}
+            options={MOODS.map((id) => ({ id, mark: id, label: en(`feeling.${id}`) }))}
             chosen={log.moods}
             onToggle={(id) => commit({ ...log, moods: toggle(log.moods, id) })}
           />
