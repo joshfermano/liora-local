@@ -59,6 +59,15 @@ next-period estimate. Everything runs on the device.
 - Default to no comments; only a non-obvious why.
 - When an installed library's API disagrees with docs or this file, trust `node_modules`.
 
+## Testing on the iPhones
+
+- **Quick loop:** `pnpm build:workers`, then `pnpm expo start --tunnel`. It gives an
+  `https://…exp.direct` address with live reload that Safari accepts for WebGPU and the microphone.
+  In development the app and its public files are served from the root (for example `/dev/workers`),
+  not under `/liora-local`. The laptop must stay awake and online.
+- **Release check:** the GitHub Pages build, served under `/liora-local/`. Offline mode, the Home
+  Screen web app and every measured number count only there.
+
 ## Commits: Conventional Commits
 
 Every commit follows [Conventional Commits 1.0.0](https://www.conventionalcommits.org/en/v1.0.0/):
