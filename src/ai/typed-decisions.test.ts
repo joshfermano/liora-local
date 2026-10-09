@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { DANGER_CODES } from '../core/vocabulary';
 import {
   QUESTIONS,
+  logScoresFromTopProbs,
   optionTokenIds,
   promptFor,
   restrictedSoftmax,
@@ -31,6 +32,20 @@ describe('restrictedSoftmax', () => {
   it('stays finite for large logits', () => {
     const probs = restrictedSoftmax([1000, 1001], [[0], [1]]);
     expect(probs[1]).toBeCloseTo(Math.E / (1 + Math.E));
+  });
+});
+
+describe('logScoresFromTopProbs', () => {
+  it('lets the option softmax read the top-token probabilities a native runtime reports', () => {
+    const scores = logScoresFromTopProbs([
+      { tok_id: 5, prob: 0.6 },
+      { tok_id: 9, prob: 0.2 },
+      { tok_id: 3, prob: 0.1 },
+    ]);
+    const probs = restrictedSoftmax(scores, [[5], [9], [7]]);
+    expect(probs[0]).toBeCloseTo(0.75);
+    expect(probs[1]).toBeCloseTo(0.25);
+    expect(probs[2]).toBe(0);
   });
 });
 

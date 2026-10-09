@@ -10,6 +10,7 @@ import {
   type Inflight,
 } from '../../src/ai/eval-log';
 import type { LoadTarget, TokenEmbeddings, WorkerName } from '../../src/ai/protocol';
+import { DEMO_PHRASES } from '../../src/ai/demo-phrases';
 import { toFindings } from '../../src/ai/typed-decisions';
 import { PROVISIONAL_THRESHOLDS } from '../../src/core/merge';
 import { evaluate } from '../../src/core/rules';
@@ -26,11 +27,6 @@ type Step = {
   answers?: Record<string, number[]>;
 };
 
-const DEMO_PHRASES = [
-  '32 weeks na ako, sobrang sakit ng ulo tapos malabo paningin',
-  'medyo masakit ang balakang ko',
-  'masakit ulo ko',
-] as const;
 
 type Run = { label: string; startedAt: string; finished: boolean; steps: Step[]; storageUsageMB?: number };
 

@@ -5,17 +5,33 @@
     "scheme": "tellliora",
     "version": "0.1.0",
     "platforms": [
-      "web"
+      "web",
+      "ios"
     ],
     "userInterfaceStyle": "automatic",
     "web": {
       "bundler": "metro",
       "output": "single"
     },
+    "ios": {
+      "bundleIdentifier": "com.lumosynlabs.tellliora",
+      "supportsTablet": false,
+      "entitlements": {
+        "com.apple.developer.kernel.increased-memory-limit": true,
+        "com.apple.developer.kernel.extended-virtual-addressing": true
+      }
+    },
     "plugins": [
       "expo-router",
       "expo-font",
-      "expo-status-bar"
+      "expo-status-bar",
+      [
+        "llama.rn",
+        {
+          "enableEntitlements": false,
+          "enableOpenCLAndHexagon": false
+        }
+      ]
     ],
     "experiments": {
       "baseUrl": "/liora-local"

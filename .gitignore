@@ -23,3 +23,6 @@ public/ort/
 # Downloaded source documents and their extracted text (see sources/manifest.json)
 sources/raw/
 sources/text/
+
+# Generated native project (Expo prebuild); rebuilt from app.json on the Mac
+/ios/

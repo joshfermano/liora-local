@@ -61,16 +61,25 @@ export function promptFor(message: string, question: Question) {
   );
 }
 
-export function restrictedSoftmax(logits: ArrayLike<number>, options: readonly (readonly number[])[]) {
+type Scores = { readonly [tokenId: number]: number | undefined };
+
+export function restrictedSoftmax(logits: Scores, options: readonly (readonly number[])[]) {
   const pooled = options.map((ids) => {
     const values = ids.map((id) => logits[id] ?? -Infinity);
     const top = Math.max(...values);
+    if (top === -Infinity) return -Infinity;
     return top + Math.log(values.reduce((sum, v) => sum + Math.exp(v - top), 0));
   });
   const top = Math.max(...pooled);
+  if (top === -Infinity) throw new Error('None of the options is among the scored tokens');
   const weights = pooled.map((score) => Math.exp(score - top));
   const total = weights.reduce((a, b) => a + b, 0);
   return weights.map((w) => w / total);
+}
+
+// Native runtimes report only the top few next tokens with their probabilities.
+export function logScoresFromTopProbs(top: readonly { tok_id: number; prob: number }[]): Scores {
+  return Object.fromEntries(top.map(({ tok_id, prob }) => [tok_id, Math.log(prob)]));
 }
 
 export function optionTokenIds(encode: (text: string) => number[], options: readonly string[]) {
