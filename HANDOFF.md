@@ -33,7 +33,7 @@ Update section 1 and section 2 of this file as work completes, so any session ca
 | Deep research       | Done: 5 angles, 23 sources, 25 claims verified 3 ways. See `docs/research-summary.md`.                                                                                                                                                                                                                                                                                                                         |
 | Concept             | **Approved:** "Tell Liora", for the mother herself. Pregnancy danger signs are the demo star; period, symptom and mood logging use the same input.                                                                                                                                                                                                                                                       |
 | Platform            | **Approved:** one web app (Expo exported for web) in Safari on the iPhones and in laptop browsers. No native app.                                                                                                                                                                                                                                                                                              |
-| Platform change     | **Under trial (2026-10-09, from 8:45 PM):** the user wants a native iPhone app so Gemma 4 E2B runs like it does in native apps. Built on a teammate's Mac over SSH from this PC (how to reach it: `.tmp/EXTRAS.md`, gitignored). Runtime: **llama.rn 0.13.0-rc.7** with the official `ggml-org/gemma-4-E2B-it-GGUF` Q4_0 file (2.7 GB, memory-mapped), commit 1bf9260; test screen `app/dev/native.tsx` (home screen link "Native model test"). Signing with a free Apple ID works; it refuses Extended Virtual Addressing (dropped in dd299d7) and accepts Increased Memory Limit. The web app stays the backup until the proof passes (LUM-79). |
+| Platform            | **Native iPhone app (decided 2026-10-09, 9:55 PM).** Expo prebuild; Gemma 4 E2B Q4_0 GGUF (2.7 GB, memory-mapped) through llama.rn 0.13.0-rc.7; test screen `app/dev/native.tsx`. iPhone 16 Pro Max (proof phone, not a demo phone): download 280 s at about 10 MB/s, load 14.7 s on the GPU, 2.0 to 2.5 s for all 17 questions, no crash. Free Apple ID signing works (Increased Memory Limit yes, Extended Virtual Addressing no); iOS 27 needs the scene life cycle (config plugin, 3e68ca5). The web export still builds as the fallback. |
 | Scope               | **Approved:** text and voice input, danger-sign decision model, go-now screen, nurse card, calm answer, on-device RAG over cited source cards, log, mood check, AI-off checklist, "How Liora decided" drawer, privacy controls, **cycle calendar with next-period estimate**. Stretch: photo of check-up record. Out: photos of the body, medicine advice, fertile-window predictions, contraception guidance. |
 | Spec                | **Approved, v4** (models changed by the user on 2026-10-09 evening: Gemma 4 E2B, Jev-style typed decisions, EmbeddingGemma 2): `docs/superpowers/specs/2026-10-09-tell-liora-design.md`.                                                                                                                                                                                                                                                                                                                                    |
 | Implementation plan | Linear project `liora-local-hackathon`: milestones M1–M7, tickets LUM-44 to LUM-78, each with acceptance criteria and blockers. Ticket rules in `AGENTS.md`; `/tickets` shows progress. |
@@ -41,31 +41,29 @@ Update section 1 and section 2 of this file as work completes, so any session ca
 | GitHub repo / Pages | Public repo `joshfermano/liora-local`; Pages live at https://joshfermano.github.io/liora-local/ (deploys from `main` through Actions). Quick phone testing through `pnpm expo start --tunnel`. |
 | S1 findings         | iPhone Safari 27.0.1: WebGPU on, shader-f16 on, largest GPU buffer 1,024 MB, not cross-origin isolated, about 39 GB storage. Gemma 4 E2B's 1,120 MB token-embedding table is too big for the GPU, so it was moved to the CPU (f928688). **Then the tab was killed at 1,763 of 2,985 MB downloaded (179 s, about 10 MB/s):** Transformers.js holds each whole file in memory until it finishes, and Gemma 4 E2B q4f16 needs about 3 GB at once, plus 1.5 GB of CPU memory for the token embeddings. As packaged, Gemma 4 E2B does not fit a browser tab. Nothing was cached. |
 | Typed decisions     | Code in a866603 (`src/ai/typed-decisions.ts`, `workers/decide.ts`). Laptop observation only (4-bit decoder on CPU, about 0.7 s per question): phrase 1 go-now, phrase 2 calm, phrase 3 go-now instead of the headache follow-up. Causes: the "very ill" question says yes to any ache; the severity score says "moderate" when the message does not say. A yes/no rewording fixed phrase 3 and the "very ill" question but read "medyo masakit" as neither mild nor severe; not applied yet. |
-| Timeline            | At 8:45 PM: about 13 hours left; the platform question (web or native) must be settled first. At 8:15 PM: decision engine ahead of plan; the S1 model test about 1.25 hours late. Screens must start by 12 AM at the latest. |
+| Timeline            | At 9:55 PM: about 12 hours left; native settled, screens not started. At 8:45 PM: platform question open. At 8:15 PM: decision engine ahead of plan; the S1 model test about 1.25 hours late. Screens must start by 12 AM at the latest. |
 
 ## 2. Next steps, in order
 
-1. **Mac set up (done 9:30 PM):** Xcode 27.0, CocoaPods, project cloned and installed, iOS project
-   generated, signing clean. Build and install steps are in `.tmp/EXTRAS.md`.
-2. **Native proof, LUM-79 (in progress):** the Release build installed on a teammate's iPhone 16
-   Pro Max at about 9:55 PM, after two signing fixes (both in `.tmp/EXTRAS.md`). On the phone: trust the developer, open "Native model test",
-   download Gemma 4 (2.7 GB), load it, answer the three demo phrases, share the results. Record
-   load time, answer time and whether it stayed up. llama.rn was chosen over LiteRT-LM and
-   ExecuTorch because it reports next-token probabilities (`n_probs`, `post_sampling_probs: false`)
-   and maps the model from storage. Pitch numbers must come from the iPhone 17 and 17 Pro.
-3. **If the proof passes:** record the platform change in section 5, the spec (sections 4, 10, 13,
-   14) and the tickets (Pages, workers and service worker tickets change). Keep `src/core/`, the
-   screens and `src/ai/typed-decisions.ts`; replace the Web Workers with the native runtime.
-   **If it fails:** back to the web app. Either stream downloads straight to storage and look up
-   token embeddings from disk in JS, or take the fallback chain in spec section 10.
-4. **Typed-decision wording:** tune on eval cases other than the three demo phrases, so the
-   measured numbers stay honest.
-5. **M4 screens from LUM-57** as soon as the platform is settled; they are shared by both paths.
-6. **Waiting on people:** Ivan approves the source cards (LUM-45) and is trying to train a
-   decision model on Gemma (anything he trains must fit on the phone, and must not train on the
-   eval phrases); the team confirms the rulings (LUM-54) and the copy, EPDS items and hotline
-   (LUM-46, LUM-47).
-7. Cut order if late (unchanged): photo, then AI rewording and Cebuano, then dark-mode polish, then
+1. **Typed-decision wording (LUM-67), in progress:** on the phone, "masakit ulo ko" went to go-now
+   instead of the headache follow-up. Reword "looks very ill" to "says she is very sick, not just
+   that something hurts"; replace the 4-level severity score with "very bad or severe?" and "only
+   mild or moderate?" yes/no questions (neither clear means unknown, which asks the follow-up); ask
+   severity only for signs present. Rebuild on the Mac, re-run on the phone with more phrases.
+2. **Screens (M4, from LUM-57), not started:** the largest open block. Build them for the native app
+   (Expo Router screens run on iOS); the go-now, nurse card, follow-up and calm screens first.
+3. **Setup screen (LUM-71):** download Gemma 4 with automatic retry (a first try dropped on the phone).
+4. **Voice (LUM-68):** test Gemma 4 audio through llama.rn (`initMultimodal`), else whisper.rn.
+5. **Demo phones:** install on the iPhone 17 and 17 Pro (register each in Xcode on the Mac) and
+   re-measure there; only those numbers go in the README and pitch.
+6. **Spec and tickets:** update spec sections 4, 10, 13 and 14 for native; retire or rewrite the
+   Pages, worker and service-worker tickets (LUM-50, 51, 66).
+7. **Waiting on people:** Ivan approves the source cards (LUM-45) and is fine-tuning Liquid AI's
+   d1-omni-600M as a decision model. Our llama.rn build does not know its decision type
+   (`lfm2-d1-omni`) yet, and its language list has no Tagalog; swap it in only if it beats Gemma on
+   held-out Taglish and runs on the iPhone. The team confirms the rulings (LUM-54) and the copy, EPDS
+   items and hotline (LUM-46, LUM-47).
+8. Cut order if late (unchanged): photo, then AI rewording and Cebuano, then dark-mode polish, then
    the next-period estimate (keep the calendar), then voice, then card search. **Never cut:**
    typing, the decision model, go-now screen, nurse card, AI-off checklist.
 
@@ -98,7 +96,7 @@ check shows a crisis hotline on any self-harm answer. Nothing leaves the phone.
 | ---------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Fresh repo, all code written during the hackathon | The hackathon disqualifies pre-existing projects and judges review the public repo. |
 | User is the **mother herself**, not a health worker                                                  | User: in the Philippines, pregnant women go to centres themselves; nobody visits them. The deciding moment is hers, at home.                                              |
-| **Web app**, not native iOS                                                                          | Demo devices are iPhones; no Mac and no paid Apple Developer account confirmed. Safari supports WebGPU.                                                                   |
+| ~~**Web app**, not native iOS~~, superseded on 2026-10-09 at 9:55 PM by a **native iPhone app** (Expo prebuild, llama.rn) | The user wanted Gemma 4 to run as it does in native apps. Safari killed the tab at 1.76 GB while downloading Gemma 4 (it needs about 3 GB held at once). The native proof passed on an iPhone 16 Pro Max: load 14.7 s on the GPU, 2.0 to 2.5 s for 17 typed questions, no crash (LUM-79). Builds run on a teammate's Mac; see `.tmp/EXTRAS.md`. The web export still builds and stays the fallback. |
 | **Expo web**, not plain Vite                                                                         | The team's chosen stack. Metro risk is mitigated by bundling the workers with esbuild outside Metro. Fallback: Vite + React shell with the same `src/core/`.     |
 | ~~WebLLM for the text model~~, superseded on 2026-10-09 evening by **Gemma 4 E2B on Transformers.js** | The user prefers Gemma 4. WebLLM 0.2.85 has no Gemma 4 build; Transformers.js 4.3.1 runs `onnx-community/gemma-4-E2B-it-ONNX`. WebLLM stays only for the Gemma 3 1B fallback. |
 | **Transformers.js** for every model | Runs Gemma 4 E2B, EmbeddingGemma 2 and the fallbacks in the browser on WebGPU or WASM. |
