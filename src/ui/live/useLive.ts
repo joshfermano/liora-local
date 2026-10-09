@@ -31,6 +31,8 @@ function spoken(blocks: ReplyBlock[]): string {
 
 type Heard = { text: string; ms: number } | null;
 
+const ACKS = ['live.ack.1', 'live.ack.2', 'live.ack.3'];
+
 // Her chosen voice from Profile while it is installed, else the best English woman's voice.
 async function bestVoice(): Promise<string | undefined> {
   const chosen = useLogStore.getState().setup?.voice;
@@ -73,6 +75,18 @@ export function useLive(onDecision: (href?: string) => void) {
     // Each spoken word lifts the orb; the decay below lets it fall between words.
     Speech.speak(text, { language: 'en-US', voice: voiceId, rate: 0.95, onBoundary: () => setOutput(0.9), onDone: back, onStopped: back, onError: back });
   }, []);
+
+  // The moment her turn ends, a short fixed acknowledgement plays while Gemma works, so a pause is answered at once.
+  const acks = useRef(0);
+  useEffect(() => {
+    if (voice.state !== 'transcribing' || phase !== 'listening') return;
+    setPhase('thinking');
+    if (!Speech) return;
+    const line = en(ACKS[acks.current++ % ACKS.length]!);
+    void bestVoice().then((voiceId) => {
+      if (alive.current) Speech?.speak(line, { language: 'en-US', voice: voiceId, rate: 1 });
+    });
+  }, [voice.state, phase]);
 
   const handle = useCallback(
     async (heard: Heard) => {
