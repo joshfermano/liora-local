@@ -61,7 +61,7 @@ export const packFor = lastResult(
       data: { periods, dayLogs, cycleSettings, setup },
       entries,
       moodChecks,
-      profile: { name: profile.name, age: profile.age, status: profile.status, weeks: profile.weeks, bloodType: profile.bloodType, emergency: profile.emergency },
+      profile: { name: profile.name, age: profile.age, status: profile.status, weeks: profile.weeks, daysSinceBirth: profile.daysSinceBirth, bloodType: profile.bloodType, emergency: profile.emergency },
       today: day,
       memory: { notes, language },
     });

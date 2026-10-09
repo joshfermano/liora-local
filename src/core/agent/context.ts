@@ -12,7 +12,7 @@ export interface ContextInput {
   data: AgentData;
   entries: Entry[];
   moodChecks: MoodResult[];
-  profile: { name?: string; age?: number; status?: 'pregnant' | 'postpartum' | 'neither'; weeks?: number; bloodType?: string; emergency?: { name: string; relation?: string; phone: string } };
+  profile: { name?: string; age?: number; status?: 'pregnant' | 'postpartum' | 'neither'; weeks?: number; daysSinceBirth?: number; bloodType?: string; emergency?: { name: string; relation?: string; phone: string } };
   today: string;
   // Her own notes and the language she writes in: they flavour the words, never the rules.
   memory?: { notes: string[]; language?: Language };
@@ -52,6 +52,37 @@ function pattern(i: Insight): string | null {
 
 const LANGUAGE: Record<Language, string> = { tagalog: 'Tagalog', english: 'English', taglish: 'Taglish' };
 
+// One line on where she is today, so every reply starts from it: pregnancy, after birth, her period,
+// or where today falls in her estimated cycle.
+function rightNow(profile: ContextInput['profile'], model: ReturnType<typeof todayModel>, today: string): string {
+  if (profile.status === 'pregnant') return profile.weeks ? `pregnant, week ${profile.weeks}` : 'pregnant';
+  if (profile.status === 'postpartum') {
+    return profile.daysSinceBirth !== undefined ? `${profile.daysSinceBirth} days after giving birth` : 'after giving birth';
+  }
+  const a = model.answer;
+  if (a.kind === 'period') return `on her period (day ${a.day})`;
+  const parts = ['not pregnant'];
+  if ('cycleDay' in a && a.cycleDay) parts.push(`cycle day ${a.cycleDay}`);
+  const f = model.fertile;
+  const within = (from: string, to: string) => from <= today && today <= to;
+  if (f && within(f.ovulation.from, f.ovulation.to)) parts.push('likely ovulation (estimate)');
+  else if (f && within(f.from, f.to)) parts.push('in her estimated fertile window');
+  if (a.kind === 'past_window') parts.push('past her estimated window, no period logged yet');
+  return parts.join(', ');
+}
+
+function loggedToday(log: AgentData['dayLogs'][number] | undefined): string {
+  if (!log) return 'nothing yet';
+  const parts = [
+    log.flow ? `flow ${log.flow}` : null,
+    log.symptoms.length ? `symptoms ${words(log.symptoms)}` : null,
+    log.moods.length ? `mood ${words(log.moods)}` : null,
+    log.activities.length ? `activities ${words(log.activities)}` : null,
+    log.note ? `note "${cleanForPrompt(log.note, 80)}"` : null,
+  ].filter(Boolean);
+  return parts.length ? parts.join('; ') : 'nothing yet';
+}
+
 export function contextPack({ data, entries, moodChecks, profile, today, memory }: ContextInput): ContextPack {
   const status = profile.status;
   const model = todayModel({
@@ -73,6 +104,8 @@ export function contextPack({ data, entries, moodChecks, profile, today, memory 
     lines.push(`Emergency contact: ${name}${relation ? ` (${relation})` : ''}, ${phone}`);
   }
   lines.push(`Today: ${format(parseISO(today), 'EEEE')}, ${day(today)}`);
+  lines.push(`Right now: ${rightNow(profile, model, today)}`);
+  lines.push(`Logged today: ${loggedToday(data.dayLogs.find((l) => l.date === today))}`);
 
   if (status === 'pregnant') {
     lines.push(profile.weeks ? `Pregnant, week ${profile.weeks}` : 'Pregnant (week not set)');

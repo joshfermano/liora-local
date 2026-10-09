@@ -20,6 +20,31 @@ const input = (over: Partial<ContextInput> = {}): ContextInput => ({
 });
 
 describe('what Liora knows about her, for the reply prompt', () => {
+  it('opens with where she is right now and what she logged today', () => {
+    const today = log(TODAY, { symptoms: ['headache', 'cramps'], moods: ['tired'], note: 'slept badly' });
+    const { text } = contextPack(input({ data: { periods: STEADY, dayLogs: [today], cycleSettings: {}, setup: null } }));
+    expect(text).toMatch(/Right now: not pregnant, cycle day 23/);
+    expect(text).toMatch(/Logged today: symptoms headache, cramps; mood tired; note "slept badly"/);
+  });
+
+  it('says when she is on her period, pregnant, or after birth', () => {
+    const onPeriod = contextPack(input({ data: { periods: [...STEADY, period('2026-10-09', null)], dayLogs: [], cycleSettings: {}, setup: null } }));
+    expect(onPeriod.text).toMatch(/Right now: on her period \(day 2\)/);
+    expect(contextPack(input({ profile: { name: 'Gweny', status: 'pregnant', weeks: 32 } })).text).toMatch(/Right now: pregnant, week 32/);
+    expect(contextPack(input({ profile: { name: 'Gweny', status: 'postpartum', daysSinceBirth: 5 } })).text).toMatch(/Right now: 5 days after giving birth/);
+  });
+
+  it('says when today is in her estimated fertile window or likely ovulation', () => {
+    const fertile = contextPack(input({ today: '2026-10-26', data: { periods: STEADY, dayLogs: [], cycleSettings: {}, setup: null } }));
+    expect(fertile.text).toMatch(/Right now: .*in her estimated fertile window/);
+    const ovulating = contextPack(input({ today: '2026-10-31', data: { periods: STEADY, dayLogs: [], cycleSettings: {}, setup: null } }));
+    expect(ovulating.text).toMatch(/Right now: .*likely ovulation \(estimate\)/);
+  });
+
+  it('says plainly when nothing is logged today', () => {
+    expect(contextPack(input()).text).toMatch(/Logged today: nothing yet/);
+  });
+
   it('describes her, her cycle and her windows in plain words', () => {
     const { text } = contextPack(input());
     expect(text).toContain('Name: Gweny');
