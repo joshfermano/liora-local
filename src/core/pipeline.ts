@@ -34,6 +34,21 @@ function cautious(findings: Finding[], text: string): Finding[] {
   );
 }
 
+// The WHO tables cover pregnancy and the weeks after birth (user's call, 2026-10-10): when her
+// profile says she is not pregnant, her symptoms are logged without the danger-sign check, unless
+// her message itself says she is pregnant or she opens the danger-sign checklist. An unset status
+// keeps the full check.
+const SAYS_PREGNANT =
+  /buntis|nagdadalang-?tao|pregnan|\bweeks?\b|linggo\s+na\s+(?:akong|ako)|kabuwanan|(?:ma|na|pa)nganganak|nanganak|\blabou?r\b|\bwaters?\s+broke|panubigan|\bbaby\b|sanggol/i;
+
+export function dangerRulesApply(context: Context, input: Entry['input'], text: string): boolean {
+  return context.status !== 'neither' || input === 'checklist' || SAYS_PREGNANT.test(text);
+}
+
+function decide(findings: Entry['findings'], context: Context, input: Entry['input'], text: string): Entry['decision'] {
+  return dangerRulesApply(context, input, text) ? evaluate(findings, context) : { level: 'ok', fired: [] };
+}
+
 export function runPipeline({ id, now, text, input, context, typedAnswers, models }: PipelineInput): Entry {
   const findings = mergeFindings([
     ...readText(text),
@@ -46,7 +61,7 @@ export function runPipeline({ id, now, text, input, context, typedAnswers, model
     input,
     findings,
     extraction: extract(text, now),
-    decision: evaluate(findings, context),
+    decision: decide(findings, context, input, text),
     card_ids: [],
     models: models ?? [],
   };

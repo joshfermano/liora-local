@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { applyFollowUpAnswer, runPipeline } from '../core/pipeline';
+import { applyFollowUpAnswer, dangerRulesApply, runPipeline } from '../core/pipeline';
 import type { Context, Entry } from '../core/types';
 import { useLogStore } from './log';
 import { contextFrom, readProfile } from './profile';
@@ -103,7 +103,8 @@ export const useTellStore = create<TellState>()((set, get) => ({
       // the word list still runs on every message, so a danger word always counts.
       const today = format(new Date(), 'yyyy-MM-dd');
       const { typed } = triage(text, today, readProfile(useLogStore.getState().setup).status);
-      const answers = typed === 'none' ? undefined : scopeAnswers(await typedAnswers(text), typed);
+      const rulesApply = dangerRulesApply(get().context, input, text);
+      const answers = typed === 'none' || !rulesApply ? undefined : scopeAnswers(await typedAnswers(text), typed);
       const entry = runPipeline({
         id: newId(),
         now: new Date(),
@@ -139,8 +140,9 @@ export const useTellStore = create<TellState>()((set, get) => ({
 }));
 
 // The rules read her status from the saved profile, which survives a restart; this store does not.
+// With no profile (a fresh install or after Delete everything) the rules use the safe default.
 const syncContext = (setup: Parameters<typeof readProfile>[0]) => {
-  if (setup) useTellStore.setState({ context: contextFrom(readProfile(setup)) });
+  useTellStore.setState({ context: contextFrom(readProfile(setup)) });
 };
 syncContext(useLogStore.getState().setup);
 useLogStore.subscribe((now, before) => {

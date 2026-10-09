@@ -110,3 +110,28 @@ describe('period mentions', () => {
     expect(entry.extraction?.period).toMatchObject({ event: 'started', date: '2026-10-08' });
   });
 });
+
+describe('the WHO danger-sign rules cover pregnancy and the weeks after birth', () => {
+  const run = (status: Context['status'], input: 'text' | 'checklist' = 'text') =>
+    runPipeline({ id: 'x', now: new Date('2026-10-10T04:00:00Z'), text: 'sobrang sakit ng ulo ko tapos malabo paningin', input, context: { status } });
+
+  it('decide for a pregnant woman and a new mother', () => {
+    expect(run('pregnant').decision.level).toBe('go_now');
+    expect(run('postpartum').decision.level).toBe('go_now');
+  });
+
+  it('only log her symptoms when she said she is not pregnant', () => {
+    const entry = run('neither');
+    expect(entry.decision).toEqual({ level: 'ok', fired: [] });
+    expect(entry.findings.length).toBeGreaterThan(0);
+  });
+
+  it('decide when her message says she is pregnant, whatever her profile says', () => {
+    const entry = runPipeline({ id: 'x', now: new Date('2026-10-10T04:00:00Z'), text: '32 weeks na ako, sobrang sakit ng ulo ko tapos malabo paningin', input: 'text', context: { status: 'neither' } });
+    expect(entry.decision.level).toBe('go_now');
+  });
+
+  it('still decide when she opens the danger-sign checklist herself', () => {
+    expect(run('neither', 'checklist').decision.level).toBe('go_now');
+  });
+});
