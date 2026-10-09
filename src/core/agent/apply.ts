@@ -66,6 +66,12 @@ function step(a: AgentAction, cur: AgentData, today: string): Step {
       };
     case 'symptoms':
       return a.symptoms.length ? { data: { dayLogs: mergeLog(cur.dayLogs, date, { symptoms: a.symptoms }) }, saved: [{ kind: 'symptoms', date, values: a.symptoms }] } : null;
+    case 'discharge': {
+      const old = cur.dayLogs.find((l) => l.date === date) ?? { date, flow: null, symptoms: [], moods: [], activities: [] };
+      // What she says now fills in or replaces those details; the rest of what she logged stays.
+      const next = { ...old, discharge: { ...(old.discharge ?? {}), ...a.discharge } };
+      return { data: { dayLogs: upsertDayLog(cur.dayLogs, next) }, saved: [{ kind: 'discharge', date, discharge: a.discharge }] };
+    }
     case 'moods':
       return a.moods.length ? { data: { dayLogs: mergeLog(cur.dayLogs, date, { moods: a.moods }) }, saved: [{ kind: 'moods', date, values: a.moods }] } : null;
     case 'activities':

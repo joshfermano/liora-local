@@ -1,4 +1,4 @@
-import type { Activity, CycleSettings, DayLog, Flow, Mood, PeriodRecord, Symptom } from '../types';
+import type { Activity, CycleSettings, DayLog, Discharge, Flow, Mood, PeriodRecord, Symptom } from '../types';
 
 // What she said, turned into closed actions. Code resolves every date; neither the word rules nor
 // Gemma ever write one.
@@ -14,6 +14,7 @@ export type AgentAction =
   | { tool: 'period_end'; date: DateWord }
   | { tool: 'flow'; date: DateWord; flow: Flow }
   | { tool: 'symptoms'; date: DateWord; symptoms: Symptom[] }
+  | { tool: 'discharge'; date: DateWord; discharge: Discharge }
   | { tool: 'moods'; date: DateWord; moods: Mood[] }
   | { tool: 'activities'; date: DateWord; activities: Activity[] }
   | { tool: 'weeks'; weeks: number }
@@ -34,7 +35,7 @@ export type Screen = 'calendar' | 'mood_check' | 'checklist' | 'profile' | 'log_
 
 export type Tool = AgentAction['tool'];
 export const WRITE_TOOLS = [
-  'period_start', 'period_end', 'flow', 'symptoms', 'moods', 'activities', 'weeks', 'delete_period', 'clear_day', 'set_status',
+  'period_start', 'period_end', 'flow', 'symptoms', 'discharge', 'moods', 'activities', 'weeks', 'delete_period', 'clear_day', 'set_status',
 ] as const;
 
 // Plain data the responder may use; every number in Gemma's reply must appear here.
@@ -61,6 +62,7 @@ export type SavedItem =
   | { kind: 'period_end'; date: string }
   | { kind: 'flow'; date: string; flow: Flow }
   | { kind: 'symptoms'; date: string; values: Symptom[] }
+  | { kind: 'discharge'; date: string; discharge: Discharge }
   | { kind: 'moods'; date: string; values: Mood[] }
   | { kind: 'activities'; date: string; values: Activity[] }
   | { kind: 'weeks'; weeks: number }
