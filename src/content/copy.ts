@@ -648,6 +648,8 @@ export const COPY = {
   'agent.logged.period_end': ui('Period ended {date}'),
   'agent.logged.flow': ui('{flow} flow, {date}'),
   'agent.logged.symptoms': ui('{list}, {date}'),
+  'agent.logged.discharge': ui('Discharge: {what}, {date}'),
+  'agent.logged.discharge_plain': ui('Discharge, {date}'),
   'agent.logged.moods': ui('Feeling {list}, {date}'),
   'agent.logged.activities': ui('{list}, {date}'),
   'agent.logged.weeks': ui('Week {n} of your pregnancy'),

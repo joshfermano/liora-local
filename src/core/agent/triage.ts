@@ -21,7 +21,7 @@ const MEMORY: ReadonlySet<Tool> = new Set(['remember', 'forget']);
 const EDITS: ReadonlySet<Tool> = new Set(['delete_period', 'clear_day', 'undo_last']);
 const READS: ReadonlySet<Tool> = new Set(['ask_day', 'open', 'cycle_question', 'contact']);
 const PERIOD_LOGS: ReadonlySet<Tool> = new Set(['period_start', 'period_end', 'flow']);
-const LOGS: ReadonlySet<Tool> = new Set(['period_start', 'period_end', 'flow', 'symptoms', 'moods', 'activities', 'weeks']);
+const LOGS: ReadonlySet<Tool> = new Set(['period_start', 'period_end', 'flow', 'symptoms', 'discharge', 'moods', 'activities', 'weeks']);
 
 const QUESTION = /\?|^\s*(?:ano|kailan|ilang|ilan|gaano|paano|how|what|when|which|am\s+i|is\s+my|do\s+i|did\s+i|have\s+i|was\s+i)\b/i;
 const SELF = /\b(?:my|me|i|ako|ko|akin|aking|sa\s+akin)\b/i;
@@ -39,7 +39,8 @@ export function triage(text: string, today: string, status: string | undefined):
   if (tools.some((t) => MEMORY.has(t))) return { purpose: 'update', typed: 'all', actions };
   if (tools.some((t) => EDITS.has(t))) return { purpose: 'update', typed: 'none', actions };
   if (tools.some((t) => LOGS.has(t))) {
-    const typed: TypedScope = tools.includes('symptoms')
+    // Discharge keeps the full check, as symptoms do: "watery" can be her waters.
+    const typed: TypedScope = tools.includes('symptoms') || tools.includes('discharge')
       ? 'all'
       : tools.some((t) => PERIOD_LOGS.has(t))
         ? status === 'neither'

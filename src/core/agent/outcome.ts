@@ -91,6 +91,11 @@ function factLine(item: SavedItem, today: string): string {
       return `${item.flow} flow logged for ${when(item.date)}`;
     case 'symptoms':
       return `symptoms logged for ${when(item.date)}: ${item.values.map(words).join(', ')}`;
+    case 'discharge': {
+      const d = item.discharge;
+      const detail = [d.color, d.texture && words(d.texture), d.amount, d.smell === 'unusual' ? 'unusual smell' : d.smell === 'none' ? 'no smell' : undefined].filter(Boolean);
+      return `discharge logged for ${when(item.date)}${detail.length ? `: ${detail.join(', ')}` : ''}`;
+    }
     case 'moods':
       return `moods logged for ${when(item.date)}: ${item.values.map(words).join(', ')}`;
     case 'activities':

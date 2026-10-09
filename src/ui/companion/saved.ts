@@ -1,6 +1,7 @@
 import { format, parseISO } from 'date-fns';
 import { en } from '../../content/copy';
 import { resolveDate, type AgentAction, type SavedItem } from '../../core/agent';
+import { dischargeLine } from '../daylog/dischargeLine';
 
 const fill = (s: string, v: Record<string, string>) => s.replace(/\{(\w+)\}/g, (_, k: string) => v[k] ?? '');
 const ymd = (d: Date) => format(d, 'yyyy-MM-dd');
@@ -27,6 +28,10 @@ export function savedLine(item: SavedItem): string {
       return fill(en('agent.logged.flow'), { flow: en(`cal.flow.${item.flow}`), date: dayWord(item.date) });
     case 'symptoms':
       return fill(en('agent.logged.symptoms'), { list: list('symptom', item.values), date: dayWord(item.date) });
+    case 'discharge': {
+      const what = dischargeLine(item.discharge);
+      return fill(en(what ? 'agent.logged.discharge' : 'agent.logged.discharge_plain'), { what: what ?? '', date: dayWord(item.date) });
+    }
     case 'moods':
       return fill(en('agent.logged.moods'), { list: list('feeling', item.values).toLowerCase(), date: dayWord(item.date) });
     case 'activities':
@@ -66,6 +71,10 @@ export function confirmLine(action: AgentAction, today = ymd(new Date())): strin
     case 'flow': {
       const date = resolveDate(action.date, today);
       return date ? savedLine({ kind: 'flow', date, flow: action.flow }) : en('agent.confirm.replace');
+    }
+    case 'discharge': {
+      const date = resolveDate(action.date, today);
+      return date ? savedLine({ kind: 'discharge', date, discharge: action.discharge }) : en('agent.confirm.replace');
     }
     case 'symptoms':
     case 'moods':

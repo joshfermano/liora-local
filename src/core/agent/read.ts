@@ -5,6 +5,7 @@ import { readEdit, THANKS } from './edits';
 import { readMemory } from './memory';
 import type { AgentAction, DateWord } from './types';
 import { dateWord } from './when';
+import { readDischarge } from './discharge';
 
 // Input patterns only: what she might type, in Tagalog, Taglish or English. No advice here.
 const PERIOD_WORD = /regla|\bmens\b|\bperiod\b|dalaw/i;
@@ -78,6 +79,8 @@ export function readActions(text: string, today: string): AgentAction[] {
 
   const symptoms = unique(readText(text).map((f) => f.code)).filter((c): c is Symptom => (SYMPTOMS as readonly string[]).includes(c));
   if (symptoms.length) out.push({ tool: 'symptoms', date: dateWord(text, now, today), symptoms });
+  const discharge = question ? null : readDischarge(text);
+  if (discharge) out.push({ tool: 'discharge', date: dateWord(text, now, today), discharge });
   const moods = readMoods(text);
   if (moods.length) out.push({ tool: 'moods', date: dateWord(text, now, today), moods });
   const activities = question ? [] : activitiesOf(text);
