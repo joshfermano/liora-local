@@ -283,9 +283,10 @@ export const COPY = {
   'live.close': ui('Close'),
   'live.listening': ui('Listening. Liora answers when you pause.'),
   'live.thinking': ui('Thinking…'),
-  'live.ack.1': ui('Mm-hm.'),
-  'live.ack.2': ui('Okay.'),
-  'live.ack.3': ui('I hear you.'),
+  // Spoken aloud: plain words only, since the voice spells out sounds like 'Mm-hm' letter by letter.
+  'live.ack.1': ui('Okay.'),
+  'live.ack.2': ui('I hear you.'),
+  'live.ack.3': ui('Got it.'),
   'live.speaking': ui('Liora is speaking. Tap the orb to interrupt.'),
   'live.retry': ui('I did not catch that. Tap the orb to try again.'),
   'live.orb': ui('Liora Live orb'),
