@@ -286,6 +286,8 @@ export const COPY = {
   'live.speaking': ui('Liora is speaking. Tap the orb to interrupt.'),
   'live.retry': ui('I did not catch that. Tap the orb to try again.'),
   'live.orb': ui('Liora Live orb'),
+  'voice.mic_denied': ui('Liora needs the microphone. Turn it on in Settings.'),
+  'voice.settings': ui('Open Settings'),
   'liora.voice.setup': ui('Voice needs the offline download first.'),
   'liora.voice.setup.open': ui('Get Liora ready'),
   'liora.voice.writing': ui('Writing down what you said…'),

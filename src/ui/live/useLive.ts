@@ -2,7 +2,7 @@ import { requireOptionalNativeModule } from 'expo';
 import { Platform } from 'react-native';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { modelBytesOnDisk, voiceBytesOnDisk } from '../../ai/gemma-native';
-import { useVoiceNote } from '../../ai/use-voice-note';
+import { MIC_DENIED, useVoiceNote } from '../../ai/use-voice-note';
 import { en } from '../../content/copy';
 import type { ReplyBlock } from '../../core/companion';
 import { useCompanionStore } from '../../store/companion';
@@ -12,7 +12,7 @@ type SpeechModule = typeof import('expo-speech');
 const Speech: SpeechModule | null =
   Platform.OS === 'web' || requireOptionalNativeModule('ExpoSpeech') ? (require('expo-speech') as SpeechModule) : null;
 
-export type LivePhase = 'starting' | 'listening' | 'thinking' | 'speaking' | 'setup' | 'retry';
+export type LivePhase = 'starting' | 'listening' | 'thinking' | 'speaking' | 'setup' | 'retry' | 'mic';
 
 const fill = (s: string, v: Record<string, string> = {}) => s.replace(/\{(\w+)\}/g, (_, k: string) => v[k] ?? '');
 
@@ -39,8 +39,10 @@ export function useLive(onDecision: () => void) {
     try {
       await latest.current.start();
       if (alive.current) setPhase('listening');
-    } catch {
-      setPhase('retry');
+    } catch (e) {
+      const why = e instanceof Error ? e.message : String(e);
+      if (__DEV__) console.warn(`[live] could not start recording: ${why}`);
+      setPhase(why === MIC_DENIED ? 'mic' : 'retry');
     }
   }, []);
 
@@ -76,7 +78,7 @@ export function useLive(onDecision: () => void) {
   const tapOrb = useCallback(() => {
     if (phase === 'listening') void finish();
     else if (phase === 'speaking') void Speech?.stop();
-    else if (phase === 'retry') void listen();
+    else if (phase === 'retry' || phase === 'mic') void listen();
   }, [phase, finish, listen]);
 
   useEffect(() => {

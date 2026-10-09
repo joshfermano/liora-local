@@ -10,9 +10,9 @@ import {
 import { File } from 'expo-file-system';
 import { useState } from 'react';
 import { gemmaSession } from './gemma-session';
-import type { VoiceNote, VoiceNoteState } from './voice-note-types';
+import { MIC_DENIED, type VoiceNote, type VoiceNoteState } from './voice-note-types';
 
-export type { VoiceNote, VoiceNoteState } from './voice-note-types';
+export { MIC_DENIED, type VoiceNote, type VoiceNoteState } from './voice-note-types';
 
 // 16 kHz mono 16-bit WAV: what Gemma 4's audio encoder reads; llama.cpp cannot decode AAC.
 const WAV_16K: RecordingOptions = {
@@ -47,8 +47,8 @@ export function useVoiceNote(): VoiceNote {
     const permission = await requestRecordingPermissionsAsync();
     if (!permission.granted) {
       setState('error');
-      setError('Microphone permission was not given');
-      return;
+      setError(MIC_DENIED);
+      throw new Error(MIC_DENIED);
     }
     await setAudioModeAsync({ allowsRecording: true, playsInSilentMode: true });
     await recorder.prepareToRecordAsync();
@@ -57,23 +57,30 @@ export function useVoiceNote(): VoiceNote {
   }
 
   async function stop() {
-    if (state !== 'recording') return null;
+    if (state !== 'recording') {
+      if (__DEV__) console.warn(`[voice] stop() while ${state}`);
+      return null;
+    }
     let uri: string | null = null;
     try {
       await recorder.stop();
       await setAudioModeAsync({ allowsRecording: false, playsInSilentMode: true });
       uri = recorder.uri;
       if (!uri) {
+        if (__DEV__) console.warn('[voice] nothing was recorded');
         setState('error');
         setError('Nothing was recorded');
         return null;
       }
       setState('transcribing');
+      const size = new File(uri).size ?? 0;
       const gemma = await gemmaSession();
       const heard = await gemma.transcribe(uri);
+      if (__DEV__) console.log(`[voice] ${size} bytes, ${heard.ms} ms, heard: ${JSON.stringify(heard.text)}`);
       setState('idle');
       return heard.text ? heard : null;
     } catch (e) {
+      if (__DEV__) console.warn(`[voice] failed: ${message(e)}`);
       setState('error');
       setError(message(e));
       return null;

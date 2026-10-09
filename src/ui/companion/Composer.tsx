@@ -1,8 +1,8 @@
 import { useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
-import { TextInput, View } from 'react-native';
+import { Linking, TextInput, View } from 'react-native';
 import { modelBytesOnDisk, voiceBytesOnDisk } from '../../ai/gemma-native';
-import { useVoiceNote } from '../../ai/use-voice-note';
+import { MIC_DENIED, useVoiceNote } from '../../ai/use-voice-note';
 import { en } from '../../content/copy';
 import { useCompanionStore } from '../../store/companion';
 import { GlassCard } from '../Glass';
@@ -28,7 +28,7 @@ export function Composer({ text, setText }: { text: string; setText: (t: string)
   const canSend = text.trim().length > 0 && !busy && !recording;
 
   const transcribing = voice.state === 'transcribing';
-  const [notice, setNotice] = useState<'setup' | 'error' | null>(null);
+  const [notice, setNotice] = useState<'setup' | 'error' | 'mic' | null>(null);
 
   // Her words land in the input for her to read and edit before sending.
   const stopAndWrite = async () => {
@@ -46,7 +46,7 @@ export function Composer({ text, setText }: { text: string; setText: (t: string)
     if (recording) return void stopAndWrite();
     if (modelBytesOnDisk() <= 0 || voiceBytesOnDisk() <= 0) return setNotice('setup');
     setNotice(null);
-    void voice.start().catch(() => setNotice('error'));
+    void voice.start().catch((e: unknown) => setNotice(e instanceof Error && e.message === MIC_DENIED ? 'mic' : 'error'));
   };
   const send = () => {
     if (!canSend) return;
@@ -61,12 +61,19 @@ export function Composer({ text, setText }: { text: string; setText: (t: string)
       {notice ? (
         <View className="flex-row flex-wrap items-center gap-x-xs px-xs" accessibilityRole="alert">
           <Text variant="footnote" tone="secondary">
-            {en(notice === 'setup' ? 'liora.voice.setup' : 'home.voice.error')}
+            {en(notice === 'setup' ? 'liora.voice.setup' : notice === 'mic' ? 'voice.mic_denied' : 'home.voice.error')}
           </Text>
           {notice === 'setup' ? (
             <PressableSurface label={en('liora.voice.setup.open')} role="link" onPress={() => router.push('/setup')} surfaceClassName="min-h-tap justify-center">
               <Text variant="footnote" tone="tint" className="font-semibold">
                 {en('liora.voice.setup.open')}
+              </Text>
+            </PressableSurface>
+          ) : null}
+          {notice === 'mic' ? (
+            <PressableSurface label={en('voice.settings')} role="link" onPress={() => void Linking.openSettings()} surfaceClassName="min-h-tap justify-center">
+              <Text variant="footnote" tone="tint" className="font-semibold">
+                {en('voice.settings')}
               </Text>
             </PressableSurface>
           ) : null}
