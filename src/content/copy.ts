@@ -151,6 +151,16 @@ export const COPY = {
   'checklist.title': ui('Check the signs'),
   'checklist.check': ui('Check'),
   'checklist.none': ui('Choose at least one'),
+  // mood and crisis (LUM-63)
+  'home.mood': ui('Mood check'),
+  'mood.of': ui('of'),
+  'mood.back': ui('Back'),
+  'mood.result.high': ui('Please talk about these answers with a health worker at your next check-up.'),
+  'mood.result.low': ui('Thank you. Your answers stay on this phone.'),
+  'mood.done': ui('Done'),
+  'crisis.headline': ui('Talk to someone now.'),
+  'crisis.call': ui('Call 1553'),
+  'crisis.source': ui('WHO Philippines and DOH, 10 September 2020'),
 } as const satisfies Record<string, Entry>;
 
 export type CopyKey = keyof typeof COPY;
