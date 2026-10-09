@@ -98,6 +98,22 @@ docs(spec): record the gemma 4 fallback chain
 ci: deploy the web export to github pages
 ```
 
+## Tickets (Linear)
+
+All work is tracked in Linear: team **Lumosyn Labs** (`LUM`), project **liora-local-hackathon**,
+milestones M1 to M7 matching the build plan. The build tickets are LUM-44 to LUM-78.
+
+- **Before starting work,** find its ticket and move it to **In Progress**. New work gets a new
+  ticket in the right milestone first; never work untracked, never duplicate a ticket.
+- **Name the ticket in the commit** as a footer: `Refs: LUM-57`, or `Fixes: LUM-57` on the commit
+  that completes it. The commit watcher flags `feat` and `fix` commits without one.
+- **When it is finished,** check every acceptance criterion, then comment what shipped, the checks
+  run with their results, and anything unmet. Move it to **Done**, or to **In Review** when it
+  carries the `needs-iphone` label (a person must confirm it on both iPhones first).
+- **When blocked,** comment why and add the blocking ticket; do not leave it silently In Progress.
+- **Check progress** at the start of every session and after each milestone (`/tickets` in Claude
+  Code). In Claude Code the main session updates tickets; subagents report back to it.
+
 ## Developer-specific instructions
 
 Read `.tmp/EXTRAS.md` for local, developer-specific instructions when that file exists. Keep

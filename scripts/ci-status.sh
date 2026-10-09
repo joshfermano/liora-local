@@ -27,6 +27,9 @@ while read -r sha; do
   if ! out=$(bash .githooks/commit-msg <(git log -1 --format=%B "$sha") 2>&1); then
     flags+=("$s ${out%%$'\n'*}")
   fi
+  if grep -qE '^(feat|fix)(\(|!|:)' <<<"$subj" && ! git log -1 --format=%B "$sha" | grep -qE 'LUM-[0-9]+'; then
+    flags+=("$s is a $(cut -d'(' -f1 <<<"${subj%%:*}") commit without a Linear ticket (add 'Refs: LUM-nn')")
+  fi
 
   files=$(git diff-tree --no-commit-id --name-only -r "$sha")
   while read -r f; do

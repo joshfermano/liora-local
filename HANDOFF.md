@@ -35,21 +35,16 @@ Update section 1 and section 2 of this file as work completes, so any session ca
 | Platform            | **Approved:** one web app (Expo exported for web) in Safari on the iPhones and in laptop browsers. No native app.                                                                                                                                                                                                                                                                                              |
 | Scope               | **Approved:** text and voice input, danger-sign decision model, go-now screen, nurse card, calm answer, on-device RAG over cited source cards, log, mood check, AI-off checklist, "How Liora decided" drawer, privacy controls, **cycle calendar with next-period estimate**. Stretch: photo of check-up record. Out: photos of the body, medicine advice, fertile-window predictions, contraception guidance. |
 | Spec                | **Approved, v4** (models changed by the user on 2026-10-09 evening: Gemma 4 E2B, Jev-style typed decisions, EmbeddingGemma 2): `docs/superpowers/specs/2026-10-09-tell-liora-design.md`.                                                                                                                                                                                                                                                                                                                                    |
-| Implementation plan | **Not written yet.**                                                                                                                                                                                                                                                                                                                                                                                           |
+| Implementation plan | Linear project `liora-local-hackathon`: milestones M1–M7, tickets LUM-44 to LUM-78, each with acceptance criteria and blockers. Ticket rules in `AGENTS.md`; `/tickets` shows progress. |
 | Code                | **None yet.** The repo holds docs only.                                                                                                                                                                                                                                                                                                                                                                        |
-| GitHub repo / Pages | **Not created.** Local git only. Needs the user's yes (section 2, step 1).                                                                                                                                                                                                                                                                                                                                     |
+| GitHub repo / Pages | Repo created and public: `joshfermano/liora-local`, branch `main`. Pages not enabled yet; needs the user's yes (LUM-50). |
 | Timeline            | Building has not started. The spec's 5:45 PM start has slipped to about 6:15 PM; absorb it from the polish block, not from testing.                                                                                                                                                                                                                                                                            |
 
 ## 2. Next steps, in order
 
-1. **Ask the user to confirm:** create `joshfermano/liora-local` as a **public** GitHub repo and
-   enable GitHub Pages. The iPhones need an HTTPS URL for WebGPU, the microphone and the service
-   worker. Asked twice; not yet answered. Do not create it without a yes. Fallback if no: a
-   temporary HTTPS tunnel to the dev server, or keep the repo private until near the deadline and
-   use another HTTPS host.
-2. **Invoke `superpowers:writing-plans`** on the spec. Keep it lean; order tasks per spec section
-   17, starting with S1. Then ask the user to pick the execution method (they prefer few
-   subagents).
+1. **Ask the user for the yes to enable GitHub Pages** (LUM-50). The iPhones need its HTTPS address.
+2. **Work the Linear tickets in milestone order,** starting with LUM-44 (scaffold). Move each
+   ticket to In Progress before starting, and close it with a comment per `AGENTS.md`.
 3. **S1 spike (about 1 hour):** scaffold the Expo web app, both workers, deploy, then on both
    iPhones load Gemma 4 E2B (q4f16, then the 2-bit qat-mobile build) with EmbeddingGemma 2, plus
    Whisper base only if Gemma's speech is poor; run 5 cases, including the three demo phrases;
