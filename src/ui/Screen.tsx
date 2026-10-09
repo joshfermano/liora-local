@@ -18,6 +18,7 @@ export function Screen({
   scroll = true,
   topInset = true,
   tabBar = false,
+  keyboardUp = false,
   footer,
 }: {
   children: ReactNode;
@@ -27,12 +28,14 @@ export function Screen({
   topInset?: boolean;
   // Tab screens keep their last content and footer clear of the floating tab bar.
   tabBar?: boolean;
+  // The keyboard covers the tab bar and the home indicator, so the footer sits right on it.
+  keyboardUp?: boolean;
   // Pinned under the content, above the bottom inset.
   footer?: ReactNode;
 }) {
   const insets = useSafeAreaInsets();
   const margin = useMargin();
-  const bottom = insets.bottom + (tabBar ? TAB_BAR_CLEARANCE : 0);
+  const bottom = keyboardUp ? 0 : insets.bottom + (tabBar ? TAB_BAR_CLEARANCE : 0);
   const body = (
     <View
       className="w-full max-w-column self-center flex-1"

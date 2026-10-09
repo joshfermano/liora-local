@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { KeyboardAvoidingView, Platform, ScrollView, View } from 'react-native';
+import { Keyboard, KeyboardAvoidingView, Platform, ScrollView, View } from 'react-native';
 import Animated, { useAnimatedStyle, useReducedMotion, useSharedValue, withDelay, withRepeat, withSequence, withTiming } from 'react-native-reanimated';
 import { en } from '../../src/content/copy';
 import { useCompanionStore } from '../../src/store/companion';
@@ -11,6 +11,7 @@ import { PressableSurface } from '../../src/ui/PressableSurface';
 import { Screen } from '../../src/ui/Screen';
 import { Symbol } from '../../src/ui/Symbol';
 import { Text } from '../../src/ui/Text';
+import { SURFACE } from '../../src/ui/theme';
 
 function Dot({ delay }: { delay: number }) {
   const reduce = useReducedMotion();
@@ -41,6 +42,16 @@ export default function Liora() {
   const clear = useCompanionStore((s) => s.clear);
   const [text, setText] = useState('');
   const canClear = messages.length > 0 && !thinking;
+  const [keyboard, setKeyboard] = useState(false);
+
+  useEffect(() => {
+    const show = Keyboard.addListener('keyboardWillShow', () => setKeyboard(true));
+    const hide = Keyboard.addListener('keyboardWillHide', () => setKeyboard(false));
+    return () => {
+      show.remove();
+      hide.remove();
+    };
+  }, []);
   const scroll = useRef<ScrollView>(null);
 
   useEffect(() => {
@@ -49,8 +60,9 @@ export default function Liora() {
   }, [messages.length, thinking]);
 
   return (
-    <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} className="flex-1">
-      <Screen tabBar scroll={false} footer={<Composer text={text} setText={setText} />}>
+    // The padding it adds shows through the glass keyboard, so it wears the screen's ground.
+    <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} className={`flex-1 ${SURFACE.ground}`}>
+      <Screen tabBar keyboardUp={keyboard} scroll={false} footer={<Composer text={text} setText={setText} />}>
         <View className="flex-row items-center justify-between gap-xs pb-sm pt-lg">
           <Text variant="displayTitle" accessibilityRole="header">
             {en('tabs.liora')}
