@@ -1,3 +1,4 @@
+import { setAudioModeAsync, useAudioPlayer, useAudioPlayerStatus } from 'expo-audio';
 import { useRouter } from 'expo-router';
 import { useEffect, useRef } from 'react';
 import { useWindowDimensions, View } from 'react-native';
@@ -37,10 +38,24 @@ export default function Live() {
   const c = useColors();
   const colors = { deepColor: c.dusk, upperColor: c.tint, lowerColor: c.peach, highlightColor: c['tint-soft'], launchColor: c['tint-fill'], spinnerColor: c.tint };
   const closing = useRef(false);
+  const chime = useAudioPlayer(require('../assets/sounds/live-in.wav'));
 
   const scale = useSharedValue(reduce ? 1 : SEED);
   const glow = useSharedValue(0);
   const chrome = useSharedValue(0);
+
+  const chimeStatus = useAudioPlayerStatus(chime);
+  const chimed = useRef(false);
+
+  // Live is a voice space, so it speaks through the silent switch; play() before the file loads is dropped.
+  useEffect(() => {
+    void setAudioModeAsync({ playsInSilentMode: true }).catch(() => {});
+  }, []);
+  useEffect(() => {
+    if (!chimeStatus.isLoaded || chimed.current) return;
+    chimed.current = true;
+    chime.play();
+  }, [chimeStatus.isLoaded, chime]);
 
   useEffect(() => {
     glow.value = withDelay(120, withTiming(1, { duration: 300 }));
