@@ -13,6 +13,7 @@ vi.mock('./storage', () => ({
 import type { ReplyBlock } from '../core/companion';
 import { useCompanionStore } from './companion';
 import { useLogStore } from './log';
+import { useMemoryStore } from './memory';
 
 // The chat end to end, with the real rules and no model, as on a phone without Gemma: what Liora
 // should do for real messages. Each expectation is the first block of her reply plus the parts that
@@ -200,6 +201,7 @@ async function talk(status: Status, texts: string[]): Promise<string> {
   disk.clear();
   useCompanionStore.setState({ messages: [], history: [], thinking: false });
   useLogStore.setState({ entries: [], setup: { status, name: 'Ana', weeks: 30 }, moods: [], periods: [], cycleSettings: {}, dayLogs: [] });
+  useMemoryStore.getState().setNotes([]);
   for (const t of texts) await useCompanionStore.getState().send(t);
   return summary(useCompanionStore.getState().messages.at(-1)!.blocks ?? []);
 }
@@ -212,6 +214,29 @@ describe('answering the follow-up by typing', () => {
     [['masakit ulo ko', 'sobrang sakit'], GO],
   ] as [string[], string][])('%j', async (texts, expected) => {
     expect(await talk('pregnant', texts)).toBe(expected);
+  });
+});
+
+describe('following on from what Liora just did', () => {
+  it.each([
+    [['masakit ulo ko', 'pati kahapon'], 'reply.saved.gentle | logged:symptoms'],
+    [['may cramps ako', 'and yesterday too'], 'reply.saved.gentle | logged:symptoms'],
+    [['nagsimula regla ko kahapon', 'natapos na ngayon'], 'reply.saved | logged:period_end'],
+    [['nagsimula regla ko ngayon', 'mali, kahapon pala'], 'reply.saved | logged:period_start'],
+    [['nagsimula regla ko kahapon', 'burahin mo'], 'reply.undone'],
+    [['masakit puson ko', 'bakit kaya?'], 'reply.no_card'],
+    [['malungkot ako', 'ano pwede kong gawin?'], 'reply.no_card'],
+    [['remember that my OB is Dr. Santos', 'sino OB ko?'], 'reply.recall'],
+    [['what do you remember?'], 'reply.recall.none'],
+    [['log headache and open calendar'], 'reply.saved.gentle | logged:symptoms'],
+    [['masakit ulo ko kahapon at ngayon'], 'reply.saved.gentle | logged:symptoms+symptoms'],
+  ] as [string[], string][])('%j', async (texts, expected) => {
+    expect(await talk('neither', texts)).toBe(expected);
+  });
+
+  it('moves the period rather than adding a second one', async () => {
+    await talk('neither', ['nagsimula regla ko ngayon', 'mali, kahapon pala']);
+    expect(useLogStore.getState().periods.map((p) => p.start)).toEqual([new Date(Date.now() - 864e5).toLocaleDateString('en-CA')]);
   });
 });
 

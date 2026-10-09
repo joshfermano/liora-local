@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { applyMemory, MAX_NOTES, NOTE_CHARS, readMemory, withoutMemory } from './memory';
+import { applyMemory, MAX_NOTES, NOTE_CHARS, readMemory, withoutMemory, recall } from './memory';
 import { readActions } from './read';
 import { triage } from './triage';
 import type { AgentAction } from './types';
@@ -116,5 +116,27 @@ describe('triage of a memory request', () => {
 
   it('is still urgent when the note names a danger sign', () => {
     expect(triage('remember na dinudugo ako nang malakas', TODAY, 'pregnant').purpose).toBe('urgent');
+  });
+});
+
+describe('recalling what she asked Liora to remember', () => {
+  const notes = ['my OB is Dr. Santos', 'allergic ako sa penicillin', 'check-up ko sa Oct 20'];
+
+  it.each([
+    ['sino OB ko?', ['my OB is Dr. Santos']],
+    ['who is my OB?', ['my OB is Dr. Santos']],
+    ['kailan check-up ko?', ['check-up ko sa Oct 20']],
+    ['ano allergy ko? penicillin ba?', ['allergic ako sa penicillin']],
+  ])('finds the note for "%s"', (text, want) => {
+    expect(recall(text, notes)).toEqual(want);
+  });
+
+  it.each(['what do you remember?', 'ano ang naaalala mo?', 'what did I ask you to remember?'])('lists every note for "%s"', (text) => {
+    expect(recall(text, notes)).toEqual(notes);
+    expect(recall(text, [])).toEqual([]);
+  });
+
+  it.each(['masakit ulo ko', 'ano ang preeclampsia?', 'kailan next period ko?'])('leaves "%s" to the other tools', (text) => {
+    expect(recall(text, notes)).toBeNull();
   });
 });

@@ -16,6 +16,8 @@ import { CONVERSATION_MS, isNewConversation, recentTurns } from './thread';
 import { runTurn, type AgentTurn } from './turn';
 import { mentionsSelfHarm } from '../core/agent/crisis';
 import { mentionsLoss } from '../core/agent/loss';
+import { carryOver, continuesTopic } from '../core/agent/carry';
+import type { SavedItem } from '../core/agent';
 import { followUpAnswer } from '../core/agent/followon';
 import { warningSignsCard } from '../core/agent/warning';
 
@@ -94,6 +96,13 @@ function lastHerText(messages: ThreadMessage[], now = Date.now()): string | null
   const m = [...messages].reverse().find((x) => x.role === 'her');
   if (!m?.text || (m.at && now - Date.parse(m.at) > 10 * 60 * 1000)) return null;
   return m.text;
+}
+
+// What Liora saved in her last reply, if that reply came in this conversation.
+function lastSaved(messages: ThreadMessage[], now = Date.now()): SavedItem[] {
+  const last = [...messages].reverse().find((m) => m.role === 'liora');
+  if (!last || (last.at && now - Date.parse(last.at) > CONVERSATION_MS)) return [];
+  return (last.blocks ?? []).flatMap((b) => (b.kind === 'logged' ? b.items : []));
 }
 
 // A serious sign she described earlier in this conversation, while she is not pregnant.
@@ -176,6 +185,10 @@ export const useCompanionStore = create<CompanionState>()(
         // "Sobrang sakit" right after "masakit ulo ko" is about the headache: the rules read both together.
         const before = lastHerText(get().messages);
         const ruleText = before && severityOnly(text) ? `${before}. ${text}` : text;
+        // "Pati kahapon", "kahapon pala", "burahin mo": about what Liora just saved.
+        const carried = carryOver(text, lastSaved(get().messages), today());
+        // "Bakit kaya?" right after "masakit puson ko": a question about that, so the card search reads both.
+        const topic = before && !carried && continuesTopic(text) ? `${before}. ${text}` : undefined;
         const her: ThreadMessage = { id: newId(), role: 'her', text, at: new Date().toISOString() };
         set((s) => ({ messages: [...s.messages, her], thinking: true }));
         useMemoryStore.getState().setLanguage(languageOf(get().messages.filter((m) => m.role === 'her').map((m) => m.text ?? '')));
@@ -216,12 +229,17 @@ export const useCompanionStore = create<CompanionState>()(
           return;
         }
         const work = async () => {
-          const entry = await useTellStore.getState().submit(ruleText, input);
+          const entry = await useTellStore.getState().submit(ruleText, input, topic);
           mark(`rules decided ${entry.decision.level}${entry.decision.follow_up ? ` (asks ${entry.decision.follow_up.question_id})` : ''}`);
           const { setup, cycleSettings } = useLogStore.getState();
           const profile = readProfile(setup);
           const day = today();
-          const read = timedSync('triage', () => triage(ruleText, day, profile.status));
+          const triaged = timedSync('triage', () => triage(ruleText, day, profile.status));
+          const read = carried
+            ? { ...triaged, purpose: 'update' as const, actions: carried }
+            : topic
+              ? { ...triaged, purpose: 'health' as const, actions: [{ tool: 'health_question' as const }] }
+              : triaged;
           noteTurn({ purpose: read.purpose, typedScope: read.typed, tools: read.actions.map((a) => a.tool) });
           // A danger turn gets the rules' fixed decision block and no model-written words. When the
           // WHO rules do not cover her (not pregnant), a danger word is logged like any symptom.

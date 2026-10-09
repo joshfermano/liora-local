@@ -4,6 +4,7 @@ import type { SavedItem, Screen } from './types';
 // One thing Liora's tools did in a turn, for the timeline under her reply.
 export type Step =
   | { kind: 'read' }
+  | { kind: 'recalled'; count: number }
   | { kind: 'undid'; count: number }
   | { kind: 'nothing_to_undo' }
   | { kind: 'saved'; item: SavedItem }

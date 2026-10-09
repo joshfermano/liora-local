@@ -17,6 +17,8 @@ function look(step: Step): { sf: string; fallback: IconName; line: string } {
   switch (step.kind) {
     case 'read':
       return { sf: 'text.bubble', fallback: 'list', line: en('agent.steps.read') };
+    case 'recalled':
+      return { sf: 'brain', fallback: 'brain', line: en('agent.steps.recalled') };
     case 'undid':
       return { sf: 'arrow.uturn.backward', fallback: 'reset', line: en('agent.steps.undid') };
     case 'nothing_to_undo':

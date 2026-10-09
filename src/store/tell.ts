@@ -16,7 +16,8 @@ export interface TellState {
   current: Entry | null;
   error: string | null;
   setContext(context: Context): void;
-  submit(text: string, input?: 'text' | 'voice'): Promise<Entry>;
+  // `topic` is what the source card is searched with, when her message only follows on from the last one.
+  submit(text: string, input?: 'text' | 'voice', topic?: string): Promise<Entry>;
   answerFollowUp(answer: 'yes' | 'no' | 'skip'): Promise<Entry>;
   // After a skip, bring the question back so she can answer it.
   reopenFollowUp(): Entry | null;
@@ -98,7 +99,7 @@ export const useTellStore = create<TellState>()((set, get) => ({
   current: null,
   error: null,
   setContext: (context) => set({ context }),
-  submit: async (text, input = 'text') => {
+  submit: async (text, input = 'text', topic) => {
     set({ status: 'thinking', error: null });
     try {
       // System 1 first: an edit or a question about her own data skips Gemma's danger questions;
@@ -116,7 +117,7 @@ export const useTellStore = create<TellState>()((set, get) => ({
         typedAnswers: answers,
         models: answers && modelRef ? [modelRef] : [],
       });
-      const card = entry.decision.level === 'ok' ? await cardFor(text, get().context) : null;
+      const card = entry.decision.level === 'ok' ? await cardFor(topic ?? text, get().context) : null;
       const saved = card ? { ...entry, card_ids: [card] } : entry;
       useLogStore.getState().addEntry(saved);
       set({ current: saved, status: 'done' });

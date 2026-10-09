@@ -72,3 +72,22 @@ export function applyMemory(actions: AgentAction[], notes: string[]): { notes: s
   }
   return saved.length > 0 ? { notes: cur, saved } : null;
 }
+
+const ALL_NOTES =
+  /\bwhat\s+(?:do|did)\s+you\s+remember\b|\bwhat\s+did\s+i\s+(?:tell|ask)\s+you\s+to\s+remember\b|\bano(?:ng)?\s+(?:ang\s+)?(?:naaalala|natatandaan|tanda)\s+mo\b|\bano\s+(?:ang\s+)?(?:mga\s+)?(?:pinatandaan|pinaalala)\s+ko\b/i;
+const ASKS = /\?|^\s*(?:sino|ano|kailan|saan|who|what|when|where|which)\b/i;
+const QUIET = new Set([
+  ...STOP, 'ko', 'my', 'is', 'are', 'was', 'sino', 'ano', 'who', 'what', 'when', 'where', 'which', 'kailan', 'saan', 'ang', 'ng', 'si', 'ni',
+  'ba', 'po', 'mo', 'sa', 'na', 'ka', 'ay', 'ang', 'do', 'did', 'have', 'me', 'akin', 'ko?', 'next', 'yung', 'i', 'am',
+]);
+const words = (s: string) => (s.toLowerCase().match(/[\p{L}\p{N}][\p{L}\p{N}-]*/gu) ?? []).filter((t) => t.length >= 2 && !QUIET.has(t));
+
+// A question her notes answer, in her own words: the matching notes, every note when she asks what
+// Liora remembers, or null when the question is not about her notes.
+export function recall(text: string, notes: string[]): string[] | null {
+  if (ALL_NOTES.test(text)) return notes;
+  if (!ASKS.test(text)) return null;
+  const want = new Set(words(text));
+  const found = notes.filter((n) => words(n).some((t) => want.has(t)));
+  return found.length > 0 ? found : null;
+}

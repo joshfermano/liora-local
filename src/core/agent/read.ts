@@ -43,6 +43,8 @@ const CONTACT =
 // A question with none of these words is chat ("Nag tatagalog ka ba?"), not a health question.
 const HEALTH =
   /sakit|pain|hurt|ache|dugo|bleed|blood|buntis|pregnan|baby|sanggol|gamot|medicine|vitamin|normal|safe|delikado|danger|kain|\beat|food|pagkain|inom|drink|exercis|ehersisyo|lagnat|fever|suka|vomit|nause|hilo|dizz|cramp|puson|tiyan|ulo|discharge|ihi|\bpee|urin|contraction|hilab|labou?r|panganak|birth|ovulat|obul|fertile|regla|period|mens|cycle|check-?up|doctor|doktor|\bob\b|clinic|ospital|hospital|symptom|sintomas|breast|dede|gatas|milk|tulog|sleep|stress|anxi|weight|timbang|\bsex|contracep|\bpills?\b|condom|trimester|weeks?\b|linggo|swell|manas|maga|headache|bloat|kabag|kirot|hapdi|pagod|tired|manganak|pahinga|\brest\b|ihanda|prepar|tubig|water|kalinisan|hygien|maligo|\bbath|kape|coffee|caffeine|alak|alcohol|beer|wine|yosi|smok|\b(?:pwede|puwede)\s+ba\b|\bcan\s+i\b|\bshould\s+i\b|\bbawal\b|\bok(?:ay)?\s+lang\s+ba\b/i;
+const YESTERDAY = /\b(?:kahapon|yesterday)\b/i;
+const BOTH_DAYS = /\b(?:kahapon|yesterday)\b.*\b(?:at|and|pati|tsaka|saka|hanggang|until)\s+(?:ngayon|today|kanina)\b|\b(?:ngayon|today)\s+(?:at|and|pati|tsaka|saka)\s+(?:kahapon|yesterday)\b/i;
 const CYCLE_QUESTION =
   /^\s*(?:delayed|late|delay)\s+(?:na\s+)?(?:ako|po|ako\s+po)\s*[.!?]*\s*$|\b(?:late|delayed|delay)\s+(?:na\s+)?(?:ang\s+|yung\s+)?(?:regla|period|mens|dalaw)|(?:regla|period|mens|dalaw)\s+(?:ko\s+)?(?:is\s+)?(?:late|delayed)|\baverage\s+(?:na\s+)?cycle\b|\bcycle\s+(?:length\s+)?ko\b|\bgaano\s+kahaba\s+(?:ang\s+)?(?:cycle|regla)\b|\bkailan\b.*(?:regla|period|mens|dalaw|fertile|obul|ovulat)|(?:regla|period|mens|dalaw).*\bkailan\b|\bwhen\b.*(?:period|next|fertile|ovulat)|next\s+(?:period|regla)|\bmy\s+fertile|fertile\s+(?:window\s+)?ko\b/i;
 
@@ -75,7 +77,9 @@ export function readActions(text: string, today: string): AgentAction[] {
   const memory = readMemory(text);
   if (memory) return memory;
   const edit = readEdit(text, today);
-  if (edit) return edit;
+  // "Log headache and open calendar": a shortcut never hides the log that came with it.
+  const opens = edit?.every((a) => a.tool === 'open') ? edit : [];
+  if (edit && opens.length === 0) return edit;
   const cycleQuestion = CYCLE_QUESTION.test(text);
   const question = /\?/.test(text) || QUESTION_START.test(text);
   const hasPeriodWord = PERIOD_WORD.test(text);
@@ -103,6 +107,18 @@ export function readActions(text: string, today: string): AgentAction[] {
   const weeks = readWeeks(text);
   if (weeks !== null) out.push({ tool: 'weeks', weeks });
 
+  // "Kahapon at ngayon": the same log on both days.
+  if (BOTH_DAYS.test(text) && YESTERDAY.test(text)) {
+    for (const a of [...out]) {
+      if ((a.tool === 'symptoms' || a.tool === 'moods' || a.tool === 'activities' || a.tool === 'discharge') && a.date.kind === 'yesterday') {
+        out.splice(out.indexOf(a) + 1, 0, { ...a, date: { kind: 'today' } });
+      }
+    }
+  }
+  if (opens.length > 0) {
+    out.push(...opens);
+    return out;
+  }
   if (CONTACT.test(text)) out.push({ tool: 'contact' });
   else if (cycleQuestion) out.push({ tool: 'cycle_question' });
   else if (question) out.push(HEALTH.test(text) || out.length > 0 ? { tool: 'health_question' } : { tool: 'smalltalk' });

@@ -177,3 +177,24 @@ describe('mergeActions', () => {
     expect(mergeActions(rules, [w, { tool: 'weeks', weeks: 21 }])).toEqual([...rules, w]);
   });
 });
+
+describe('readActions: more than one thing in a message', () => {
+  it('logs and opens in the same message', () => {
+    expect(readActions('log headache and open calendar', TODAY)).toEqual([
+      { tool: 'symptoms', date: { kind: 'today' }, symptoms: ['headache'] },
+      { tool: 'open', screen: 'calendar' },
+    ]);
+  });
+
+  it('still reads a bare open on its own', () => {
+    expect(readActions('open mood check', TODAY)).toEqual([{ tool: 'open', screen: 'mood_check' }]);
+  });
+
+  it('logs both days when she names yesterday and today', () => {
+    expect(readActions('masakit ulo ko kahapon at ngayon', TODAY)).toEqual([
+      { tool: 'symptoms', date: { kind: 'yesterday' }, symptoms: ['headache'] },
+      { tool: 'symptoms', date: { kind: 'today' }, symptoms: ['headache'] },
+    ]);
+  });
+});
+

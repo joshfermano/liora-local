@@ -8,7 +8,7 @@ export { readActions, mergeActions } from './read';
 export { resolveDate } from './dates';
 export { planActions } from './plan';
 export { applyActions } from './apply';
-export { applyMemory, isMemory, MAX_NOTES, NOTE_CHARS, readMemory, withoutMemory } from './memory';
+export { applyMemory, isMemory, MAX_NOTES, NOTE_CHARS, readMemory, recall, withoutMemory } from './memory';
 export { languageOf, messageLanguage, type Language } from './language';
 export { JOURNAL_SIZE, keepRecent, undoable, type JournalEntry } from './journal';
 export { toneOf } from './tone';

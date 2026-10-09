@@ -8,6 +8,7 @@ import {
   dayHasData,
   replyPlan,
   resolveDate,
+  recall,
   smalltalkKind,
   stepsOf,
   toneOf,
@@ -106,6 +107,19 @@ export async function runTurn(
     return {
       attachments: about === 'call' ? [{ kind: 'contact' }] : [{ kind: 'actions', items: [...HOME] }],
       fallback: { key: about === 'call' ? 'reply.contact' : `reply.about.${about}` },
+      request: { text: '', pack: '', facts: {}, allowed: {}, thread: [] },
+      undoneId: null,
+      noModel: true,
+    };
+  }
+  // A question her notes answer ("sino OB ko?"): her own words back, quoted, and no model.
+  const notes = useMemoryStore.getState().notes;
+  const recalled = read.purpose !== 'urgent' && entry.decision.level === 'ok' && entry.findings.length === 0 ? recall(text, notes) : null;
+  if (recalled) {
+    noteTurn({ tools: [] });
+    return {
+      attachments: [{ kind: 'steps', steps: [{ kind: 'read' }, { kind: 'recalled', count: recalled.length }] }],
+      fallback: recalled.length > 0 ? { key: 'reply.recall', params: { notes: recalled.map((n) => `“${n}”`).join(', ') } } : { key: 'reply.recall.none' },
       request: { text: '', pack: '', facts: {}, allowed: {}, thread: [] },
       undoneId: null,
       noModel: true,
