@@ -17,7 +17,7 @@ export type AgentAction =
   | { tool: 'moods'; date: DateWord; moods: Mood[] }
   | { tool: 'activities'; date: DateWord; activities: Activity[] }
   | { tool: 'weeks'; weeks: number }
-  | { tool: 'delete_period'; date: DateWord }
+  | { tool: 'delete_period'; date: DateWord; span?: 'month' | 'all' }
   | { tool: 'clear_day'; date: DateWord; what: 'all' | 'flow' | 'symptoms' | 'moods' | 'activities' }
   | { tool: 'undo_last' }
   | { tool: 'ask_day'; date: DateWord }
@@ -59,7 +59,7 @@ export type SavedItem =
   | { kind: 'moods'; date: string; values: Mood[] }
   | { kind: 'activities'; date: string; values: Activity[] }
   | { kind: 'weeks'; weeks: number }
-  | { kind: 'period_deleted'; date: string }
+  | { kind: 'period_deleted'; date: string; end?: string | null }
   | { kind: 'day_cleared'; date: string; what: 'all' | 'flow' | 'symptoms' | 'moods' | 'activities' };
 
 // The slices as they were before an apply, so Undo can put them back exactly.

@@ -1,6 +1,6 @@
 import { applyFlow, upsertDayLog } from '../daylog';
 import { resolveDate } from './dates';
-import { dayHas, mergeLog, openPeriodFor, periodCovering, startFits } from './fit';
+import { dayHas, mergeLog, openPeriodFor, periodsToDelete, startFits } from './fit';
 import type { AgentAction, AgentData, Applied, SavedItem } from './types';
 
 type Step = { data: Partial<AgentData>; saved: SavedItem[] } | null;
@@ -15,13 +15,17 @@ function step(a: AgentAction, cur: AgentData, today: string): Step {
   if (!date) return null;
   switch (a.tool) {
     case 'delete_period': {
-      const gone = periodCovering(date, cur, today);
-      if (!gone) return null;
-      const dayLogs = Object.keys(gone.flow_by_day).reduce((logs, d) => {
+      const gone = periodsToDelete(date, a.span, cur, today);
+      if (gone.length === 0) return null;
+      const flowDays = gone.flatMap((p) => Object.keys(p.flow_by_day));
+      const dayLogs = flowDays.reduce((logs, d) => {
         const log = logs.find((l) => l.date === d);
         return log ? upsertDayLog(logs, { ...log, flow: null }) : logs;
       }, cur.dayLogs);
-      return { data: { periods: cur.periods.filter((p) => p !== gone), dayLogs }, saved: [{ kind: 'period_deleted', date }] };
+      return {
+        data: { periods: cur.periods.filter((p) => !gone.includes(p)), dayLogs },
+        saved: [...gone].sort((x, y) => x.start.localeCompare(y.start)).map((p) => ({ kind: 'period_deleted' as const, date: p.start, end: p.end })),
+      };
     }
     case 'clear_day': {
       if (!dayHas(date, a.what, cur)) return null;

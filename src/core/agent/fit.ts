@@ -34,6 +34,15 @@ export function periodCovering(date: string, data: AgentData, today: string): Pe
   return data.periods.find((p) => p.start <= date && date <= end(p)) ?? null;
 }
 
+// The periods a delete reaches: the one covering the date, every period that started in its
+// month, or all of them.
+export function periodsToDelete(date: string, span: 'month' | 'all' | undefined, data: AgentData, today: string): PeriodRecord[] {
+  if (span === 'all') return data.periods;
+  if (span === 'month') return data.periods.filter((p) => p.start.slice(0, 7) === date.slice(0, 7));
+  const one = periodCovering(date, data, today);
+  return one ? [one] : [];
+}
+
 export type Part = 'all' | 'flow' | 'symptoms' | 'moods' | 'activities';
 
 export function dayHas(date: string, what: Part, data: AgentData): boolean {

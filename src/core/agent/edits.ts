@@ -4,7 +4,10 @@ import { dateWord } from './when';
 // Input patterns only: how she asks to delete, clear, undo, look up or open something.
 const UNDO = /\bundo\b|i-?undo|bawiin|ibalik/i;
 const DELETE = /\b(?:remove|delete|erase|clear)\b|\b(?:i-?)?(?:alisin|burahin|tanggalin|bura)\b/i;
-const PERIOD = /regla|\bmens\b|\bperiod\b|dalaw/i;
+const PERIOD = /regla|\bmens\b|\bperiods?\b|dalaw/i;
+// "this month" or "all" turns one deletion into every period in that span.
+const SPAN_MONTH = /this\s+month|ngayong\s+buwan|sa\s+buwang?\s+ito|buwan\s+na\s+ito/i;
+const SPAN_ALL = /\ball\b|\blahat\b|\bevery\b/i;
 const PARTS: { pattern: RegExp; what: Extract<AgentAction, { tool: 'clear_day' }>['what'] }[] = [
   { pattern: /sintomas|symptoms?/i, what: 'symptoms' },
   { pattern: /\bmoods?\b|pakiramdam/i, what: 'moods' },
@@ -30,9 +33,13 @@ export function readEdit(text: string, today: string): AgentAction[] | null {
   if (UNDO.test(text)) return [{ tool: 'undo_last' }];
   if (ASK_DAY.test(text)) return [{ tool: 'ask_day', date: dateWord(text, now, today) }];
   if (DELETE.test(text)) {
-    const part = PARTS.find((p) => p.pattern.test(text));
+    const part = PERIOD.test(text) ? undefined : PARTS.find((p) => p.pattern.test(text));
     if (part) return [{ tool: 'clear_day', date: dateWord(text, now, today), what: part.what }];
-    if (PERIOD.test(text)) return [{ tool: 'delete_period', date: dateWord(text, { kind: 'unknown' }, today) }];
+    if (PERIOD.test(text)) {
+      if (SPAN_MONTH.test(text)) return [{ tool: 'delete_period', date: now, span: 'month' }];
+      if (SPAN_ALL.test(text)) return [{ tool: 'delete_period', date: now, span: 'all' }];
+      return [{ tool: 'delete_period', date: dateWord(text, { kind: 'unknown' }, today) }];
+    }
     if (LOGGED.test(text)) return [{ tool: 'clear_day', date: dateWord(text, now, today), what: 'all' }];
   }
   if (OPEN_VERB.test(text)) {

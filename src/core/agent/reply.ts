@@ -9,6 +9,8 @@ const BANNED = [
   'doctor', 'doktor', 'hospital', 'ospital', 'clinic', 'diagnose', 'diagnosis', 'infection', 'impeksyon', 'preeclampsia',
   'pre-eclampsia', 'eclampsia', 'miscarriage', 'anemia', 'diabetes', 'ectopic', 'gestational', 'okay ka lang',
   "you're fine", 'you are fine', "don't worry", 'do not worry', 'worry', 'worried', 'try', 'avoid', 'drink', 'eat', 'huwag',
+  // reassurance: Liora never tells her something is fine
+  'okay lang', "it's okay", 'it is okay', "it's fine", 'nothing to worry', 'walang dapat ipag-alala', 'no need to worry',
   'contraception', 'contraceptive', 'contraceptives', 'birth control', 'pill', 'pills', 'condom', 'iud', 'implant', 'withdrawal',
 ];
 const BANNED_WORDS = new RegExp(`(?<![\\p{L}\\p{N}])(?:${BANNED.map((w) => w.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|')})(?![\\p{L}\\p{N}])`, 'iu');

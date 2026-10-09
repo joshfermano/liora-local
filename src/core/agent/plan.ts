@@ -1,5 +1,5 @@
 import { resolveDate } from './dates';
-import { dayHas, flowClashes, openPeriodFor, periodCovering, startFits } from './fit';
+import { dayHas, flowClashes, openPeriodFor, periodsToDelete, startFits } from './fit';
 import type { AgentAction, AgentData, AgentPlan } from './types';
 
 type Verdict = 'apply' | 'confirm' | 'skip';
@@ -15,7 +15,7 @@ function verdict(a: AgentAction, data: AgentData, status: string | undefined, to
       return 'skip';
     case 'delete_period': {
       const date = resolveDate(a.date, today);
-      return date && periodCovering(date, data, today) ? 'apply' : 'skip';
+      return date && periodsToDelete(date, a.span, data, today).length > 0 ? 'apply' : 'skip';
     }
     case 'clear_day': {
       const date = resolveDate(a.date, today);

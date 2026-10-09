@@ -104,7 +104,7 @@ describe('applyActions: delete and clear', () => {
     expect(out.data.dayLogs).toContainEqual(log({ date: '2026-10-09', symptoms: ['cramps'] }));
     expect(out.data.dayLogs).toContainEqual(log({ date: '2026-09-02', flow: 'medium' }));
     expect(out.undo).toEqual({ periods: [other, p], dayLogs: logs });
-    expect(out.saved).toEqual([{ kind: 'period_deleted', date: '2026-10-09' }]);
+    expect(out.saved).toEqual([{ kind: 'period_deleted', date: p.start, end: p.end }]);
   });
   it('skips a delete when no period covers the date', () => {
     const out = applyActions([{ tool: 'delete_period', date: today }], data({ periods: [period('2026-09-01', '2026-09-05')] }), TODAY);

@@ -85,7 +85,7 @@ function factLine(item: SavedItem, today: string): string {
     case 'weeks':
       return `set to ${item.weeks} weeks pregnant`;
     case 'period_deleted':
-      return `removed the period logged on ${when(item.date)}`;
+      return item.end ? `removed the period from ${when(item.date)} to ${when(item.end)}` : `removed the period that started ${when(item.date)}`;
     case 'day_cleared':
       return `cleared ${item.what === 'all' ? 'everything' : `the ${item.what}`} logged for ${when(item.date)}`;
   }

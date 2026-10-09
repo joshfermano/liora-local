@@ -75,7 +75,7 @@ describe('replyPlan facts', () => {
       ],
     }).facts;
     expect(f.saved).toEqual(['period start logged for yesterday', 'symptoms logged for today: cramps, back pain']);
-    expect(f.removed).toEqual(['removed the period logged on Oct 1', 'cleared the moods logged for today']);
+    expect(f.removed).toEqual(['removed the period that started Oct 1', 'cleared the moods logged for today']);
   });
   it('carries her name, and her tone only when it is not neutral', () => {
     expect(plan({ smalltalk: 'greeting' }, { name: 'Gweny' }).facts).toMatchObject({ her_name: 'Gweny' });
