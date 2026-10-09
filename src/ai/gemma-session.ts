@@ -28,3 +28,11 @@ export async function releaseGemma(): Promise<void> {
   session = null;
   if (held) await (await held.catch(() => null))?.release();
 }
+
+export async function runJson(prompt: string, schema: object, timeoutMs?: number): Promise<unknown> {
+  return (await gemmaSession()).json(prompt, schema, { timeoutMs });
+}
+
+export async function runSay(...args: Parameters<NativeGemma['say']>): Promise<string> {
+  return (await gemmaSession()).say(...args);
+}

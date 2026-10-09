@@ -17,6 +17,11 @@ export const GEMMA_MODEL_REF = {
   version: 'llama.rn 0.13.0-rc.7',
 };
 
+export interface SayMessage {
+  role: 'system' | 'user' | 'assistant';
+  content: string;
+}
+
 export type NativeGemma = {
   loadMs: number;
   gpu: boolean;
@@ -25,5 +30,9 @@ export type NativeGemma = {
   transcribe(wavUri: string): Promise<{ text: string; ms: number }>;
   decide(message: string): Promise<{ answers: Record<string, number[]>; skipped: string[]; ms: number }>;
   intent(message: string): Promise<{ probs: number[]; ms: number }>;
+  // One JSON value that must fit the closed schema (grammar-constrained, temperature 0).
+  json(prompt: string, schema: object, opts?: { timeoutMs?: number }): Promise<unknown>;
+  // A short free reply, streamed. Only guarded, non-medical lines may use it.
+  say(messages: SayMessage[], opts: { nPredict: number; temperature: number; timeoutMs?: number; onToken?: (text: string) => void }): Promise<string>;
   release(): Promise<void>;
 };

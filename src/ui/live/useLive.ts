@@ -63,7 +63,7 @@ export function useLive(onDecision: () => void) {
     const heard = await latest.current.stop();
     if (!alive.current) return;
     if (!heard) return setPhase('retry');
-    await useCompanionStore.getState().send(heard.text);
+    await useCompanionStore.getState().send(heard.text, 'voice');
     if (!alive.current) return;
     const reply = [...useCompanionStore.getState().messages].reverse().find((m) => m.role === 'liora');
     const blocks = reply?.blocks ?? [];

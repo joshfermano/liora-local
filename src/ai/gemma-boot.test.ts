@@ -5,10 +5,15 @@ const gemmaSession = vi.fn();
 const setAskModel = vi.fn();
 const setRetrieveCard = vi.fn();
 const embedderBytesOnDisk = vi.fn();
+const setRouteActions = vi.fn();
+const setWarmLine = vi.fn();
 vi.mock('./gemma-native', () => ({ modelBytesOnDisk: () => modelBytesOnDisk() }));
 vi.mock('./embedder', () => ({ embedderBytesOnDisk: () => embedderBytesOnDisk() }));
 vi.mock('./card-index', () => ({ retrieveCard: vi.fn() }));
 vi.mock('./gemma-session', () => ({ gemmaSession: () => gemmaSession(), askGemma: vi.fn(), askIntent: vi.fn() }));
+vi.mock('./agent-router', () => ({ routeWithGemma: vi.fn() }));
+vi.mock('./warm', () => ({ warmLine: vi.fn() }));
+vi.mock('../store/agent', () => ({ setRouteActions: (...a: unknown[]) => setRouteActions(...a), setWarmLine: (...a: unknown[]) => setWarmLine(...a) }));
 vi.mock('../store/companion', () => ({ setAskIntent: vi.fn() }));
 vi.mock('../store/tell', () => ({
   setAskModel: (...args: unknown[]) => setAskModel(...args),
@@ -44,6 +49,8 @@ describe('bootGemma', () => {
     const { bootGemma } = await import('./gemma-boot');
     expect(bootGemma()).toBe(true);
     expect(setAskModel).toHaveBeenCalledWith(expect.any(Function), expect.objectContaining({ role: 'llm' }));
+    expect(setRouteActions).toHaveBeenCalledWith(expect.any(Function));
+    expect(setWarmLine).toHaveBeenCalledWith(expect.any(Function));
     expect(gemmaSession).toHaveBeenCalledTimes(1);
   });
 
@@ -52,6 +59,8 @@ describe('bootGemma', () => {
     const { bootGemma } = await import('./gemma-boot');
     expect(bootGemma()).toBe(false);
     expect(setAskModel).toHaveBeenCalledWith(null);
+    expect(setRouteActions).toHaveBeenCalledWith(null);
+    expect(setWarmLine).toHaveBeenCalledWith(null);
     expect(gemmaSession).not.toHaveBeenCalled();
   });
 

@@ -81,6 +81,22 @@ export async function loadGemma(): Promise<NativeGemma> {
   }
   const intentIds = optionTokenIds((s) => spellings.get(s) ?? [], INTENT_OPTIONS);
 
+  // A late answer is abandoned and the context is freed for the next call.
+  const within = async <T>(run: Promise<T>, ms: number): Promise<T> => {
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    const timeout = new Promise<never>((_, reject) => {
+      timer = setTimeout(() => {
+        ctx.stopCompletion().catch(() => {});
+        reject(new Error('The model took too long'));
+      }, ms);
+    });
+    try {
+      return await Promise.race([run, timeout]);
+    } finally {
+      clearTimeout(timer);
+    }
+  };
+
   const scoreOptions = async (content: string, ids: number[][]) => {
     const chat = await ctx.getFormattedChat([{ role: 'user', content }], null, {
       jinja: true,
@@ -142,6 +158,27 @@ export async function loadGemma(): Promise<NativeGemma> {
     async intent(message) {
       const t = Date.now();
       return { probs: await scoreOptions(intentPrompt(message), intentIds), ms: Date.now() - t };
+    },
+    async json(prompt, schema, opts) {
+      const run = ctx.completion({
+        messages: [{ role: 'user', content: prompt }],
+        response_format: { type: 'json_schema', json_schema: { strict: true, schema } },
+        enable_thinking: false,
+        n_predict: 160,
+        temperature: 0,
+      });
+      return JSON.parse((await within(run, opts?.timeoutMs ?? 4000)).text.trim());
+    },
+    async say(messages, { nPredict, temperature, timeoutMs = 3000, onToken }) {
+      let streamed = '';
+      const run = ctx.completion(
+        { messages, enable_thinking: false, n_predict: nPredict, temperature, stop: ['\n'] },
+        (data) => {
+          streamed = data.accumulated_text ?? streamed + data.token;
+          onToken?.(streamed);
+        },
+      );
+      return (await within(run, timeoutMs)).text.trim();
     },
     release: () => ctx.release(),
   };
