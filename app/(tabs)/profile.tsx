@@ -11,6 +11,7 @@ import { confirm, tap } from '../../src/ui/haptics';
 import { authenticate, useUnlock } from '../../src/ui/lock';
 import { mergeSetup } from '../../src/ui/name';
 import { Header, seasonOf } from '../../src/ui/profile/Header';
+import { MemorySection } from '../../src/ui/profile/Memory';
 import { Divider, Fade, Row, Section, ValueRow } from '../../src/ui/profile/parts';
 import { PressableSurface } from '../../src/ui/PressableSurface';
 import { Screen } from '../../src/ui/Screen';
@@ -84,6 +85,7 @@ export default function Profile() {
             <Divider />
             <ValueRow label={en('profile.edit.weight')} value={profile.weightKg} unit={en('profile.unit.kg')} onPress={openEditor} />
           </Section>
+          <MemorySection />
         </Fade>
 
         <Fade order={2}>
