@@ -55,17 +55,6 @@ export function GapQuestion({ gap }: { gap: NonNullable<TodayModel['gapQuestion'
           </Text>
         </View>
       </SwipeCard>
-      <View className="flex-row flex-wrap gap-xs">
-        <CapsuleButton
-          variant="tinted"
-          label={en('td.gap.yes')}
-          onPress={() => {
-            tap();
-            router.push('/period' as Href);
-          }}
-        />
-        <CapsuleButton variant="plain" label={en('td.gap.no')} onPress={() => setHidden(true)} />
-      </View>
     </View>
   );
 }

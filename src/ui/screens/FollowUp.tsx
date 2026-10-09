@@ -3,7 +3,7 @@ import { View } from 'react-native';
 import { en, fil } from '../../content/copy';
 import type { Entry } from '../../core/types';
 import { useTellStore } from '../../store/tell';
-import { ChoiceCard } from '../ChoiceCard';
+import { CapsuleButton } from '../CapsuleButton';
 import { DecidedLink } from '../DecidedLink';
 import { Pair } from '../Pair';
 import { Screen } from '../Screen';
@@ -44,9 +44,7 @@ export function FollowUp({ entry }: { entry: Entry }) {
           </View>
         </SwipeCard>
         <View className="gap-sm">
-          <ChoiceCard label={en('result.yes')} chosen={chosen === 'yes'} onPress={() => answer('yes')} />
-          <ChoiceCard label={en('result.no')} chosen={chosen === 'no'} onPress={() => answer('no')} />
-          <ChoiceCard label={en('result.skip')} chosen={chosen === 'skip'} onPress={() => answer('skip')} />
+          <CapsuleButton variant="plain" label={en('result.skip')} onPress={() => answer('skip')} disabled={chosen !== null} />
         </View>
         <View className="gap-xxs px-md">
           <Text variant="footnote" tone="secondary">

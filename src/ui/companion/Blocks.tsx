@@ -57,7 +57,7 @@ function addPeriod(event: 'started' | 'ended', day: string) {
   if (target) log.setPeriods(log.periods.map((p) => (p.id === target.id ? { ...p, end: day } : p)));
 }
 
-// The follow-up question right in the thread: swipe the card (right yes, left no) or tap a pill. Skip means
+// The follow-up question right in the thread: swipe the card (right yes, left no) or tap ✓ or ✕. Skip means
 // serious, as on the result screen; the answer opens the result. Older follow-ups keep their button.
 function FollowUpInline({ entryId }: { entryId: string }) {
   const router = useRouter();
@@ -83,14 +83,12 @@ function FollowUpInline({ entryId }: { entryId: string }) {
           <Pair copyKey={question} large="title3" small="body" />
         </View>
       </SwipeCard>
-      <View className="flex-row flex-wrap gap-xs">
-        <ActionPill label={en('result.yes')} sf="checkmark" fallback="check" onPress={() => void answer('yes')} />
-        <ActionPill label={en('result.no')} sf="xmark" fallback="close" onPress={() => void answer('no')} />
-        <ActionPill label={en('result.skip')} sf="forward" fallback="chevronRight" onPress={() => void answer('skip')} />
+      <View className="items-center gap-xxs">
+        <CapsuleButton variant="plain" label={en('result.skip')} onPress={() => void answer('skip')} disabled={busy} />
+        <Text variant="footnote" tone="secondary" className="text-center">
+          {en('followup.skip_means')}
+        </Text>
       </View>
-      <Text variant="footnote" tone="secondary">
-        {en('followup.skip_means')}
-      </Text>
     </View>
   );
 }
@@ -238,10 +236,6 @@ function Confirm({ block }: { block: Extract<ReplyBlock, { kind: 'confirm' }> })
           ))}
         </View>
       </SwipeCard>
-      <View className="flex-row flex-wrap gap-xs">
-        <ActionPill label={en('agent.confirm.yes')} sf="checkmark" fallback="check" onPress={() => answer(true)} />
-        <ActionPill label={en('agent.confirm.no')} sf="xmark" fallback="close" onPress={() => answer(false)} />
-      </View>
     </View>
   );
 }
