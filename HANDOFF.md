@@ -36,23 +36,25 @@ Update section 1 and section 2 of this file as work completes, so any session ca
 | Scope               | **Approved:** text and voice input, danger-sign decision model, go-now screen, nurse card, calm answer, on-device RAG over cited source cards, log, mood check, AI-off checklist, "How Liora decided" drawer, privacy controls, **cycle calendar with next-period estimate**. Stretch: photo of check-up record. Out: photos of the body, medicine advice, fertile-window predictions, contraception guidance. |
 | Spec                | **Approved, v4** (models changed by the user on 2026-10-09 evening: Gemma 4 E2B, Jev-style typed decisions, EmbeddingGemma 2): `docs/superpowers/specs/2026-10-09-tell-liora-design.md`.                                                                                                                                                                                                                                                                                                                                    |
 | Implementation plan | Linear project `liora-local-hackathon`: milestones M1–M7, tickets LUM-44 to LUM-78, each with acceptance criteria and blockers. Ticket rules in `AGENTS.md`; `/tickets` shows progress. |
-| Code                | **None yet.** The repo holds docs only.                                                                                                                                                                                                                                                                                                                                                                        |
-| GitHub repo / Pages | Repo created and public: `joshfermano/liora-local`, branch `main`. Pages not enabled yet; needs the user's yes (LUM-50). |
-| Timeline            | Building has not started. The spec's 5:45 PM start has slipped to about 6:15 PM; absorb it from the polish block, not from testing.                                                                                                                                                                                                                                                                            |
+| Code                | **Built (2026-10-09, 8 PM):** Expo web scaffold (LUM-44); both workers bundled with esbuild (LUM-51); decision engine in `src/core/`, 253 tests (LUM-52, 53, 55, 56, 59 done; LUM-54 rules waiting on the team); source download and Ivan's card checklist `sources/review.md` (LUM-45); model test page `/dev/eval` (LUM-58). **Not started:** screens (M4), voice, card search, offline mode. |
+| GitHub repo / Pages | Public repo `joshfermano/liora-local`; Pages live at https://joshfermano.github.io/liora-local/ (deploys from `main` through Actions). Quick phone testing through `pnpm expo start --tunnel`. |
+| S1 findings         | iPhone Safari 27.0.1: WebGPU on, shader-f16 on, largest GPU buffer 1,024 MB, not cross-origin isolated (so the CPU runtime runs on one thread), about 39 GB storage. Every Gemma 4 E2B build has a 1,120 MB token-embedding table, too big for the GPU, so the token embeddings run on the CPU (WASM) and the decoder on WebGPU. Not measured yet: load time, memory, answer speed. |
+| Timeline            | At 8:15 PM: decision engine ahead of plan; the S1 model test about 1.25 hours late. Screens must start by 12 AM at the latest. |
 
 ## 2. Next steps, in order
 
-1. **Ask the user for the yes to enable GitHub Pages** (LUM-50). The iPhones need its HTTPS address.
-2. **Work the Linear tickets in milestone order,** starting with LUM-44 (scaffold). Move each
-   ticket to In Progress before starting, and close it with a comment per `AGENTS.md`.
-3. **S1 spike (about 1 hour):** scaffold the Expo web app, both workers, deploy, then on both
-   iPhones load Gemma 4 E2B (q4f16, then the 2-bit qat-mobile build) with EmbeddingGemma 2, plus
-   Whisper base only if Gemma's speech is poor; run 5 cases, including the three demo phrases;
-   test offline reload. Record which models win in section 1. The user must open the URL on their
-   iPhones: tell them exactly what to tap and what to report back.
-4. Continue spec section 17. Cut order if late: photo, then AI rewording and Cebuano, then
-   dark-mode polish, then the next-period estimate (keep the calendar), then voice, then card
-   search. **Never cut:** typing, the decision model, go-now screen, nurse card, AI-off checklist.
+1. **LUM-58 (S1):** deploy the CPU/GPU split for Gemma 4, then the user opens
+   `/liora-local/dev/eval` in Safari on both iPhones, runs Gemma q4f16, Gemma 2-bit and
+   EmbeddingGemma 2, and pastes the copied JSON. Record the results in section 1. If the CPU
+   embeddings run out of memory, take the fallback chain in spec section 10.
+2. **LUM-67:** typed decisions on the three demo phrases, then LUM-72 wires them into the pipeline.
+3. **M4 screens from LUM-57 (foundations),** starting by 12 AM at the latest, while people review.
+4. **Waiting on people:** Ivan approves the source cards (LUM-45); the team confirms the rulings
+   (LUM-54) and the fixed copy, EPDS items and hotline (LUM-46, LUM-47); someone checks Safari on
+   both iPhones (LUM-50, LUM-51).
+5. Cut order if late (unchanged): photo, then AI rewording and Cebuano, then dark-mode polish, then
+   the next-period estimate (keep the calendar), then voice, then card search. **Never cut:**
+   typing, the decision model, go-now screen, nurse card, AI-off checklist.
 
 ## 3. The product in one paragraph
 
