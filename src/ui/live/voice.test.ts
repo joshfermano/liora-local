@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { pickVoice, type VoiceInfo } from './voice';
+import { pickVoice, resolveVoice, womenVoices, type VoiceInfo } from './voice';
 
 const v = (name: string, quality = 'Default', language = 'en-US'): VoiceInfo => ({ identifier: `id.${name}.${quality}.${language}`, name, language, quality });
 
@@ -24,3 +24,27 @@ describe('pickVoice', () => {
     expect(pickVoice([v('Amélie', 'Enhanced', 'fr-CA')])).toBeUndefined();
   });
 });
+
+describe('womenVoices', () => {
+  it("lists only English women's voices, best first", () => {
+    const list = womenVoices([v('Aaron', 'Enhanced'), v('Samantha'), v('Ava', 'Enhanced'), v('Karen', 'Default', 'en-AU'), v('Amélie', 'Enhanced', 'fr-CA')]);
+    expect(list.map((x) => x.name)).toEqual(['Ava', 'Samantha', 'Karen']);
+  });
+});
+
+describe('resolveVoice', () => {
+  const installed = [v('Samantha'), v('Ava', 'Enhanced')];
+
+  it('uses the voice she chose while it is installed', () => {
+    expect(resolveVoice(installed, 'id.Samantha.Default.en-US')).toBe('id.Samantha.Default.en-US');
+  });
+
+  it('falls back to the automatic pick when her voice was removed', () => {
+    expect(resolveVoice(installed, 'id.Zoe.Enhanced.en-US')).toBe('id.Ava.Enhanced.en-US');
+  });
+
+  it('picks automatically when she has not chosen', () => {
+    expect(resolveVoice(installed, undefined)).toBe('id.Ava.Enhanced.en-US');
+  });
+});
+

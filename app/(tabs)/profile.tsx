@@ -30,6 +30,7 @@ export default function Profile() {
   const dayLogs = useLogStore((s) => s.dayLogs);
   const { available, enabled } = useUnlock();
   const aiOn = useAiStatus((s) => s.on);
+  const voiceName = useLogStore((s) => (typeof s.setup?.voice === 'string' && typeof s.setup.voiceName === 'string' ? s.setup.voiceName : undefined));
   const [confirming, setConfirming] = useState(false);
   const day = format(new Date(), 'yyyy-MM-dd');
 
@@ -106,6 +107,16 @@ export default function Profile() {
               <View className="flex-row items-center gap-xs">
                 <Text variant="body" tone="secondary">
                   {aiOn ? en('pf.ai.on') : en('pf.ai.off')}
+                </Text>
+                <Symbol name="chevron.right" fallback="chevronRight" tone="tertiary" size={14} />
+              </View>
+            </PressableSurface>
+            <Divider />
+            <PressableSurface label={`${en('voice.title')}, ${voiceName ?? en('voice.auto')}`} onPress={() => router.push('/voice')} role="link" pressScale={0.98} surfaceClassName="min-h-choice flex-row items-center justify-between gap-md px-md">
+              <Text variant="body">{en('voice.title')}</Text>
+              <View className="flex-row items-center gap-xs">
+                <Text variant="body" tone="secondary">
+                  {voiceName ?? en('voice.auto')}
                 </Text>
                 <Symbol name="chevron.right" fallback="chevronRight" tone="tertiary" size={14} />
               </View>

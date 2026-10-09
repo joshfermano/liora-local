@@ -1,19 +1,15 @@
-import { requireOptionalNativeModule } from 'expo';
-import { Platform } from 'react-native';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { modelBytesOnDisk, voiceBytesOnDisk } from '../../ai/gemma-native';
 import { MIC_DENIED, useVoiceNote } from '../../ai/use-voice-note';
 import { en } from '../../content/copy';
 import type { ReplyBlock } from '../../core/companion';
 import { useCompanionStore } from '../../store/companion';
+import { useLogStore } from '../../store/log';
 import { agentStore } from '../companion/agent-store';
 import { savedLine } from '../companion/saved';
-import { pickVoice } from './voice';
+import { installedVoices, Speech } from './speech';
+import { resolveVoice } from './voice';
 
-type SpeechModule = typeof import('expo-speech');
-// An app built before expo-speech must not take the router down with it; Live then just stays silent.
-const Speech: SpeechModule | null =
-  Platform.OS === 'web' || requireOptionalNativeModule('ExpoSpeech') ? (require('expo-speech') as SpeechModule) : null;
 
 export type LivePhase = 'starting' | 'listening' | 'thinking' | 'speaking' | 'setup' | 'retry' | 'mic';
 
@@ -35,17 +31,10 @@ function spoken(blocks: ReplyBlock[]): string {
 
 type Heard = { text: string; ms: number } | null;
 
-// Liora speaks as a woman: the best installed English woman's voice; undefined lets the system pick.
-let voicePick: Promise<string | undefined> | null = null;
-function bestVoice(): Promise<string | undefined> {
-  voicePick ??= (async () => {
-    try {
-      return pickVoice((await Speech?.getAvailableVoicesAsync()) ?? []);
-    } catch {
-      return undefined;
-    }
-  })();
-  return voicePick;
+// Her chosen voice from Profile while it is installed, else the best English woman's voice.
+async function bestVoice(): Promise<string | undefined> {
+  const chosen = useLogStore.getState().setup?.voice;
+  return resolveVoice(await installedVoices(), typeof chosen === 'string' ? chosen : undefined);
 }
 
 // href is set when the decision needs its own screen; Live then closes and opens it.
