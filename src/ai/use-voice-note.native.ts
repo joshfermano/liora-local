@@ -57,16 +57,17 @@ export function useVoiceNote(): VoiceNote {
 
   async function stop() {
     if (state !== 'recording') return null;
-    await recorder.stop();
-    await setAudioModeAsync({ allowsRecording: false, playsInSilentMode: true });
-    const uri = recorder.uri;
-    if (!uri) {
-      setState('error');
-      setError('Nothing was recorded');
-      return null;
-    }
-    setState('transcribing');
+    let uri: string | null = null;
     try {
+      await recorder.stop();
+      await setAudioModeAsync({ allowsRecording: false, playsInSilentMode: true });
+      uri = recorder.uri;
+      if (!uri) {
+        setState('error');
+        setError('Nothing was recorded');
+        return null;
+      }
+      setState('transcribing');
       const gemma = await gemmaSession();
       const heard = await gemma.transcribe(uri);
       setState('idle');
@@ -76,10 +77,13 @@ export function useVoiceNote(): VoiceNote {
       setError(message(e));
       return null;
     } finally {
-      // Her voice is not kept; only the words she confirms are saved.
-      try {
-        new File(uri).delete();
-      } catch {}
+      // Her voice is not kept, even when recording or transcription fails.
+      const left = uri ?? recorder.uri;
+      if (left) {
+        try {
+          new File(left).delete();
+        } catch {}
+      }
     }
   }
 

@@ -6,7 +6,8 @@ const loadEmbedder = vi.fn();
 vi.mock('./embedder', () => ({ loadEmbedder: () => loadEmbedder() }));
 
 // A fake embedder: the card about any concern and the question about worry share a direction.
-const vectorFor = (text: string) => (/concern|worried|nag-aalala/.test(text) ? [1, 0] : [0, 1]);
+const vectorFor = (text: string) =>
+  /concern|worried|nag-aalala/.test(text) ? [1, 0, 0] : /medication|gamot/i.test(text) ? [0, 0, 1] : [0, 1, 0];
 
 describe('card index', () => {
   beforeEach(() => {
@@ -25,7 +26,7 @@ describe('card index', () => {
     const { retrieveCard } = await import('./card-index');
     await retrieveCard('nag-aalala ako', { status: 'pregnant' });
     await retrieveCard('nag-aalala pa rin ako', { status: 'pregnant' });
-    expect(embed).toHaveBeenCalledTimes(CARDS.length + 2);
+    expect(embed).toHaveBeenCalledTimes(CARDS.filter((c) => !/medication/.test(c.id)).length + 2);
   });
 
   it('ranks the closest cards with their scores, for tuning the threshold on the phone', async () => {
@@ -33,6 +34,12 @@ describe('card index', () => {
     const ranked = await rankCards('nag-aalala ako', { status: 'pregnant' }, 3);
     expect(ranked[0]).toEqual({ id: 'pcpnc-m2-any-concern', score: expect.closeTo(1, 5) });
     expect(ranked).toHaveLength(3);
+  });
+
+  it('never offers a medication card as a calm answer, since medicine advice is out of scope', async () => {
+    const { retrieveCard } = await import('./card-index');
+    const id = await retrieveCard('pwede ba akong uminom ng gamot', { status: 'pregnant' });
+    expect(id ?? '').not.toMatch(/medication/);
   });
 
   it('shows no card when she is neither pregnant nor recently gave birth', async () => {

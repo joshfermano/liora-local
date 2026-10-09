@@ -3,6 +3,9 @@ import type { Context } from '../core/types';
 import { loadEmbedder, type Embedder } from './embedder';
 import { cosine, docPrompt, pickCard, PROVISIONAL_TAU_CARD, queryPrompt, stageFor, type IndexedCard } from './retrieval';
 
+// Medicine advice is out of scope (PRODUCT.md), so the quoted "do not take medication" cards are never offered.
+const SEARCHABLE = CARDS.filter((card) => !/medication/.test(card.id));
+
 // The cards are embedded on the phone with the same model and prompts as her message, once per launch.
 let ready: Promise<{ embedder: Embedder; index: IndexedCard[] }> | null = null;
 
@@ -10,7 +13,7 @@ function cardIndex() {
   ready ??= (async () => {
     const embedder = await loadEmbedder();
     const index: IndexedCard[] = [];
-    for (const card of CARDS) {
+    for (const card of SEARCHABLE) {
       index.push({ id: card.id, stage: card.stage, vector: await embedder.embed(docPrompt(card.title, card.quote)) });
     }
     return { embedder, index };
