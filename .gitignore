@@ -1,6 +1,7 @@
 # Third-party agent skills and impeccable's helper agents: installed locally, listed in
 # skills-lock.json, not redistributed. Our own agents in .claude/agents/ are committed.
 .claude/skills/
+.agents/
 .claude/agents/impeccable-*
 
 # Private, developer-specific notes for coding agents (see AGENTS.md)
