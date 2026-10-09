@@ -15,6 +15,7 @@ import { confirm, tap, warn } from '../haptics';
 import { PressableSurface } from '../PressableSurface';
 import { SourceCard } from '../SourceCard';
 import { Symbol } from '../Symbol';
+import { SwipeCard } from '../SwipeCard';
 import { Text } from '../Text';
 import { SURFACE } from '../theme';
 import { Thinking } from '../Thinking';
@@ -182,20 +183,24 @@ function Confirm({ block }: { block: Extract<ReplyBlock, { kind: 'confirm' }> })
     setState(yes ? 'saved' : 'skipped');
   };
   return (
-    <GlassCard className="gap-xs p-md">
-      <Text variant="headline" accessibilityRole="header">
-        {en('agent.confirm.title')}
-      </Text>
-      {lines.map((l, i) => (
-        <Text key={i} variant="body">
-          {l}
-        </Text>
-      ))}
-      <View className="flex-row flex-wrap gap-xs pt-xxs">
+    <View className="gap-xs">
+      <SwipeCard onAnswer={answer}>
+        <View className="gap-xs">
+          <Text variant="headline" accessibilityRole="header">
+            {en('agent.confirm.title')}
+          </Text>
+          {lines.map((l, i) => (
+            <Text key={i} variant="body">
+              {l}
+            </Text>
+          ))}
+        </View>
+      </SwipeCard>
+      <View className="flex-row flex-wrap gap-xs">
         <ActionPill label={en('agent.confirm.yes')} sf="checkmark" fallback="check" onPress={() => answer(true)} />
         <ActionPill label={en('agent.confirm.no')} sf="xmark" fallback="close" onPress={() => answer(false)} />
       </View>
-    </GlassCard>
+    </View>
   );
 }
 

@@ -11,6 +11,7 @@ import { useMargin } from '../Screen';
 import { Symbol } from '../Symbol';
 import { Text } from '../Text';
 import { fill, rangeText, shortDate } from './text';
+import { SwipeCard } from '../SwipeCard';
 
 const GAP = 12;
 const PEEK = 36;
@@ -39,11 +40,21 @@ export function GapQuestion({ gap }: { gap: NonNullable<TodayModel['gapQuestion'
   const [hidden, setHidden] = useState(false);
   if (hidden) return null;
   return (
-    <View className="gap-sm rounded-pane border border-separator bg-surface-raised p-md dark:border-separator-dark dark:bg-surface-raised-dark">
-      <Text variant="headline">{fill('td.gap.question', { date: shortDate(gap.since) })}</Text>
-      <Text variant="subheadline" tone="secondary">
-        {fill('td.gap.detail', { n: gap.days })}
-      </Text>
+    <View className="gap-sm">
+      <SwipeCard
+        onAnswer={(yes) => {
+          // The card has flown off either way; if she backs out of logging, the question returns next visit.
+          setHidden(true);
+          if (yes) router.push('/period' as Href);
+        }}
+      >
+        <View className="gap-xs">
+          <Text variant="headline">{fill('td.gap.question', { date: shortDate(gap.since) })}</Text>
+          <Text variant="subheadline" tone="secondary">
+            {fill('td.gap.detail', { n: gap.days })}
+          </Text>
+        </View>
+      </SwipeCard>
       <View className="flex-row flex-wrap gap-xs">
         <CapsuleButton
           variant="tinted"

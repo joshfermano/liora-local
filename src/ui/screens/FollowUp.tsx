@@ -7,13 +7,15 @@ import { ChoiceCard } from '../ChoiceCard';
 import { DecidedLink } from '../DecidedLink';
 import { Pair } from '../Pair';
 import { Screen } from '../Screen';
+import { SwipeCard } from '../SwipeCard';
 import { Text } from '../Text';
 
 type Answer = 'yes' | 'no' | 'skip';
 
 const fill = (s: string, v: Record<string, string>) => s.replace(/\{(\w+)\}/g, (_, k: string) => v[k] ?? '');
 
-// One question, a yes and a no, a plain Skip, and what skipping means (FR-4).
+// One question on a card she can swipe (right yes, left no), the same yes and no as buttons, a plain
+// Skip, and what skipping means (FR-4).
 export function FollowUp({ entry }: { entry: Entry }) {
   const answerFollowUp = useTellStore((s) => s.answerFollowUp);
   const [chosen, setChosen] = useState<Answer | null>(null);
@@ -31,14 +33,16 @@ export function FollowUp({ entry }: { entry: Entry }) {
     <Screen>
       <View className="gap-xxl pt-xxl">
         <Pair copyKey="followup.comfort" large="body" small="subheadline" />
-        <View className="gap-xs">
-          <Pair copyKey={question} large="title3" small="body" />
-          {code ? (
-            <Text variant="subheadline" tone="secondary">
-              {fill(en('followup.about'), { sign: en(`sign.${code}`) })}
-            </Text>
-          ) : null}
-        </View>
+        <SwipeCard onAnswer={(yes) => answer(yes ? 'yes' : 'no')} disabled={chosen !== null}>
+          <View className="gap-xs py-lg">
+            <Pair copyKey={question} large="title3" small="body" />
+            {code ? (
+              <Text variant="subheadline" tone="secondary">
+                {fill(en('followup.about'), { sign: en(`sign.${code}`) })}
+              </Text>
+            ) : null}
+          </View>
+        </SwipeCard>
         <View className="gap-sm">
           <ChoiceCard label={en('result.yes')} chosen={chosen === 'yes'} onPress={() => answer('yes')} />
           <ChoiceCard label={en('result.no')} chosen={chosen === 'no'} onPress={() => answer('no')} />
