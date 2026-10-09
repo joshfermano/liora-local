@@ -1,3 +1,4 @@
+import { useAudioPlayer } from 'expo-audio';
 import { useRouter } from 'expo-router';
 import { useEffect, useRef } from 'react';
 import { useWindowDimensions, View } from 'react-native';
@@ -37,10 +38,17 @@ export default function Live() {
   const c = useColors();
   const colors = { deepColor: c.dusk, upperColor: c.tint, lowerColor: c.peach, highlightColor: c['tint-soft'], launchColor: c['tint-fill'], spinnerColor: c.tint };
   const closing = useRef(false);
+  const chime = useAudioPlayer(require('../assets/sounds/live-in.wav'));
 
   const scale = useSharedValue(reduce ? 1 : SEED);
   const glow = useSharedValue(0);
   const chrome = useSharedValue(0);
+
+  // The chime lands as the orb starts to grow.
+  useEffect(() => {
+    const t = setTimeout(() => chime.play(), 120);
+    return () => clearTimeout(t);
+  }, [chime]);
 
   useEffect(() => {
     glow.value = withDelay(120, withTiming(1, { duration: 300 }));
