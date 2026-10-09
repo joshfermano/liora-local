@@ -1,6 +1,6 @@
 # HANDOFF: Tell Liora (liora-local)
 
-**Last updated:** 2026-10-10, 1:30 AM Manila (redesign merged; live reload on the 17 Pro).
+**Last updated:** 2026-10-10, 1:35 AM Manila (Today, Calendar, Profile rebuilt; art and onboarding in flight).
 **Deadline:** code freeze and submission **10:00 AM, 10 Oct 2026**, on
 cerebralvalley.ai/e/appbuildersph-hackathon-2026. One submission, no edits after.
 **Read next:** `docs/superpowers/specs/2026-10-09-tell-liora-design.md` (the build spec, v3),
@@ -45,13 +45,14 @@ Update section 1 and section 2 of this file as work completes, so any session ca
 
 ## 2. Next steps, in order
 
-1. **Done by 1:30 AM:** tabs, Liora companion, calendar with period tracking, profile with native
-   wheel pickers (age, height, weight), a day-log sheet (flow, symptoms, moods, activities), and the
-   Today page with a week strip, glance tiles, cycle stats, "Liora noticed" and a card of the day.
-   The iPhone 17 Pro runs a live-reload build (see `.tmp/EXTRAS.md`).
-2. **Check every tab on the iPhone 17 Pro** while it live-reloads: the three demo phrases in Liora
-   and on Today, go-now and nurse card (with age, height, weight), the mic, Log today, Calendar,
-   Profile pickers, Face ID lock, mood → crisis. Fix what looks off.
+1. **Done by 1:35 AM** (all on main, 462 tests): tabs; Liora companion; Today, Calendar (month,
+   year, edit mode, day sheet) and Profile rebuilt in the reference design language with fresh code;
+   day-log sheet; native wheel pickers; the rules now follow her saved status after a restart.
+   In flight: the art kit (capiz window, season, avatar and log marks) and a four-step onboarding
+   in place of the setup form. The iPhone 17 Pro runs a live-reload build (`.tmp/EXTRAS.md`).
+2. **Check every screen on the iPhone 17 Pro** while it live-reloads, then swap the drawn marks into
+   Today (season mark) and the day log (log marks) once the art kit lands. Older screens still in
+   the first design: result screens, nurse card, checklist, mood check, My log.
 3. **iPhone 17:** plug into the Mac once, Developer Mode on, build, trust the developer, download
    the models in setup.
 4. **Measurements (LUM-77):** load and answer times and the eval phrases on both demo phones; fill
