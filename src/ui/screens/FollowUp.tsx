@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import { View } from 'react-native';
 import { en, fil } from '../../content/copy';
+
+const fill = (s: string, v: Record<string, string>) => s.replace(/\{(\w+)\}/g, (_, k: string) => v[k] ?? '');
 import type { Entry } from '../../core/types';
 import { useTellStore } from '../../store/tell';
 import { ChoiceCard } from '../ChoiceCard';
@@ -17,16 +19,25 @@ export function FollowUp({ entry }: { entry: Entry }) {
   const [chosen, setChosen] = useState<Answer | null>(null);
   const question = entry.decision.follow_up?.question_id ?? 'fu.unknown';
 
+  const code = entry.decision.follow_up?.code;
   const answer = (a: Answer) => {
     if (chosen) return;
     setChosen(a);
-    void answerFollowUp(a);
+    // A failed save must not leave the buttons locked.
+    answerFollowUp(a).catch(() => setChosen(null));
   };
 
   return (
     <Screen>
       <View className="gap-xxl pt-xxl">
-        <Pair copyKey={question} large="title3" small="body" />
+        <View className="gap-xs">
+          <Pair copyKey={question} large="title3" small="body" />
+          {code ? (
+            <Text variant="subheadline" tone="secondary">
+              {fill(en('followup.about'), { sign: en(`sign.${code}`) })}
+            </Text>
+          ) : null}
+        </View>
         <View className="gap-sm">
           <ChoiceCard label={en('result.yes')} chosen={chosen === 'yes'} onPress={() => answer('yes')} />
           <ChoiceCard label={en('result.no')} chosen={chosen === 'no'} onPress={() => answer('no')} />

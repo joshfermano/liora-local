@@ -655,6 +655,7 @@ export const COPY = {
   // emergency ui (LUM-85)
   'em.phone_error': ui('Enter a phone number with at least 7 digits.'),
   'em.name_error': ui('Add a name for this number.'),
+  'followup.about': ui('About: {sign}'),
   'handoff.title': ui('Handoff report'),
   'handoff.subtitle': ui('For the nurse, midwife, BHW or doctor'),
   'handoff.made': ui('Made {date} on her phone by Tell Liora'),

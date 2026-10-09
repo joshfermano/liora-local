@@ -12,7 +12,8 @@ export default function Result() {
     case 'go_now':
       return <GoNow entry={entry} />;
     case 'follow_up':
-      return <FollowUp entry={entry} />;
+      // Each question gets a fresh screen: two follow-ups can share the same words.
+      return <FollowUp key={`${entry.id}:${entry.decision.follow_up?.code ?? ''}`} entry={entry} />;
     case 'ok':
       return <Calm entry={entry} />;
   }
