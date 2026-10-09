@@ -79,8 +79,18 @@ export function applyFollowUpAnswer(entry: Entry, answer: Answer, context: Conte
   const severity = applyAnswer(answer);
   // The question asked covers every still-open sign she hears it for, not just the one that raised it.
   const covered = askedTogether(pending);
-  const findings = entry.findings.map((f) =>
-    f.code === pending || (covered.includes(f.code) && f.severity === 'unknown') ? { ...f, severity } : f,
-  );
-  return { ...entry, findings, decision: evaluate(findings, context) };
+  const hit = (f: Finding) => f.code === pending || (covered.includes(f.code) && f.severity === 'unknown');
+  const changed = entry.findings.filter(hit).map((f) => f.code);
+  const findings = entry.findings.map((f) => (hit(f) ? { ...f, severity } : f));
+  return { ...entry, findings, decision: evaluate(findings, context), follow_up_answer: { code: pending, answer, changed } };
+}
+
+// After a skip she may still answer: the signs the skip set go back to "not asked" and the question returns.
+export function reopenFollowUp(entry: Entry, context: Context): Entry {
+  const answered = entry.follow_up_answer;
+  if (answered?.answer !== 'skip') return entry;
+  const changed = answered.changed ?? [answered.code];
+  const findings = entry.findings.map((f) => (changed.includes(f.code) ? { ...f, severity: 'unknown' as const } : f));
+  const { follow_up_answer: _answered, ...rest } = entry;
+  return { ...rest, findings, decision: evaluate(findings, context) };
 }

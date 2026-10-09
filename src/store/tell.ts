@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { applyFollowUpAnswer, dangerRulesApply, runPipeline } from '../core/pipeline';
+import { applyFollowUpAnswer, dangerRulesApply, reopenFollowUp, runPipeline } from '../core/pipeline';
 import type { Context, Entry } from '../core/types';
 import { useLogStore } from './log';
 import { contextFrom, readProfile } from './profile';
@@ -18,6 +18,8 @@ export interface TellState {
   setContext(context: Context): void;
   submit(text: string, input?: 'text' | 'voice'): Promise<Entry>;
   answerFollowUp(answer: 'yes' | 'no' | 'skip'): Promise<Entry>;
+  // After a skip, bring the question back so she can answer it.
+  reopenFollowUp(): Entry | null;
   reset(): void;
 }
 
@@ -132,6 +134,14 @@ export const useTellStore = create<TellState>()((set, get) => ({
       throw e;
     }
     const next = applyFollowUpAnswer(current, answer, context);
+    useLogStore.getState().addEntry(next);
+    set({ current: next, status: 'done', error: null });
+    return next;
+  },
+  reopenFollowUp: () => {
+    const { current, context } = get();
+    if (current?.follow_up_answer?.answer !== 'skip') return null;
+    const next = reopenFollowUp(current, context);
     useLogStore.getState().addEntry(next);
     set({ current: next, status: 'done', error: null });
     return next;

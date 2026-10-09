@@ -106,9 +106,34 @@ function Decision({ block }: { block: Extract<ReplyBlock, { kind: 'decision' }> 
   // so an answered question shows its outcome rather than the old 'Answer the question' button.
   const level = useLogStore((s) => s.entries.find((e) => e.id === block.entryId)?.decision.level) ?? block.level;
   const question = useTellStore((s) => (s.current?.id === block.entryId ? s.current.decision.follow_up?.question_id : undefined));
+  const skipped = useLogStore((s) => s.entries.find((e) => e.id === block.entryId)?.follow_up_answer?.answer === 'skip');
+  const reopen = useTellStore((s) => s.reopenFollowUp);
+  const isCurrent = useTellStore((s) => s.current?.id === block.entryId);
   useEffect(() => {
-    if (level === 'go_now') warn();
-  }, [level]);
+    if (level === 'go_now' && !skipped) warn();
+  }, [level, skipped]);
+
+  // A skip still counts as serious, shown calmly with a way back to the question.
+  if (level === 'go_now' && skipped) {
+    return (
+      <GlassCard className="p-md gap-sm">
+        <Text variant="headline">{en('skip.title')}</Text>
+        <Text variant="body">{en('skip.body')}</Text>
+        {isCurrent ? (
+          <CapsuleButton
+            variant="filled"
+            label={en('skip.answer')}
+            onPress={() => {
+              tap();
+              if (reopen()) open();
+            }}
+          />
+        ) : null}
+        <EmergencyButtons />
+        <CapsuleButton variant="plain" label={en('result.show_nurse')} onPress={() => router.push(`/card/${block.entryId}`)} />
+      </GlassCard>
+    );
+  }
 
   if (level === 'go_now') {
     return (
@@ -261,7 +286,8 @@ function bubbleText(blocks: ReplyBlock[]): { text: string | null; waiting: boole
   // The line above a decision follows the decision as it stands now, so an answered question no longer
   // reads "one quick question" over a go-now card.
   const decision = blocks.find((b): b is Extract<ReplyBlock, { kind: 'decision' }> => b.kind === 'decision');
-  const live = decision ? useLogStore.getState().entries.find((e) => e.id === decision.entryId)?.decision.level : undefined;
+  const now = decision ? useLogStore.getState().entries.find((e) => e.id === decision.entryId) : undefined;
+  const live = now?.follow_up_answer?.answer === 'skip' ? 'skipped' : now?.decision.level;
   const key = live && text.key.startsWith('companion.symptom.') ? `companion.symptom.${live}` : text.key;
   return { text: fill(en(key), text.params), waiting: false };
 }

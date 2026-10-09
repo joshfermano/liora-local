@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { EntrySchema, type Context, type Finding } from './types';
-import { applyFollowUpAnswer, dangerRulesApply, runPipeline } from './pipeline';
+import { applyFollowUpAnswer, dangerRulesApply, reopenFollowUp, runPipeline } from './pipeline';
 
 const context: Context = { status: 'pregnant' };
 const now = new Date('2026-10-09T14:00:00.000Z');
@@ -60,6 +60,25 @@ describe('applyFollowUpAnswer', () => {
 
   it('skip resolves to serious (SR-5)', () => {
     expect(applyFollowUpAnswer(pending(), 'skip', context).decision.level).toBe('go_now');
+  });
+
+  it('records which question she answered and how, so a skip can be shown as a skip', () => {
+    expect(applyFollowUpAnswer(pending(), 'skip', context).follow_up_answer).toMatchObject({ code: 'severe_headache', answer: 'skip' });
+    expect(applyFollowUpAnswer(pending(), 'yes', context).follow_up_answer).toMatchObject({ code: 'severe_headache', answer: 'yes' });
+  });
+
+  it('re-opens a skipped question so she can answer it after all', () => {
+    const skipped = applyFollowUpAnswer(pending(), 'skip', context);
+    const again = reopenFollowUp(skipped, context);
+    expect(again.decision.level).toBe('follow_up');
+    expect(again.decision.follow_up?.code).toBe('severe_headache');
+    expect(again.follow_up_answer).toBeUndefined();
+    expect(applyFollowUpAnswer(again, 'no', context).decision.level).toBe('ok');
+  });
+
+  it('leaves an answered yes as it is: only a skip can be re-opened', () => {
+    const yes = applyFollowUpAnswer(pending(), 'yes', context);
+    expect(reopenFollowUp(yes, context)).toEqual(yes);
   });
 
   it('no makes it mild and the decision is no longer pending', () => {

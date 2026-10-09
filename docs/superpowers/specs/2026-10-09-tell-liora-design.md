@@ -221,6 +221,9 @@ it. Tell Liora runs the same idea on the phone:
 - **SR-3** The decision model is pure, deterministic TypeScript with a source on every rule.
 - **SR-4** Go-now and crisis screens contain only fixed copy.
 - **SR-5** Unknown severity triggers a follow-up; skipping resolves to serious.
+  **Shown calmly (user's call, 2026-10-10):** a skip still decides go-now, but she sees "Let's be
+  safe" with why it counts as serious, Call and Text for her contact, the nurse card, and "Answer
+  the question", which re-opens the same question (`reopenFollowUp`). A yes keeps the alarm screen.
 - **SR-6** Source cards are shown verbatim. No model paraphrases medical text (FR-15 rewords only
   the app's own calm copy).
 - **SR-7** Retrieval never decides. It only chooses which cited card to display.

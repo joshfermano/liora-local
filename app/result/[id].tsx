@@ -3,6 +3,7 @@ import { useTellStore } from '../../src/store/tell';
 import { Calm } from '../../src/ui/screens/Calm';
 import { FollowUp } from '../../src/ui/screens/FollowUp';
 import { GoNow } from '../../src/ui/screens/GoNow';
+import { SkippedSafe } from '../../src/ui/screens/SkippedSafe';
 
 export default function Result() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -10,7 +11,7 @@ export default function Result() {
   if (!entry || entry.id !== id) return <Redirect href="/" />;
   switch (entry.decision.level) {
     case 'go_now':
-      return <GoNow entry={entry} />;
+      return entry.follow_up_answer?.answer === 'skip' ? <SkippedSafe entry={entry} /> : <GoNow entry={entry} />;
     case 'follow_up':
       // Each question gets a fresh screen: two follow-ups can share the same words.
       return <FollowUp key={`${entry.id}:${entry.decision.follow_up?.code ?? ''}`} entry={entry} />;

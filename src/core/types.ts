@@ -58,6 +58,9 @@ export const EntrySchema = z.object({
   findings: z.array(FindingSchema),
   extraction: ExtractionSchema.nullable(),
   decision: DecisionSchema,
+  // Her answer to the follow-up question; a skip still counts as serious (SR-5) but is shown as a skip.
+  // `changed` lists every sign the answer set, so re-opening a skip undoes exactly those.
+  follow_up_answer: z.object({ code: z.string(), answer: z.enum(['yes', 'no', 'skip']), changed: z.array(z.string()).optional() }).optional(),
   card_ids: z.array(z.string()),
   models: z.array(
     z.object({

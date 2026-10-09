@@ -52,6 +52,10 @@ export const COPY = {
   'go.source.header': ui('Source'),
 
   'followup.comfort': ui("I'm here with you. One quick question, so I understand it better.", 'Nandito lang ako. Isang tanong lang, para mas maintindihan kita.'),
+  'skip.title': ui("Let's be safe"),
+  'skip.body': ui("You skipped the question, so Liora can't tell how bad it is. To be safe, it counts as serious: go to the hospital or health centre."),
+  'skip.answer': ui('Answer the question'),
+  'companion.symptom.skipped': ui("I'm here with you. We skipped the question, so let's be safe."),
   'followup.skip_means': ui('If you skip, Liora treats it as serious.'),
 
   'calm.saved': ui('Saved to your notes.'),
