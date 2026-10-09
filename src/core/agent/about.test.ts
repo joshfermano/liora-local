@@ -59,6 +59,11 @@ describe('aboutLiora', () => {
     'Nag-exercise ako kanina',
     'can I take a bath after giving birth?',
     'How does Liora decide?',
+    'how are you?',
+    'kumusta ka?',
+    "what's up?",
+    'okay ka lang?',
+    'good morning!',
   ])('does not refuse "%s"', (text) => {
     expect(aboutLiora(text)).not.toBe('offtopic');
   });

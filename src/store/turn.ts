@@ -98,7 +98,8 @@ export async function runTurn(
   // unless the same message carries a danger sign, which the usual turn handles first.
   const about = aboutLiora(text);
   // Off topic only when the rules found nothing of hers in it: nothing to log and no sign.
-  const unrelated = about === 'offtopic' && read.actions.length === 0 && entry.findings.length === 0;
+  // (Small talk counts as nothing: the reader files a general question as chat.)
+  const unrelated = about === 'offtopic' && read.actions.every((a) => a.tool === 'smalltalk') && entry.findings.length === 0;
   if (about && (about !== 'offtopic' || unrelated) && read.purpose !== 'urgent' && entry.decision.level === 'ok') {
     noteTurn({ tools: [] });
     return {

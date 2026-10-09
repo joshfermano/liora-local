@@ -28,7 +28,8 @@ function verdict(a: AgentAction, data: AgentData, status: string | undefined, to
     case 'weeks':
       return status === 'pregnant' ? 'apply' : 'confirm';
     case 'set_status':
-      return 'confirm';
+      // Already her status: nothing to ask.
+      return a.status === status ? 'skip' : 'confirm';
     case 'discharge':
       return resolveDate(a.date, today) ? 'apply' : 'confirm';
     case 'symptoms':

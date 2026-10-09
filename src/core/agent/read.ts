@@ -58,6 +58,17 @@ function activitiesOf(text: string): Activity[] {
   return ACTIVITIES.filter((a) => done.some((c) => ACTIVITY[a].test(c)));
 }
 
+const NOT_PREGNANT = /\b(?:hindi|di)\s+(?:na\s+)?(?:ako\s+)?buntis\b|\b(?:i'?m|i\s+am)\s+not\s+pregnant\b|\bnegative\s+(?:ang\s+)?(?:pt|pregnancy\s+test)|\b(?:pt|pregnancy\s+test)\s+(?:ko\s+)?(?:ay\s+)?negative\b/i;
+const PREGNANT = /\bbuntis\s+(?:na\s+)?ako\b|\bako\s+(?:ay\s+)?buntis\b|\bnagdadalang-?tao\s+(?:na\s+)?ako\b|\b(?:i'?m|i\s+am)\s+pregnant\b|\bpositive\s+(?:ang\s+)?(?:pt|pregnancy\s+test)|\b(?:pt|pregnancy\s+test)\s+(?:ko\s+)?(?:ay\s+)?positive\b/i;
+const GAVE_BIRTH = /\bnanganak\s+na\s+ako\b|\bkaka-?panganak\s+ko\s+lang\b|\bkapapanganak\s+ko\s+lang\b|\bi\s+(?:just\s+)?gave\s+birth\b|\bi\s+(?:just\s+)?had\s+(?:my|the)\s+baby\b/i;
+
+function statusOf(text: string): 'pregnant' | 'postpartum' | 'neither' | null {
+  if (NOT_PREGNANT.test(text)) return 'neither';
+  if (GAVE_BIRTH.test(text)) return 'postpartum';
+  if (PREGNANT.test(text)) return 'pregnant';
+  return null;
+}
+
 export function readActions(text: string, today: string): AgentAction[] {
   if (GREETING_ONLY.test(text) && text.trim()) return [{ tool: 'smalltalk' }];
   const memory = readMemory(text);
@@ -79,6 +90,9 @@ export function readActions(text: string, today: string): AgentAction[] {
 
   const symptoms = unique(readText(text).map((f) => f.code)).filter((c): c is Symptom => (SYMPTOMS as readonly string[]).includes(c));
   if (symptoms.length) out.push({ tool: 'symptoms', date: dateWord(text, now, today), symptoms });
+  // Her own statement of where she is: never a question, and the planner always asks before changing it.
+  const stated = question ? null : statusOf(text);
+  if (stated) out.push({ tool: 'set_status', status: stated });
   const discharge = question ? null : readDischarge(text);
   if (discharge) out.push({ tool: 'discharge', date: dateWord(text, now, today), discharge });
   const moods = readMoods(text);

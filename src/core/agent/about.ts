@@ -20,6 +20,9 @@ const RELEVANT =
 // Work for a general assistant, not for Liora.
 const TASK =
   /\b(?:write|compose|draft|gumawa\s+ng|sumulat\s+ng)\s+(?:me\s+)?(?:an?\s+)?(?:poem|tula|essay|story|kwento|song|kanta|letter|liham|code|program|script|report)\b|\b(?:homework|assignment|takdang[-\s]aralin|essay)\b|\b(?:solve|calculate|compute)\b|\d+\s*[x×*/+-]\s*\d+|\btranslate\b|\bisalin\b|\bjokes?\b|\bbiro\b|\brecipe\b|\bhow\s+(?:do\s+i|to)\s+(?:cook|bake)\b|\bpaano\s+(?:magluto|lutuin)\b|\b(?:python|javascript|typescript|html|css|sql)\b|\bcode\b/i;
+// Friendly check-ins are small talk, never off topic.
+const CHAT =
+  /\b(?:how\s+are\s+(?:you|u)|how'?s\s+it\s+going|what'?s\s+up|kumusta|kamusta|musta|okay\s+ka\s+(?:lang|ba)|ayos\s+ka\s+lang|good\s+(?:morning|afternoon|evening|night))\b/i;
 const QUESTION = /\?\s*$|^\s*(?:what|who|where|when|why|how|which|explain|tell\s+me\s+about|ano|sino|saan|kailan|bakit|paano|ilan|gaano)\b/i;
 
 export function aboutLiora(text: string): About | null {
@@ -27,6 +30,6 @@ export function aboutLiora(text: string): About | null {
   if (OFFLINE.test(text)) return 'offline';
   if (CANNOT.test(text)) return 'cannot';
   // A general task, or a question with nothing about her or this app in it.
-  if (!RELEVANT.test(text) && (TASK.test(text) || QUESTION.test(text))) return 'offtopic';
+  if (!RELEVANT.test(text) && !CHAT.test(text) && (TASK.test(text) || QUESTION.test(text))) return 'offtopic';
   return null;
 }
