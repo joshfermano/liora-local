@@ -1,4 +1,5 @@
 import type { Context } from '../core/types';
+import { AVATAR_MARKS, type AvatarMarkName } from '../ui/art/marks';
 import { cleanName, mergeSetup } from '../ui/name';
 import { useLogStore, type SetupAnswers } from './log';
 
@@ -13,6 +14,7 @@ export interface Profile {
   status?: Status;
   weeks?: number;
   daysSinceBirth?: number;
+  avatar?: AvatarMarkName;
   lock: boolean;
 }
 
@@ -33,6 +35,7 @@ export function readProfile(setup: SetupAnswers | null): Profile {
     status,
     weeks: status === 'pregnant' ? inRange(s.weeks, RANGES.weeks) : undefined,
     daysSinceBirth: status === 'postpartum' ? inRange(s.days_since_birth, RANGES.daysSinceBirth) : undefined,
+    avatar: (AVATAR_MARKS as readonly unknown[]).includes(s.avatar) ? (s.avatar as AvatarMarkName) : undefined,
     lock: s.lock === true,
   };
   return Object.fromEntries(Object.entries(profile).filter(([, v]) => v !== undefined)) as Profile;
