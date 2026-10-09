@@ -271,6 +271,22 @@ export const COPY = {
   'cal.flow.light': ui('Light'),
   'cal.flow.medium': ui('Medium'),
   'cal.flow.heavy': ui('Heavy'),
+  // companion thread (LUM-84)
+  'liora.empty.title': ui('Kumusta? Tell Liora how you feel.'),
+  'liora.empty.body': ui('Type or speak in Taglish. The rules decide; I only listen and point.'),
+  'liora.starter.1': ui('Masakit ulo ko'),
+  'liora.starter.2': ui('Nagsimula regla ko ngayon'),
+  'liora.starter.3': ui('Kailan next period ko?'),
+  'liora.placeholder': ui('Message Liora'),
+  'liora.send': ui('Send'),
+  'liora.typing': ui('Liora is thinking'),
+  'liora.period.add': ui('Add to calendar'),
+  'liora.period.skip': ui('Not now'),
+  'liora.period.added': ui('Added to your calendar.'),
+  'liora.go.open': ui('Open and show the nurse'),
+  'liora.followup.open': ui('Answer the question'),
+  'liora.error': ui('Something went wrong. Please try again.'),
+  'liora.clear': ui('Clear conversation'),
 } as const satisfies Record<string, Entry>;
 
 export type CopyKey = keyof typeof COPY;
