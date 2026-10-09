@@ -200,6 +200,9 @@ check shows a crisis hotline on any self-harm answer. Nothing leaves the phone.
 
 ## 10. Demo script, judge Q&A and the 10 AM checklist
 
+**Test before the demo:** `docs/demo-test-prompts.md` lists scenario prompts with expected results
+(rules rows verified at 4:20 AM, 10 Oct) and a suggested 5-minute path.
+
 From the team's plain-language guide (kept outside the repo). If it and the spec disagree, the spec
 wins:
 
