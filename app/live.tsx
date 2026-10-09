@@ -2,7 +2,7 @@ import { createAudioPlayer, setAudioModeAsync, useAudioPlayer, useAudioPlayerSta
 import { useRouter } from 'expo-router';
 import { useEffect, useRef } from 'react';
 import type { OrbState } from 'orb-ui';
-import { useWindowDimensions, View } from 'react-native';
+import { Linking, useWindowDimensions, View } from 'react-native';
 import Animated, {
   Easing,
   useAnimatedStyle,
@@ -36,6 +36,7 @@ const ORB_STATE: Record<LivePhase, OrbState> = {
   speaking: 'speaking',
   setup: 'listening',
   retry: 'listening',
+  mic: 'listening',
 };
 const HINT: Partial<Record<LivePhase, string>> = {
   listening: 'live.listening',
@@ -43,6 +44,7 @@ const HINT: Partial<Record<LivePhase, string>> = {
   speaking: 'live.speaking',
   retry: 'live.retry',
   setup: 'liora.voice.setup',
+  mic: 'voice.mic_denied',
 };
 
 // The orb starts as a seed, swells just past full size and settles; leaving reverses it.
@@ -149,6 +151,13 @@ export default function Live() {
                 <PressableSurface label={en('liora.voice.setup.open')} role="link" onPress={() => router.replace('/setup')} surfaceClassName="min-h-tap justify-center">
                   <Text variant="subheadline" tone="tint" className="font-semibold">
                     {en('liora.voice.setup.open')}
+                  </Text>
+                </PressableSurface>
+              ) : null}
+              {live.phase === 'mic' ? (
+                <PressableSurface label={en('voice.settings')} role="link" onPress={() => void Linking.openSettings()} surfaceClassName="min-h-tap justify-center">
+                  <Text variant="subheadline" tone="tint" className="font-semibold">
+                    {en('voice.settings')}
                   </Text>
                 </PressableSurface>
               ) : null}

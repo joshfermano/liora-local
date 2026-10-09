@@ -1,4 +1,7 @@
 // Shared by use-voice-note.ts (web) and use-voice-note.native.ts; neither may import the other.
+// Thrown by start() when iOS refuses the microphone, so callers can point her to Settings.
+export const MIC_DENIED = 'Microphone permission was not given';
+
 export type VoiceNoteState = 'idle' | 'recording' | 'transcribing' | 'error';
 
 export type VoiceNote = {
