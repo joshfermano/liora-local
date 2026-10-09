@@ -1,5 +1,5 @@
 import { toFindings } from '../ai/typed-decisions';
-import { applyAnswer, type Answer } from './followups';
+import { applyAnswer, askedTogether, type Answer } from './followups';
 import { readText, readWeeks } from './lexicon';
 import { MILD_CUE, SEVERE_CUE } from './lexicon/entries';
 import { readPeriod } from './lexicon/period';
@@ -77,6 +77,10 @@ export function applyFollowUpAnswer(entry: Entry, answer: Answer, context: Conte
   const pending = entry.decision.follow_up?.code;
   if (!pending) return entry;
   const severity = applyAnswer(answer);
-  const findings = entry.findings.map((f) => (f.code === pending ? { ...f, severity } : f));
+  // The question asked covers every still-open sign she hears it for, not just the one that raised it.
+  const covered = askedTogether(pending);
+  const findings = entry.findings.map((f) =>
+    f.code === pending || (covered.includes(f.code) && f.severity === 'unknown') ? { ...f, severity } : f,
+  );
   return { ...entry, findings, decision: evaluate(findings, context) };
 }

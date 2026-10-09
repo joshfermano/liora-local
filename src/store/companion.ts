@@ -57,6 +57,8 @@ interface CompanionState {
   // Brings a past conversation back; the current one goes to history.
   open(id: string): void;
   forget(id: string): void;
+  // Every past conversation; the one she is in stays.
+  clearHistory(): void;
   // Delete everything: the thread and all of history.
   wipe(): void;
 }
@@ -97,6 +99,7 @@ export const useCompanionStore = create<CompanionState>()(
           return { messages: chat.messages, thinking: false, history: archived(s.messages, s.history.filter((c) => c.id !== id)) };
         }),
       forget: (id) => set((s) => ({ history: s.history.filter((c) => c.id !== id) })),
+      clearHistory: () => set({ history: [] }),
       wipe: () => set({ messages: [], history: [], thinking: false }),
       undo: (undoId) => {
         if (!revert(undoId)) return false;
@@ -144,7 +147,7 @@ export const useCompanionStore = create<CompanionState>()(
         };
         const work = async () => {
           const entry = await useTellStore.getState().submit(text, input);
-          mark('rules decided');
+          mark(`rules decided ${entry.decision.level}${entry.decision.follow_up ? ` (asks ${entry.decision.follow_up.question_id})` : ''}`);
           const { setup, cycleSettings } = useLogStore.getState();
           const profile = readProfile(setup);
           const day = today();
@@ -210,6 +213,9 @@ export const useCompanionStore = create<CompanionState>()(
       name: 'tell-liora-thread',
       storage: createJSONStorage(() => storage),
       partialize: ({ messages, history }) => ({ messages, history }),
+      // Loading from disk happens once, when the app starts fresh: she meets an empty chat, and the
+      // conversation she left goes to history. Leaving the tab or backgrounding the app keeps it.
+      onRehydrateStorage: () => (state) => state?.clear(),
     },
   ),
 );

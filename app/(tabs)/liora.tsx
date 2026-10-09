@@ -70,10 +70,23 @@ export default function Liora() {
   }, []);
   const scroll = useRef<ScrollView>(null);
 
+  // A cleared chat keeps iOS's old scroll offset, which leaves the short new content out of view and the
+  // screen blank, so an empty chat goes back to the top; otherwise the newest message is brought into view.
   useEffect(() => {
+    if (messages.length === 0) {
+      scroll.current?.scrollTo({ y: 0, animated: false });
+      return;
+    }
     const t = setTimeout(() => scroll.current?.scrollToEnd({ animated: true }), 50);
     return () => clearTimeout(t);
   }, [messages.length, messages[messages.length - 1]?.blocks?.length, thinking]);
+
+  // Back on the tab after the chat was cleared elsewhere (Done on a result): the same reset.
+  useFocusEffect(
+    useCallback(() => {
+      if (useCompanionStore.getState().messages.length === 0) scroll.current?.scrollTo({ y: 0, animated: false });
+    }, []),
+  );
 
   return (
     // The padding it adds shows through the glass keyboard, so it wears the screen's ground.
@@ -105,9 +118,10 @@ export default function Liora() {
                     <PressableSurface
                       key={k}
                       label={en(k)}
+                      // A starter is a whole message: tapping sends it, rather than leaving it in the box.
                       onPress={() => {
                         tap();
-                        setText(en(k));
+                        void useCompanionStore.getState().send(en(k));
                       }}
                       pressScale={0.98}
                       className="self-start"

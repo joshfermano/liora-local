@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { EntrySchema, type Context } from './types';
+import { EntrySchema, type Context, type Finding } from './types';
 import { applyFollowUpAnswer, dangerRulesApply, runPipeline } from './pipeline';
 
 const context: Context = { status: 'pregnant' };
@@ -185,3 +185,25 @@ describe('the WHO danger-sign rules cover pregnancy and the weeks after birth', 
     },
   );
 });
+
+describe('one answer for questions she hears as the same', () => {
+  const pending = (code: Finding['code']): Finding => ({ code, severity: 'unknown', sources: ['llm'], confidence: 0.9 });
+
+  it('answers every pain sign with one "no" to "Sobrang sakit ba?"', () => {
+    const entry = runPipeline({ id: 'p', now, text: 'Masakit ulo ko', input: 'text', context });
+    const twoPains = { ...entry, findings: [...entry.findings, pending('severe_pain')] };
+    const asked = { ...twoPains, decision: { level: 'follow_up' as const, fired: [], follow_up: { question_id: 'fu.severe_headache', code: 'severe_headache' } } };
+    const after = applyFollowUpAnswer(asked, 'no', context);
+    expect(after.decision.level).toBe('ok');
+    expect(after.findings.filter((f) => f.code.startsWith('severe_')).map((f) => f.severity)).toEqual(['mild', 'mild']);
+  });
+
+  it('still asks a different question separately', () => {
+    const entry = runPipeline({ id: 'v', now, text: 'Masakit ulo ko', input: 'text', context });
+    const asked = { ...entry, findings: [...entry.findings, pending('severe_vomiting')] };
+    const after = applyFollowUpAnswer(asked, 'no', context);
+    expect(after.decision.level).toBe('follow_up');
+    expect(after.decision.follow_up?.code).toBe('severe_vomiting');
+  });
+});
+
