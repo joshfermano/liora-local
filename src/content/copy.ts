@@ -287,8 +287,6 @@ export const COPY = {
   'liora.followup.open': ui('Answer the question'),
   'liora.error': ui('Something went wrong. Please try again.'),
   'liora.clear': ui('Clear conversation'),
-  'liora.clear.start': ui('Clear'),
-  'liora.clear.cancel': ui('Cancel'),
   // her mood words, shown back as she said them
   'feeling.calm': ui('Calm'),
   'feeling.joyful': ui('Joyful'),

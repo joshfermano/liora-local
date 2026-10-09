@@ -3,13 +3,13 @@ import { KeyboardAvoidingView, Platform, ScrollView, View } from 'react-native';
 import Animated, { useAnimatedStyle, useReducedMotion, useSharedValue, withDelay, withRepeat, withSequence, withTiming } from 'react-native-reanimated';
 import { en } from '../../src/content/copy';
 import { useCompanionStore } from '../../src/store/companion';
-import { CapsuleButton } from '../../src/ui/CapsuleButton';
 import { Block, Bubble } from '../../src/ui/companion/Blocks';
 import { Composer, STARTERS } from '../../src/ui/companion/Composer';
 import { GlassCard } from '../../src/ui/Glass';
 import { tap } from '../../src/ui/haptics';
 import { PressableSurface } from '../../src/ui/PressableSurface';
 import { Screen } from '../../src/ui/Screen';
+import { Symbol } from '../../src/ui/Symbol';
 import { Text } from '../../src/ui/Text';
 
 function Dot({ delay }: { delay: number }) {
@@ -40,12 +40,7 @@ export default function Liora() {
   const thinking = useCompanionStore((s) => s.thinking);
   const clear = useCompanionStore((s) => s.clear);
   const [text, setText] = useState('');
-  const [confirming, setConfirming] = useState(false);
   const canClear = messages.length > 0 && !thinking;
-
-  useEffect(() => {
-    if (!canClear) setConfirming(false);
-  }, [canClear]);
   const scroll = useRef<ScrollView>(null);
 
   useEffect(() => {
@@ -61,21 +56,16 @@ export default function Liora() {
             {en('tabs.liora')}
           </Text>
           {canClear ? (
-            confirming ? (
-              <View className="flex-row items-center">
-                <CapsuleButton variant="plain" label={en('liora.clear.cancel')} onPress={() => setConfirming(false)} />
-                <CapsuleButton
-                  variant="plain"
-                  label={en('liora.clear')}
-                  onPress={() => {
-                    tap();
-                    clear();
-                  }}
-                />
-              </View>
-            ) : (
-              <CapsuleButton variant="plain" label={en('liora.clear.start')} onPress={() => setConfirming(true)} />
-            )
+            <PressableSurface
+              label={en('liora.clear')}
+              onPress={() => {
+                tap();
+                clear();
+              }}
+              surfaceClassName="min-h-tap min-w-tap items-center justify-center"
+            >
+              <Symbol name="square.and.pencil" fallback="compose" tone="tint" size={22} />
+            </PressableSurface>
           ) : null}
         </View>
         <ScrollView ref={scroll} className="flex-1" keyboardShouldPersistTaps="handled" contentContainerStyle={{ flexGrow: 1, paddingBottom: 12 }}>
