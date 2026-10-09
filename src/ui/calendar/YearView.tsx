@@ -17,6 +17,7 @@ function firstRun(marks: DayMark[]): { kind: 'logged' | 'estimated'; from: numbe
 
 function Mini({ mark }: { mark: DayMark }) {
   const logged = mark.period === 'logged';
+  const fertile = mark.period ? null : mark.fertile;
   return (
     <View className="flex-1 items-center" style={{ height: 18 }}>
       <View
@@ -34,6 +35,11 @@ function Mini({ mark }: { mark: DayMark }) {
           {Number(mark.date.slice(8))}
         </Text>
       </View>
+      {fertile ? (
+        <View
+          className={`absolute bottom-0 h-[3px] rounded-full bg-fertile dark:bg-fertile-dark ${fertile === 'ovulation' ? 'w-[9px]' : 'w-[5px] opacity-70'}`}
+        />
+      ) : null}
     </View>
   );
 }

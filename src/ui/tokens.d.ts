@@ -1,6 +1,6 @@
 export type Scheme = 'light' | 'dark';
 export type ColorName =
-  | 'tint' | 'tint-fill' | 'on-tint' | 'tint-soft' | 'tint-soft-ink' | 'urgent' | 'urgent-fill'
+  | 'tint' | 'tint-fill' | 'on-tint' | 'tint-soft' | 'tint-soft-ink' | 'fertile' | 'fertile-soft' | 'on-fertile' | 'urgent' | 'urgent-fill'
   | 'on-urgent' | 'dusk' | 'ground' | 'surface' | 'surface-raised' | 'fill' | 'label'
   | 'label-secondary' | 'label-tertiary' | 'separator' | 'nacre' | 'light-dawn-source'
   | 'light-dawn-fade' | 'frame' | 'lit' | 'peach' | 'pearl';

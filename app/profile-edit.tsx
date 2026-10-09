@@ -2,6 +2,7 @@ import { useRouter } from 'expo-router';
 import { useState } from 'react';
 import { TextInput, View } from 'react-native';
 import { en } from '../src/content/copy';
+import { useLogStore } from '../src/store/log';
 import { PROFILE_RANGES, updateProfile, useProfile, type Profile, type Status } from '../src/store/profile';
 import { GlassCard } from '../src/ui/Glass';
 import { confirm, tap } from '../src/ui/haptics';
@@ -13,14 +14,17 @@ import { Screen } from '../src/ui/Screen';
 import { Text } from '../src/ui/Text';
 import { TEXT_TONE } from '../src/ui/theme';
 
-type Field = 'age' | 'heightCm' | 'weightKg' | 'weeks';
+type Field = 'age' | 'heightCm' | 'weightKg' | 'weeks' | 'cycle' | 'period';
+
+const RANGES: Record<Field, readonly [number, number]> = { ...PROFILE_RANGES, cycle: [15, 90], period: [1, 14] };
+const START: Partial<Record<Field, number>> = { cycle: 28, period: 5 };
 
 const STATUSES: Status[] = ['pregnant', 'postpartum', 'neither'];
-const middle = ([min, max]: readonly [number, number]) => Math.round((min + max) / 2);
 
 export default function ProfileEdit() {
   const router = useRouter();
   const profile = useProfile();
+  const cycleSettings = useLogStore((s) => s.cycleSettings);
   const [name, setName] = useState(profile.name ?? '');
   const [status, setStatus] = useState<Status | undefined>(profile.status);
   const [values, setValues] = useState<Record<Field, number | undefined>>({
@@ -28,6 +32,8 @@ export default function ProfileEdit() {
     heightCm: profile.heightCm,
     weightKg: profile.weightKg,
     weeks: profile.weeks,
+    cycle: cycleSettings.stated_cycle_length,
+    period: cycleSettings.stated_period_length,
   });
   const [open, setOpen] = useState<Field | null>(null);
 
@@ -38,10 +44,18 @@ export default function ProfileEdit() {
     ...(status === 'pregnant' ? [{ field: 'weeks' as const, label: en('setup.weeks'), unit: en('profile.unit.weeks') }] : []),
   ];
 
+  const cycleRows: { field: Field; label: string; unit: string }[] =
+    status === 'pregnant'
+      ? []
+      : [
+          { field: 'cycle', label: en('profile.cycle.stated'), unit: en('profile.unit.days') },
+          { field: 'period', label: en('profile.period.stated'), unit: en('profile.unit.days') },
+        ];
+
   const toggle = (field: Field) => {
     tap();
     if (open === field) return setOpen(null);
-    setValues((v) => (v[field] === undefined ? { ...v, [field]: middle(PROFILE_RANGES[field]) } : v));
+    setValues((v) => (v[field] === undefined ? { ...v, [field]: START[field] ?? Math.round((RANGES[field][0] + RANGES[field][1]) / 2) } : v));
     setOpen(field);
   };
 
@@ -53,12 +67,50 @@ export default function ProfileEdit() {
     for (const f of ['age', 'heightCm', 'weightKg'] as const) if (values[f] !== profile[f]) next[f] = values[f];
     const weeks = status === 'pregnant' ? values.weeks : undefined;
     if (weeks !== profile.weeks) next.weeks = weeks;
+    if (status !== 'pregnant') {
+      const stated = {
+        stated_cycle_length: values.cycle ?? cycleSettings.stated_cycle_length,
+        stated_period_length: values.period ?? cycleSettings.stated_period_length,
+      };
+      if (stated.stated_cycle_length !== cycleSettings.stated_cycle_length || stated.stated_period_length !== cycleSettings.stated_period_length) {
+        useLogStore.getState().setCycleSettings({ ...cycleSettings, ...stated });
+      }
+    }
     if (Object.keys(next).length > 0) {
       confirm();
       updateProfile(next);
     }
     router.back();
   };
+
+  const renderRows = (list: { field: Field; label: string; unit: string }[]) => (
+    <GlassCard>
+      {list.map(({ field, label, unit }, i) => {
+        const v = values[field];
+        const [min, max] = RANGES[field];
+        const shown = v === undefined ? en('profile.edit.not_set') : `${v} ${unit}`;
+        return (
+          <View key={field}>
+            {i > 0 ? <Divider /> : null}
+            <PressableSurface
+              label={`${label}, ${shown}`}
+              onPress={() => toggle(field)}
+              pressScale={0.98}
+              surfaceClassName="min-h-choice flex-row items-center justify-between gap-md px-md"
+            >
+              <Text variant="body">{label}</Text>
+              <Text variant="body" tone={open === field ? 'tint' : 'secondary'}>
+                {shown}
+              </Text>
+            </PressableSurface>
+            {open === field && v !== undefined ? (
+              <WheelPicker label={label} unit={unit} min={min} max={max} value={v} onChange={(n) => setValues((x) => ({ ...x, [field]: n as number }))} />
+            ) : null}
+          </View>
+        );
+      })}
+    </GlassCard>
+  );
 
   return (
     <Screen field={false} raised topInset={false}>
@@ -105,37 +157,21 @@ export default function ProfileEdit() {
             options={STATUSES.map((s) => ({ value: s, label: en(`setup.status.${s}`) }))}
             onChange={(s) => {
               setStatus(s as Status);
-              if (s !== 'pregnant' && open === 'weeks') setOpen(null);
+              if ((s !== 'pregnant' && open === 'weeks') || (s === 'pregnant' && (open === 'cycle' || open === 'period'))) setOpen(null);
             }}
           />
         </View>
 
-        <GlassCard>
-          {rows.map(({ field, label, unit }, i) => {
-            const v = values[field];
-            const [min, max] = PROFILE_RANGES[field];
-            const shown = v === undefined ? en('profile.edit.not_set') : `${v} ${unit}`;
-            return (
-              <View key={field}>
-                {i > 0 ? <Divider /> : null}
-                <PressableSurface
-                  label={`${label}, ${shown}`}
-                  onPress={() => toggle(field)}
-                  pressScale={0.98}
-                  surfaceClassName="min-h-choice flex-row items-center justify-between gap-md px-md"
-                >
-                  <Text variant="body">{label}</Text>
-                  <Text variant="body" tone={open === field ? 'tint' : 'secondary'}>
-                    {shown}
-                  </Text>
-                </PressableSurface>
-                {open === field && v !== undefined ? (
-                  <WheelPicker label={label} unit={unit} min={min} max={max} value={v} onChange={(n) => setValues((x) => ({ ...x, [field]: n as number }))} />
-                ) : null}
-              </View>
-            );
-          })}
-        </GlassCard>
+        {renderRows(rows)}
+
+        {cycleRows.length > 0 ? (
+          <View className="gap-xs">
+            {renderRows(cycleRows)}
+            <Text variant="footnote" tone="secondary" className="px-md">
+              {en('profile.cycle.footer')}
+            </Text>
+          </View>
+        ) : null}
       </View>
     </Screen>
   );

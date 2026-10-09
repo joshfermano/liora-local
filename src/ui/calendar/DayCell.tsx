@@ -1,7 +1,8 @@
 import { memo } from 'react';
-import { Pressable, View } from 'react-native';
+import { Pressable, Text as RNText, View } from 'react-native';
 import { en } from '../../content/copy';
 import type { DayMark } from '../../core/calendar';
+import { FertileLeaf } from '../art';
 import { Text } from '../Text';
 
 export const ROW_HEIGHT = 60;
@@ -19,6 +20,8 @@ function DayCellBase({ mark, label, picked, editing, onPress }: Props) {
   const num = Number(mark.date.slice(8));
   const logged = editing ? picked : mark.period === 'logged';
   const dashed = editing ? !picked && mark.period !== null : mark.period === 'estimated';
+
+  const fertile = !editing && !mark.period ? mark.fertile : null;
 
   let top = null;
   if (!editing) {
@@ -74,9 +77,18 @@ function DayCellBase({ mark, label, picked, editing, onPress }: Props) {
                 : ''
           } ${editing && !picked && mark.period ? 'opacity-50' : ''}`}
         >
-          <Text variant="body" tone={logged ? 'onTint' : 'label'}>
-            {num}
-          </Text>
+          {fertile ? (
+            <View className="absolute inset-0 items-center justify-center">
+              <FertileLeaf size={32} filled={fertile === 'ovulation'} />
+            </View>
+          ) : null}
+          {fertile === 'ovulation' ? (
+            <RNText className="text-body text-on-fertile dark:text-on-fertile-dark">{num}</RNText>
+          ) : (
+            <Text variant="body" tone={logged ? 'onTint' : 'label'}>
+              {num}
+            </Text>
+          )}
         </View>
       </View>
       <View className={`mt-[2px] h-1 w-1 rounded-full ${mark.hasLog ? 'bg-label-tertiary dark:bg-label-tertiary-dark' : ''}`} />

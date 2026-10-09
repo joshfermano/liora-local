@@ -4,6 +4,7 @@ import { ScrollView, View, useWindowDimensions } from 'react-native';
 import { en } from '../../content/copy';
 import type { Insight } from '../../core/insights';
 import type { TodayModel } from '../../core/today';
+import { FertileLeaf } from '../art';
 import { CapsuleButton } from '../CapsuleButton';
 import { tap } from '../haptics';
 import { useMargin } from '../Screen';
@@ -58,12 +59,14 @@ export function GapQuestion({ gap }: { gap: NonNullable<TodayModel['gapQuestion'
   );
 }
 
-function Pane({ width, wash, children }: { width: number; wash?: boolean; children: ReactNode }) {
+function Pane({ width, wash, fertile, children }: { width: number; wash?: boolean; fertile?: boolean; children: ReactNode }) {
   return (
     <View
       style={{ width }}
       className={`min-h-[170px] gap-xs rounded-pane border p-md ${
-        wash
+        fertile
+          ? 'border-fertile bg-fertile-soft dark:border-fertile-dark dark:bg-fertile-soft-dark'
+          : wash
           ? 'border-tint bg-tint-soft dark:border-tint-dark dark:bg-tint-soft-dark'
           : 'border-separator bg-surface-raised dark:border-separator-dark dark:bg-surface-raised-dark'
       }`}
@@ -119,6 +122,23 @@ export function Glance({ model, pregnant }: { model: TodayModel; pregnant: boole
                 {fill('td.track', { n: next.track.checked, k: next.track.held })}
               </Text>
             ) : null}
+          </Pane>
+        ) : null}
+        {model.fertile ? (
+          <Pane width={paneW} fertile>
+            <View className="flex-row items-center gap-xs">
+              <FertileLeaf size={18} />
+              <Text variant="subheadline" className="flex-1">
+                {en('fertile.title')}
+              </Text>
+            </View>
+            <Text variant="title2">{fill('fertile.range', { from: shortDate(model.fertile.from), to: shortDate(model.fertile.to) })}</Text>
+            <Text variant="subheadline">
+              {fill('fertile.ovulation', { from: shortDate(model.fertile.ovulation.from), to: shortDate(model.fertile.ovulation.to) })}
+            </Text>
+            <Text variant="subheadline" className="font-bold">
+              {en('fertile.not_contraception')}
+            </Text>
           </Pane>
         ) : null}
         <Pane width={paneW}>
