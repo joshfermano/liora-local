@@ -15,7 +15,7 @@ import { CapsuleButton } from '../src/ui/CapsuleButton';
 import { tap } from '../src/ui/haptics';
 import { Lattice } from '../src/ui/Lattice';
 import { cleanName, mergeSetup, NAME_MAX } from '../src/ui/name';
-import { DatePicker, WheelPicker } from '../src/ui/native';
+import { DatePicker } from '../src/ui/native';
 import { SetupRow, type RowState } from '../src/ui/SetupRow';
 import { ChoicePane } from '../src/ui/setup/ChoicePane';
 import { Sheet } from '../src/ui/setup/Sheet';
@@ -53,10 +53,18 @@ export default function Setup() {
   const [cards, setCards] = useState<Progress>(() => initial(embedderBytesOnDisk()));
   const [name, setName] = useState(() => cleanName(String(useLogStore.getState().setup?.name ?? '')));
   const [status, setStatus] = useState<Status | null>(null);
-  const [weeks, setWeeks] = useState(20);
-  const [days, setDays] = useState(14);
+  const [weeks, setWeeks] = useState<number | undefined>(undefined);
+  const [days, setDays] = useState<number | undefined>(undefined);
   const [lastPeriod, setLastPeriod] = useState(() => new Date());
-  const [cycle, setCycle] = useState(28);
+  const [cycle, setCycle] = useState<number | undefined>(undefined);
+  const [wheel, setWheel] = useState<'weeks' | 'days' | 'cycle' | null>(null);
+  // Opening a wheel shows a starting point; the value counts once she has opened it.
+  const openWheel = (which: 'weeks' | 'days' | 'cycle', current: number | undefined, start: number, set: (n: number) => void) => {
+    tap();
+    if (wheel === which) return setWheel(null);
+    if (current === undefined) set(start);
+    setWheel(which);
+  };
   const [age, setAge] = useState<number>();
   const [height, setHeight] = useState<number>();
   const [weight, setWeight] = useState<number>();
@@ -97,17 +105,18 @@ export default function Setup() {
   const saveStatus = () => {
     const log = useLogStore.getState();
     if (status === 'pregnant') {
-      useTellStore.getState().setContext({ status, weeks });
+      useTellStore.getState().setContext(weeks === undefined ? { status } : { status, weeks });
       mergeSetup({ status, weeks });
     } else if (status === 'postpartum') {
-      useTellStore.getState().setContext({ status, days_since_birth: days });
+      useTellStore.getState().setContext(days === undefined ? { status } : { status, days_since_birth: days });
       mergeSetup({ status, days_since_birth: days });
     } else if (status === 'neither') {
       const start = ymd(lastPeriod);
       useTellStore.getState().setContext({ status });
       mergeSetup({ status, last_period_start: start, cycle_length: cycle });
       log.setPeriods([{ id: `setup-${start}`, start, end: null, flow_by_day: {}, source: 'setup' }]);
-      log.setCycleSettings({ ...log.cycleSettings, stated_cycle_length: cycle });
+      // Only a length she chose is stated; Liora never assumes 28 days.
+      if (cycle !== undefined) log.setCycleSettings({ ...log.cycleSettings, stated_cycle_length: cycle });
     }
   };
 
@@ -115,6 +124,7 @@ export default function Setup() {
     tap();
     if (step === 1) mergeSetup({ name: cleanName(name) || undefined });
     if (step === 2) saveStatus();
+    setWheel(null);
     if (step === 3) updateProfile({ age, heightCm: height, weightKg: weight });
     setOpen(null);
     setStep((s) => s + 1);
@@ -174,24 +184,23 @@ export default function Setup() {
           <ChoicePane label={en('setup.status.neither')} chosen={status === 'neither'} onPress={() => setStatus('neither')} />
         </View>
         {status === 'pregnant' ? (
-          <Lattice header={en('setup.weeks')}>
-            <WheelPicker label={en('setup.weeks')} value={weeks} min={1} max={45} onChange={(v) => setWeeks(Number(v))} />
+          <Lattice>
+            <WheelRow label={en('setup.weeks')} value={weeks} min={1} max={45} start={20} open={wheel === 'weeks'} onToggle={() => openWheel('weeks', weeks, 20, setWeeks)} onChange={setWeeks} />
           </Lattice>
         ) : null}
         {status === 'postpartum' ? (
-          <Lattice header={en('setup.days')}>
-            <WheelPicker label={en('setup.days')} value={days} min={0} max={365} onChange={(v) => setDays(Number(v))} />
+          <Lattice>
+            <WheelRow label={en('setup.days')} value={days} min={0} max={365} start={14} open={wheel === 'days'} onToggle={() => openWheel('days', days, 14, setDays)} onChange={setDays} />
           </Lattice>
         ) : null}
         {status === 'neither' ? (
-          <>
-            <Lattice header={en('onboarding.last_period')}>
+          <Lattice footer={en('profile.cycle.footer')}>
+            <View className="min-h-choice flex-row items-center justify-between gap-md pl-md pr-xs">
+              <Text variant="body">{en('onboarding.last_period')}</Text>
               <DatePicker label={en('onboarding.last_period')} value={lastPeriod} maximumDate={new Date()} onChange={setLastPeriod} />
-            </Lattice>
-            <Lattice header={en('setup.cycle_length')}>
-              <WheelPicker label={en('setup.cycle_length')} value={cycle} min={15} max={90} unit="days" onChange={(v) => setCycle(Number(v))} />
-            </Lattice>
-          </>
+            </View>
+            <WheelRow label={en('profile.cycle.stated')} value={cycle} min={15} max={90} unit={en('profile.unit.days')} start={28} open={wheel === 'cycle'} onToggle={() => openWheel('cycle', cycle, 28, setCycle)} onChange={setCycle} />
+          </Lattice>
         ) : null}
         <CapsuleButton label={en('onboarding.continue')} onPress={next} disabled={!status} />
       </>

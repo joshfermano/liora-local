@@ -32,9 +32,10 @@ export function WheelPicker({ label, value, onChange, min = 0, max = 0, options,
   if (Platform.OS === 'ios') {
     return (
       <View accessible accessibilityRole="adjustable" accessibilityLabel={label} accessibilityValue={{ text: `${value}${unit ? ` ${unit}` : ''}` }}>
-        <Picker selectedValue={value} onValueChange={change} style={{ height: WHEEL_HEIGHT }}>
+        {/* The native wheel matches its selection as text: a number never matched, so it opened at the top. */}
+        <Picker selectedValue={String(value)} onValueChange={change} style={{ height: WHEEL_HEIGHT }}>
           {items.map((it) => (
-            <Picker.Item key={String(it.value)} label={it.label} value={it.value} />
+            <Picker.Item key={String(it.value)} label={it.label} value={String(it.value)} />
           ))}
         </Picker>
       </View>
