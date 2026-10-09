@@ -53,6 +53,7 @@ export const COPY = {
   'followup.comfort': ui("I'm here with you. One quick question, so I understand it better.", 'Nandito lang ako. Isang tanong lang, para mas maintindihan kita.'),
   'followup.skip_means': ui('If you skip, Liora treats it as serious.'),
 
+  'calm.saved': ui('Saved to your log.'),
   'calm.copy': who("If at any time you have any concerns about your or your baby’s health, go to the health centre."),
   'calm.watch.header': who('Go to the hospital or health centre immediately, day or night, DO NOT wait, if any of the following signs:'),
   'calm.watch.items': who('vaginal bleeding\nconvulsions/fits\nsevere headaches with blurred vision\nfever and too weak to get out of bed\nsevere abdominal pain\nfast or difficult breathing.'),

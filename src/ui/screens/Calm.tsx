@@ -16,7 +16,10 @@ import { Text } from '../Text';
 export function Calm({ entry }: { entry: Entry }) {
   const router = useRouter();
   const reset = useTellStore((s) => s.reset);
-  const card = bestCard(entry);
+  // The calm quote, the watch list and the cards come from pregnancy and postpartum sources. A woman who
+  // is neither gets only the plain fact that it was saved, until sourced wording for her exists.
+  const pregnancyCare = useTellStore((s) => s.context.status !== 'neither');
+  const card = pregnancyCare ? bestCard(entry) : null;
 
   return (
     <Screen>
@@ -24,18 +27,24 @@ export function Calm({ entry }: { entry: Entry }) {
         <View className="items-center">
           <HeroScene size={132} season="calm" />
         </View>
-        <Text variant="title3">{en('calm.copy')}</Text>
-        <Lattice header={en('calm.watch.header')}>
-          <View className="min-h-tap justify-center px-md py-sm">
-            <Text variant="body">{en('calm.watch.items')}</Text>
-          </View>
-        </Lattice>
-        {card ? (
-          <SourceCard card={card} />
+        {pregnancyCare ? (
+          <>
+            <Text variant="title3">{en('calm.copy')}</Text>
+            <Lattice header={en('calm.watch.header')}>
+              <View className="min-h-tap justify-center px-md py-sm">
+                <Text variant="body">{en('calm.watch.items')}</Text>
+              </View>
+            </Lattice>
+            {card ? (
+              <SourceCard card={card} />
+            ) : (
+              <Text variant="body" tone="secondary">
+                {en('result.ask_checkup')}
+              </Text>
+            )}
+          </>
         ) : (
-          <Text variant="body" tone="secondary">
-            {en('result.ask_checkup')}
-          </Text>
+          <Text variant="title3">{en('calm.saved')}</Text>
         )}
         <ExplainLinks id={entry.id} ruleId={entry.decision.fired[0]?.rule_id} />
         <CapsuleButton
