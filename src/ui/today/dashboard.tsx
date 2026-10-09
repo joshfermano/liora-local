@@ -6,6 +6,7 @@ import type { SFSymbol } from 'expo-symbols';
 import { CARDS } from '../../content/cards';
 import { en } from '../../content/copy';
 import { stageFor } from '../../ai/retrieval';
+import { cycleHistory } from '../../core/cycle';
 import { glance, insights, type Glance, type Insight, type InsightInput } from '../../core/insights';
 import { useLogStore } from '../../store/log';
 import { contextFrom, useProfile } from '../../store/profile';
@@ -16,11 +17,9 @@ import { PressableSurface } from '../PressableSurface';
 import { SourceCard } from '../SourceCard';
 import { Symbol } from '../Symbol';
 import { Text } from '../Text';
+import { fill } from './parts';
 
-const fill = (key: string, params: Record<string, string | number>) =>
-  Object.entries(params).reduce((s, [k, v]) => s.split(`{${k}}`).join(String(v)), en(key));
-
-function useToday() {
+export function useToday() {
   const entries = useLogStore((s) => s.entries);
   const moodChecks = useLogStore((s) => s.moods);
   const periods = useLogStore((s) => s.periods);
@@ -29,7 +28,7 @@ function useToday() {
   const today = format(new Date(), 'yyyy-MM-dd');
   return useMemo(() => {
     const input: InsightInput = { entries, moodChecks, periods, cycleSettings, status: profile.status, today };
-    return { glance: glance(input), insights: insights(input), today, profile };
+    return { glance: glance(input), insights: insights(input), today, profile, periods, cycleSettings };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [entries, moodChecks, periods, cycleSettings, profile.status, profile.weeks, today]);
 }
@@ -46,39 +45,6 @@ function SectionTitle({ children, note }: { children: string; note?: string }) {
         </Text>
       ) : null}
     </View>
-  );
-}
-
-function WeekStrip({ strip }: { strip: Glance['strip'] }) {
-  if (strip.length === 0) return null;
-  return (
-    <GlassCard className="flex-row justify-between px-sm py-md">
-      {strip.map((d) => {
-        const date = parseISO(d.date);
-        const ring =
-          d.period === 'logged'
-            ? 'bg-tint dark:bg-tint-dark border-transparent'
-            : d.period === 'estimated'
-              ? 'border-dashed border-tint dark:border-tint-dark'
-              : d.isToday
-                ? 'border-label dark:border-label-dark'
-                : 'border-transparent';
-        const label = `${format(date, 'EEEE d MMMM')}${d.period ? `, ${d.period}` : ''}${d.checkIns > 0 ? `, ${d.checkIns}` : ''}`;
-        return (
-          <View key={d.date} accessible accessibilityLabel={label} className="flex-1 items-center gap-xs">
-            <Text variant="caption1" tone={d.isToday ? 'label' : 'secondary'} className="uppercase">
-              {format(date, 'EEEEE')}
-            </Text>
-            <View className={`h-[34px] w-[34px] items-center justify-center rounded-full border-[1.5px] ${ring}`}>
-              <Text variant="subheadline" tone={d.period === 'logged' ? 'onTint' : 'label'} className={d.isToday ? 'font-semibold' : ''}>
-                {format(date, 'd')}
-              </Text>
-            </View>
-            <View className={`h-[6px] w-[6px] rounded-full ${d.checkIns > 0 ? 'bg-tint dark:bg-tint-dark' : 'bg-transparent'}`} />
-          </View>
-        );
-      })}
-    </GlassCard>
   );
 }
 
@@ -164,22 +130,70 @@ function Moods({ moods }: { moods: Glance['moods'] }) {
   );
 }
 
-function GlanceGrid({ g }: { g: Glance }) {
+export function GlanceTiles({ g }: { g: Glance }) {
   return (
     <View className="gap-xs">
       <SectionTitle>{en('glance.title')}</SectionTitle>
       <View className="flex-row flex-wrap gap-sm">
         <CheckIns c={g.checkIns} />
         <Moods moods={g.moods} />
-        {g.cycle ? (
-          <>
-            <Stat title={en('glance.cycle')} value={g.cycle.day} />
-            <Stat title={en('glance.average_cycle')} value={g.cycle.averageLength} />
-            <Stat title={en('glance.last_cycle')} value={g.cycle.lastLength} />
-            <Stat title={en('glance.period_length')} value={g.cycle.periodLength} />
-          </>
-        ) : null}
       </View>
+    </View>
+  );
+}
+
+const MAX_DOTS = 45;
+
+// One cycle as a line of days: the days of the period filled, the rest open.
+function CycleLine({ start, length, periodDays, today, average }: { start: string; length: number | null; periodDays: number; today: string; average: number | null }) {
+  const running = length === null;
+  const elapsed = Math.max(1, Math.round((parseISO(today).getTime() - parseISO(start).getTime()) / 86_400_000) + 1);
+  const total = Math.min(MAX_DOTS, running ? Math.max(elapsed, average ?? 28) : length);
+  const value = running ? en('today.now') : fill('glance.days', { n: length });
+  return (
+    <View accessible accessibilityLabel={`${format(parseISO(start), 'd MMM')}, ${value}`} className="gap-xs">
+      <View className="flex-row justify-between">
+        <Text variant="subheadline">{format(parseISO(start), 'd MMM yyyy')}</Text>
+        <Text variant="subheadline" tone="secondary" className="tabular-nums">
+          {value}
+        </Text>
+      </View>
+      <View className="flex-row">
+        {Array.from({ length: total }, (_, i) => (
+          <View key={i} className="flex-1 items-center">
+            <View
+              className={`h-[7px] w-[7px] rounded-full ${
+                i < periodDays
+                  ? 'bg-tint dark:bg-tint-dark'
+                  : running && i >= elapsed
+                    ? 'border border-label-tertiary dark:border-label-tertiary-dark'
+                    : 'bg-label-tertiary dark:bg-label-tertiary-dark'
+              }`}
+            />
+          </View>
+        ))}
+      </View>
+    </View>
+  );
+}
+
+export function Cycles({ g, periods, today }: { g: Glance; periods: InsightInput['periods']; today: string }) {
+  const history = useMemo(() => cycleHistory(periods).slice(0, 4), [periods]);
+  if (!g.cycle || history.length === 0) return null;
+  const c = g.cycle;
+  return (
+    <View className="gap-xs">
+      <SectionTitle>{en('today.cycles_title')}</SectionTitle>
+      <View className="flex-row flex-wrap gap-sm">
+        <Stat title={en('glance.average_cycle')} value={c.averageLength} />
+        <Stat title={en('glance.last_cycle')} value={c.lastLength} />
+        <Stat title={en('glance.period_length')} value={c.periodLength} />
+      </View>
+      <GlassCard className="gap-md p-md">
+        {history.map((h) => (
+          <CycleLine key={h.start} start={h.start} length={h.length} periodDays={c.periodLength ?? 5} today={today} average={c.averageLength} />
+        ))}
+      </GlassCard>
     </View>
   );
 }
@@ -223,7 +237,7 @@ function describe(i: Insight): { text: string; extra?: string; action?: { label:
   }
 }
 
-function Noticed({ list }: { list: Insight[] }) {
+export function Noticed({ list }: { list: Insight[] }) {
   const router = useRouter();
   return (
     <View className="gap-xs">
@@ -274,7 +288,9 @@ function Noticed({ list }: { list: Insight[] }) {
 }
 
 // One reviewed card a day, chosen by the date so it holds still while she reads.
-function CardOfDay({ today, stage }: { today: string; stage: ReturnType<typeof stageFor> }) {
+export function CardOfDay({ today }: { today: string }) {
+  const profile = useProfile();
+  const stage = profile.status === 'neither' ? null : stageFor(contextFrom(profile));
   const card = useMemo(() => {
     const pool = CARDS.filter((c) => !/medication/.test(c.id) && (!stage || c.stage === stage));
     if (pool.length === 0) return null;
@@ -286,19 +302,6 @@ function CardOfDay({ today, stage }: { today: string; stage: ReturnType<typeof s
     <View className="gap-xs">
       <SectionTitle>{en('today.card_title')}</SectionTitle>
       <SourceCard card={card} />
-    </View>
-  );
-}
-
-export function TodayDashboard() {
-  const t = useToday();
-  const stage = t.profile.status === 'neither' ? null : stageFor(contextFrom(t.profile));
-  return (
-    <View className="gap-xl">
-      <WeekStrip strip={t.glance.strip} />
-      <GlanceGrid g={t.glance} />
-      <Noticed list={t.insights} />
-      <CardOfDay today={t.today} stage={stage} />
     </View>
   );
 }
