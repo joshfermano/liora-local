@@ -56,6 +56,9 @@ export function Composer({ text, setText }: { text: string; setText: (t: string)
     void useCompanionStore.getState().send(t);
   };
 
+  // Live is offered only while the box is empty; once she types, sending is the action.
+  const showLive = text.trim().length === 0 && !recording && !transcribing;
+
   return (
     <View className="gap-xs">
       {notice ? (
@@ -79,62 +82,62 @@ export function Composer({ text, setText }: { text: string; setText: (t: string)
           ) : null}
         </View>
       ) : null}
-      <View className="flex-row items-end gap-xs">
-        <GlassCard style={{ flex: 1 }} className="flex-row items-end gap-xs p-xs">
-          <PressableSurface
-            label={recording ? en('home.mic.stop') : en('home.mic')}
-            onPress={toggleMic}
-            disabled={thinking || transcribing}
-            surfaceClassName={`h-tap w-tap items-center justify-center rounded-full ${recording ? SURFACE.tintFill : SURFACE.tintSoft}`}
-          >
-            <Symbol name={recording ? 'stop.fill' : 'mic.fill'} fallback={recording ? 'stop' : 'mic'} tone={recording ? 'onTint' : 'tint'} size={20} />
-          </PressableSurface>
-          <View className="flex-1 justify-center">
-            {transcribing ? (
-              <Text variant="subheadline" tone="secondary" className="px-xs" accessibilityLiveRegion="polite">
-                {en('liora.voice.writing')}
-              </Text>
-            ) : recording ? (
-              <Text variant="subheadline" tone="secondary" className="px-xs" accessibilityLiveRegion="polite">
-                {clock(voice.seconds)} {en('home.recording.of')} {clock(RECORD_LIMIT_S)}
-              </Text>
-            ) : (
-              <TextInput
-                multiline
-                value={text}
-                onChangeText={(t) => {
+      <GlassCard className="flex-row items-end gap-xs p-xs">
+        <PressableSurface
+          label={recording ? en('home.mic.stop') : en('home.mic')}
+          onPress={toggleMic}
+          disabled={thinking || transcribing}
+          surfaceClassName={`h-tap w-tap items-center justify-center rounded-full ${recording ? SURFACE.tintFill : SURFACE.tintSoft}`}
+        >
+          <Symbol name={recording ? 'stop.fill' : 'mic.fill'} fallback={recording ? 'stop' : 'mic'} tone={recording ? 'onTint' : 'tint'} size={20} />
+        </PressableSurface>
+        <View className="flex-1 justify-center">
+          {transcribing ? (
+            <Text variant="subheadline" tone="secondary" className="px-xs" accessibilityLiveRegion="polite">
+              {en('liora.voice.writing')}
+            </Text>
+          ) : recording ? (
+            <Text variant="subheadline" tone="secondary" className="px-xs" accessibilityLiveRegion="polite">
+              {clock(voice.seconds)} {en('home.recording.of')} {clock(RECORD_LIMIT_S)}
+            </Text>
+          ) : (
+            <TextInput
+              multiline
+              value={text}
+              onChangeText={(t) => {
                 setNotice(null);
                 setText(t);
               }}
-                accessibilityLabel={en('liora.placeholder')}
-                cursorColor={colors.tint}
-                selectionColor={colors.tint}
-                className={`max-h-[120px] min-h-tap px-xs py-sm text-body ${TEXT_TONE.label}`}
-                style={{ outlineStyle: 'none' } as object}
-              />
-            )}
-          </View>
-          <PressableSurface
-            label={en('liora.send')}
-            onPress={send}
-            disabled={!canSend}
-            surfaceClassName={`h-tap w-tap items-center justify-center rounded-full ${canSend ? SURFACE.tintFill : SURFACE.fill}`}
-          >
-            <Symbol name="arrow.up" fallback="chevronRight" tone={canSend ? 'onTint' : 'tertiary'} size={20} />
-          </PressableSurface>
-        </GlassCard>
-        {/* Drawn, not an SF Symbol: three bars, short, long, short, are live mode's own mark. */}
+              accessibilityLabel={en('liora.placeholder')}
+              cursorColor={colors.tint}
+              selectionColor={colors.tint}
+              className={`max-h-[120px] min-h-tap px-xs py-sm text-body ${TEXT_TONE.label}`}
+              style={{ outlineStyle: 'none' } as object}
+            />
+          )}
+        </View>
         <PressableSurface
-          label={en('liora.live')}
-          onPress={() => {
-            tap();
-            router.push('/live');
-          }}
-          surfaceClassName={`h-[60px] w-[60px] items-center justify-center rounded-full ${SURFACE.tintFill}`}
+          label={en('liora.send')}
+          onPress={send}
+          disabled={!canSend}
+          surfaceClassName={`h-tap w-tap items-center justify-center rounded-full ${canSend ? SURFACE.tintFill : SURFACE.fill}`}
         >
-          <Icon name="live" tone="onTint" size={32} />
+          <Symbol name="arrow.up" fallback="chevronRight" tone={canSend ? 'onTint' : 'tertiary'} size={20} />
         </PressableSurface>
-      </View>
+        {showLive ? (
+          // Drawn, not an SF Symbol: three bars, short, long, short, are live mode's own mark.
+          <PressableSurface
+            label={en('liora.live')}
+            onPress={() => {
+              tap();
+              router.push('/live');
+            }}
+            surfaceClassName={`h-tap w-tap items-center justify-center rounded-full ${SURFACE.tintFill}`}
+          >
+            <Icon name="live" tone="onTint" size={22} />
+          </PressableSurface>
+        ) : null}
+      </GlassCard>
     </View>
   );
 }
