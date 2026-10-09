@@ -1,0 +1,220 @@
+# HANDOFF: Tell Liora (liora-local)
+
+**Last updated:** 2026-10-09, 6:00 PM Manila, end of the planning session.
+**Deadline:** code freeze and submission **10:00 AM, 10 Oct 2026**, on
+cerebralvalley.ai/e/appbuildersph-hackathon-2026. One submission, no edits after.
+**Read next:** `docs/superpowers/specs/2026-10-09-tell-liora-design.md` (the build spec, v3),
+`docs/research-summary.md` (verified facts) and section 10 below (what the team guide adds).
+
+---
+
+## 0. Quick start for the next session
+
+```bash
+cd ~/Personal/liora-local
+claude
+```
+
+Then type `/handoff`. Or paste this prompt:
+
+> Read HANDOFF.md, the spec in docs/superpowers/specs/, and docs/research-summary.md. Check
+> `git log` and the Manila time. Tell me in plain language where we are and the single next step,
+> then continue from HANDOFF.md section 2.
+
+Update section 1 and section 2 of this file as work completes, so any session can pick up.
+
+---
+
+## 1. Where things stand
+
+| Item                | State                                                                                                                                                                                                                                                                                                                                                                                                          |
+| ------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Hackathon brief     | Read. Theme "Local AI": "Build an AI product that remains genuinely useful when the cloud disappears."                                                                                                                                                                                                                                                                                                         |
+| Deep research       | Done: 5 angles, 23 sources, 25 claims verified 3 ways. See `docs/research-summary.md`.                                                                                                                                                                                                                                                                                                                         |
+| Concept             | **Approved:** "Tell Liora", for the mother herself. Pregnancy danger signs are the demo star; period, symptom and mood logging use the same input.                                                                                                                                                                                                                                                       |
+| Platform            | **Approved:** one web app (Expo exported for web) in Safari on the iPhones and in laptop browsers. No native app.                                                                                                                                                                                                                                                                                              |
+| Scope               | **Approved:** text and voice input, danger-sign decision model, go-now screen, nurse card, calm answer, on-device RAG over cited source cards, log, mood check, AI-off checklist, "How Liora decided" drawer, privacy controls, **cycle calendar with next-period estimate**. Stretch: photo of check-up record. Out: photos of the body, medicine advice, fertile-window predictions, contraception guidance. |
+| Spec                | **Approved, v4** (models changed by the user on 2026-10-09 evening: Gemma 4 E2B, Jev-style typed decisions, EmbeddingGemma 2): `docs/superpowers/specs/2026-10-09-tell-liora-design.md`.                                                                                                                                                                                                                                                                                                                                    |
+| Implementation plan | **Not written yet.**                                                                                                                                                                                                                                                                                                                                                                                           |
+| Code                | **None yet.** The repo holds docs only.                                                                                                                                                                                                                                                                                                                                                                        |
+| GitHub repo / Pages | **Not created.** Local git only. Needs the user's yes (section 2, step 1).                                                                                                                                                                                                                                                                                                                                     |
+| Timeline            | Building has not started. The spec's 5:45 PM start has slipped to about 6:15 PM; absorb it from the polish block, not from testing.                                                                                                                                                                                                                                                                            |
+
+## 2. Next steps, in order
+
+1. **Ask the user to confirm:** create `joshfermano/liora-local` as a **public** GitHub repo and
+   enable GitHub Pages. The iPhones need an HTTPS URL for WebGPU, the microphone and the service
+   worker. Asked twice; not yet answered. Do not create it without a yes. Fallback if no: a
+   temporary HTTPS tunnel to the dev server, or keep the repo private until near the deadline and
+   use another HTTPS host.
+2. **Invoke `superpowers:writing-plans`** on the spec. Keep it lean; order tasks per spec section
+   17, starting with S1. Then ask the user to pick the execution method (they prefer few
+   subagents).
+3. **S1 spike (about 1 hour):** scaffold the Expo web app, both workers, deploy, then on both
+   iPhones load Gemma 4 E2B (q4f16, then the 2-bit qat-mobile build) with EmbeddingGemma 2, plus
+   Whisper base only if Gemma's speech is poor; run 5 cases, including the three demo phrases;
+   test offline reload. Record which models win in section 1. The user must open the URL on their
+   iPhones: tell them exactly what to tap and what to report back.
+4. Continue spec section 17. Cut order if late: photo, then AI rewording and Cebuano, then
+   dark-mode polish, then the next-period estimate (keep the calendar), then voice, then card
+   search. **Never cut:** typing, the decision model, go-now screen, nurse card, AI-off checklist.
+
+## 3. The product in one paragraph
+
+A pregnant or new mother, alone at home at 2 AM with no signal, types or says how she feels in
+Taglish. On-device models translate her words into symptom codes (word list, embeddings,
+and Gemma 4 answering Jev-style typed questions; any one finding a danger sign counts). A deterministic decision model built from WHO and
+DOH tables decides: "go to the hospital now" with a card for the nurse, one fixed follow-up
+question, or a calm answer with the cited WHO/DOH passage shown word for word. The same input logs
+periods and moods onto a cycle calendar with an explained next-period estimate. A private EPDS mood
+check shows a crisis hotline on any self-harm answer. Nothing leaves the phone.
+**Value proposition:** "Know when to go, even with no signal and no one watching."
+
+## 4. Algorithms (no neural network decides anything)
+
+| Part                 | Algorithm                                                                                                                                      |
+| -------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
+| Danger signs         | Deterministic decision table from WHO ANC.DT.01 / DT.17 and DOH warning signs                                                                  |
+| Follow-ups           | Fixed question table; skipping counts as serious                                                                                               |
+| Mood check           | EPDS sum score 0 to 30, cut-off 13, item-10 short-circuit                                                                                      |
+| Next-period estimate | Simple moving average of the last up to 6 cycle lengths; window ±max(2, ceil(spread/2)); confidence by cycle count and spread (spec section 8) |
+| Source cards         | Cosine-similarity nearest-neighbour search over multimodal embeddings (EmbeddingGemma 2), with a threshold                                                                   |
+| Understanding text   | Jev-style typed decisions on Gemma 4 E2B: a softmax restricted to each question's options gives the answer and its confidence (SemIf method; Laya fallback)                                                                                |
+| Voice                | Gemma 4 E2B speech recognition (Whisper base fallback)                                                                                                                     |
+
+## 5. Decisions and why (do not re-open without the user)
+
+| Decision                                                                                             | Why                                                                                                                                                                       |
+| ---------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Fresh repo, all code written during the hackathon | The hackathon disqualifies pre-existing projects and judges review the public repo. |
+| User is the **mother herself**, not a health worker                                                  | User: in the Philippines, pregnant women go to centres themselves; nobody visits them. The deciding moment is hers, at home.                                              |
+| **Web app**, not native iOS                                                                          | Demo devices are iPhones; no Mac and no paid Apple Developer account confirmed. Safari supports WebGPU.                                                                   |
+| **Expo web**, not plain Vite                                                                         | The team's chosen stack. Metro risk is mitigated by bundling the workers with esbuild outside Metro. Fallback: Vite + React shell with the same `src/core/`.     |
+| ~~WebLLM for the text model~~, superseded on 2026-10-09 evening by **Gemma 4 E2B on Transformers.js** | The user prefers Gemma 4. WebLLM 0.2.85 has no Gemma 4 build; Transformers.js 4.3.1 runs `onnx-community/gemma-4-E2B-it-ONNX`. WebLLM stays only for the Gemma 3 1B fallback. |
+| **Transformers.js** for every model | Runs Gemma 4 E2B, EmbeddingGemma 2 and the fallbacks in the browser on WebGPU or WASM. |
+| AI translates, **rules decide**                                                                      | Rules are predictable, testable and cited.               |
+| Any translator's danger finding counts                                                               | The AI can only add caution, never hide a sign the word list caught.                                                                                                      |
+| RAG shows cited passages **verbatim**                                                                | A small model paraphrasing medical text can change its meaning.                                                                                                           |
+| Voice in; photo of the body never                                                                    | Voice helps tired or low-literacy users; photo diagnosis would break "never diagnose".                                                                                    |
+| **Cycle calendar** kept, fertile window out                                                          | User asked to retain cycle tracking; it reuses the same input. Fertile-window predictions read as contraception guidance, which this app never gives.                        |
+| Estimate = **simple moving average**, mean not median                                                | A handful of cycles is too little to train anything; an average explains itself. The median was offered as more robust; the team kept the mean.                           |
+| Use six third-party UI and React Native skills (impeccable, ui-ux-pro-max, frontend-design, vercel-react-native-skills, imagegen-frontend-mobile, motion-graphics); keep them out of git | User asked for them. Third-party skills are gitignored, with sources in `skills-lock.json`, so the public repo does not redistribute them. |
+| Add 2 skills from skills.sh: `transformers-js` (Hugging Face) and `web-design-guidelines` (Vercel). Skip the rest the search found | User asked for skills on mobile design, performance and local AI, then to install them. These two were the only trusted ones that fit. No trustworthy WebLLM skill exists (2 installs); read WebLLM docs through context7. Skipped: `pwa-development` (barely covers iPhone Safari), `web-perf` (page-load scores, needs a Chrome DevTools tool), `animate-expo` and Callstack RN (native-only), healthcare CDSS (drug doses; could tempt made-up medical content), regex-vs-llm (re-opens the translator design), `llm-evaluation` (generic). |
+| Write `PRODUCT.md` and `DESIGN.md` with the **Capiz Light** design system and a **warm voice, plainer when urgent** | User picked both on 2026-10-09. Glass bars, widgets, notifications, sign-up, choreographed transitions and per-screen artwork are left out: the web or the deadline cannot carry them. Proposed in `DESIGN.md`, open to veto: no green for a calm answer (green is kept for a fertile window, which this app never shows); the alarm red stays deep in dark mode (white on the brighter red fails at 2.79:1); the crisis screen does not shout; urgent screens use the system face and no entrance animation. |
+| **Jev-style local typed decisions**; rules stay final | User, 2026-10-09: Jev is TypeSafe AI's decision model, cloud-only, so its idea runs locally: typed questions scored from Gemma 4's option probabilities (SemIf method), with Laya-multilingual as fallback. The user confirmed the learned model never makes the final call; it only adds findings with a confidence. |
+| **EmbeddingGemma 2** for multimodal retrieval | User asked for local multimodal embeddings and prefers Gemma. Apache-2.0, text and images in one space, 100+ languages, ~157 MB text model. `jina-clip-v2` rejected: CC BY-NC 4.0 and ~861 MB. |
+| **`AGENTS.md` shared by every coding agent; Conventional Commits; no AI co-authors** | User, 2026-10-09. Claude Code reads only `CLAUDE.md` when both exist, so `CLAUDE.md` imports `@AGENTS.md` and adds Claude-only notes. Enforced by `.githooks/commit-msg` and `scripts/ci-status.sh`; Claude Code's attribution is off in `.claude/settings.json`. Older commits keep the `add ...` style. |
+
+## 6. Environment
+
+- **Laptop:** Fedora Linux 44, Node 24.18, pnpm 9.15, Google Chrome, `gh` logged in as
+  `joshfermano`, `uv` available. No Mac.
+- **Demo devices:** iPhone 17 and iPhone 17 Pro, both iOS 27.2.
+
+## 7. Verified versions (checked 2026-10-09)
+
+- `@mlc-ai/web-llm` 0.2.85. Prebuilt models with WebLLM's GPU estimates:
+  `gemma3-1b-it-q4f16_1-MLC` ~711 MB, `Llama-3.2-1B-Instruct-q4f16_1-MLC` ~879 MB,
+  `Qwen3-0.6B-q4f16_1-MLC` ~1,403 MB, `Qwen3-1.7B-q4f16_1-MLC` ~2,037 MB. q4f16 needs WebGPU
+  `shader-f16`; q4f32 variants exist for Llama 3.2 1B and Qwen3 0.6B. JSON-schema output:
+  `response_format: { type: 'json_object', schema: '<JSON Schema string>' }`.
+- `@huggingface/transformers` 4.3.1: `pipeline(task, model, { device: 'webgpu' })`. Whisper takes
+  `language` and `task`; feature extraction takes `{ pooling: 'mean', normalize: true }`.
+- Hugging Face models with Transformers.js builds: `onnx-community/whisper-base` (decoder ~54 MB
+  int8), `onnx-community/whisper-tiny`, `onnx-community/whisper-small`,
+  `Xenova/multilingual-e5-small` (~118 MB int8), `onnx-community/embeddinggemma-300m-ONNX`
+  (~197 MB q4, Gemma licence), `onnx-community/Florence-2-base-ft` (MIT).
+- Vite fallback only: `vite` 8.3.4, `vite-plugin-pwa` 2.0.0, `react` 19.3.0. The Expo build pins
+  React 19.2.3.
+
+**Added 2026-10-09 evening (spec v4; details and sources in `docs/research-summary.md` items 8 to 11):**
+
+- `@huggingface/transformers` 4.3.1 (2026-10-07) has `gemma4`, `embedding_gemma2`, `modernbert`.
+- `onnx-community/gemma-4-E2B-it-ONNX`: decoder q4f16 ~1,520 MB, token embeddings int8 ~466 MB or
+  q4f16 ~1,591 MB, audio encoder q4f16 ~172 MB, vision encoder q4f16 ~99 MB. 2-bit fallback:
+  `onnx-community/gemma-4-E2B-it-qat-mobile-ONNX`.
+- `onnx-community/embeddinggemma-2-ONNX`: text q4f16 ~157 MB, vision q4f16 ~98 MB.
+- Laya: `convaiinnovations/laya-multilingual` (322M, ~644 MB safetensors); browser runner in the
+  repo's `laya-ts/` (not on npm).
+
+## 8. Submission requirements (official briefing)
+
+- Project name, short description, team members (must be on the appbuildersph.com/hackathon list).
+- **Public GitHub repo** by 10:00 AM; judges review it as of the deadline. Include instructions to
+  recreate the app.
+- **Demo video** (~1 minute) and an **X or LinkedIn post** with it, tagging Devin / Cognition and
+  #AppBuildersPH.
+- Disclose models, technologies, APIs and cloud services, existing code and assets, AI development
+  tools (Claude Code, plus the agent skills in `skills-lock.json`); state what runs locally and what needs internet.
+- Answer **"Why does this product benefit from running AI locally?"** Draft: it works with no
+  signal or load, her words never leave the phone, it answers in seconds, and with no per-question
+  cost Liora can keep it free.
+- Demo Day: Sat 10 Oct, Cyberzone SM Makati. Finalists announced 1:00 PM; pitching from 1:40 PM.
+  5-minute pitch and live demo plus 3 minutes of Q&A. Bring a laptop; HDMI and USB-C available.
+- Judging: Problem & Usefulness 25%, Local AI Implementation 25%, Technical Execution 20%,
+  Innovation 15%, Product & Demo 15%.
+- Disqualifiers: pre-existing project, help from outside the hackathon, fake benchmarks.
+
+## 9. Files
+
+| File                                                                | Purpose                                                   |
+| ------------------------------------------------------------------- | --------------------------------------------------------- |
+| `HANDOFF.md`                                                        | This file: status, next steps, decisions                  |
+| `PRODUCT.md`, `DESIGN.md` | Product context and the design system; impeccable reads both. Components are committed, not built: re-run `$impeccable document` once screens exist |
+| `.claude/agents/` (ours) | Six subagents: ui-ux-designer, frontend-engineer, ai-engineer, backend-architect, devops-engineer (Haiku), safety-reviewer. Roster and usage rules in CLAUDE.md |
+| `scripts/ci-status.sh`, `.claude/commands/ci-watch.md` | Free commit and CI check; `/loop 15m /ci-watch` wakes the devops agent only on a flag |
+| `.githooks/commit-msg`, `.claude/settings.json` | Commit-message check (enable with `git config core.hooksPath .githooks`); Claude Code attribution off |
+| `AGENTS.md`, `CLAUDE.md` | Shared agent rules, including the commit convention; `CLAUDE.md` imports them and adds Claude-only notes |
+| `.claude/commands/handoff.md`                                       | The `/handoff` command                                    |
+| `.claude/skills/` | Eight third-party skills: six UI and React Native skills, plus `transformers-js` and `web-design-guidelines` (local only, gitignored) |
+| `skills-lock.json` | Where each skill came from, for reinstalling |
+| `docs/superpowers/specs/2026-10-09-tell-liora-design.md`            | Build spec v3, the source of truth                        |
+| `docs/research-summary.md`                                          | Verified facts, refuted claims, open questions            |
+| `~/Downloads/Liora-Hackathon-Research-Report.pdf`                   | Research report                                           |
+| `~/Downloads/Tell-Liora-Build-Spec.md`                              | Byte-identical copy of the spec (checked 2026-10-09); not added to the repo, the repo spec is the one to edit |
+| `~/Downloads/Tell-Liora-App-Documentation.pdf`                      | **Outdated** (spec v1). Ignore.                           |
+| `~/Downloads/AppBuildersPH-Hackathon-2026-Participant-Briefing.pdf` | Official briefing                                         |
+
+## 10. Demo script, judge Q&A and the 10 AM checklist
+
+From the team's plain-language guide (kept outside the repo). If it and the spec disagree, the spec
+wins:
+
+- **Demo script (guide section 9), 5 minutes:**
+  1. Show both iPhones in airplane mode.
+  2. Speak "32 weeks na ako, sobrang sakit ng ulo tapos malabo paningin". The words appear as text.
+  3. Go-now screen with the WHO source, then tap "Show this to the nurse".
+  4. Open "How Liora decided": what each translator found and the WHO rule that made the call.
+     The guide says all three translators find the signs; only say that if the drawer shows it.
+  5. Type "medyo masakit ang balakang ko": calm answer plus a source card, word for word.
+  6. Type "masakit ulo ko": Liora asks "Sobrang sakit ba?"
+  7. The private mood check and the hotline screen.
+  8. The numbers measured on these iPhones.
+
+  Use these three phrases as the first S1 test cases and eval cases.
+- **Judge Q&A (guide section 10):** "If rules decide, why use AI?", "What if the AI is wrong?",
+  "Is this a medical device?", "Why not a native app?", with drafted answers.
+- **10 AM checklist (guide section 7):** four boxes: it works, it's safe and private, it's proven,
+  it's submitted. Use it as the final definition of done.
+- **Feature numbers:** the guide numbers the 15 must-haves 1 to 15. Guide 1 to 13 are FR-1 to
+  FR-13; guide 14 is FR-17 (calendar); guide 15 is FR-18 (next-period estimate).
+- **Problem line for the pitch:** "Today she guesses, searches online, asks a Facebook group, or
+  waits until morning." The intended impact is labelled as goals, not results; keep it that way.
+
+Points to settle during the build (not blocking now):
+
+- **What the calendar draws dashed.** The spec says the prediction window is drawn dashed, and
+  also gives a period length "for drawing predicted days". The guide's sketch dashes 5 days
+  (Oct 23 to 27) under "around Oct 24, medium confidence", but by spec section 8 a medium result
+  has a window of at least ±4 days. Decide when building FR-17. The sketch's dates are labelled
+  illustrative ("Started Oct 8" does not fit a next period on Oct 24); do not reuse them as demo
+  data.
+- **Pitch claims to measure before saying:** "Instant" and "answers in seconds" (NFR-4 says
+  measure, don't claim; the AI timeout alone is 8 s). "One web app reaches every phone with a
+  modern browser": the text AI needs WebGPU, so say what we tested, and that without WebGPU the
+  checklist still works.
+- **Sketch copy is placeholder** ("This is common in pregnancy", "Severe headache and blurry vision
+  are warning signs in pregnancy"). Never copy it into the app; real wording comes from cited
+  source cards and the fixed-copy tables.
+- **Superseded by spec v4:** the team guide's sections 3 and 5 ("How it works", "The AI on her
+  phone") name WebLLM, Whisper and multilingual-e5-small as the models. The spec wins.

@@ -1,0 +1,31 @@
+#!/usr/bin/env bash
+# Rejects a commit message that breaks Conventional Commits or credits an AI assistant (AGENTS.md).
+# Enable once per clone: git config core.hooksPath .githooks
+msg=$(grep -v '^#' "$1")
+header=$(head -1 <<<"$msg")
+
+case "$header" in
+  "Merge "* | "Revert \""* | "fixup! "* | "squash! "* | "amend! "*) exit 0 ;;
+esac
+
+types='feat|fix|docs|style|refactor|perf|test|build|ci|chore|revert'
+if ! grep -qE "^($types)(\([a-z0-9-]+\))?!?: [a-z0-9]" <<<"$header"; then
+  echo "commit-msg: use Conventional Commits, for example 'feat(rules): add danger-sign rules'" >&2
+  echo "  types: ${types//|/, }; the subject starts in lowercase" >&2
+  exit 1
+fi
+if [ ${#header} -ge 70 ]; then
+  echo "commit-msg: the first line is ${#header} characters; keep it under 70" >&2
+  exit 1
+fi
+
+ai='claude|anthropic|copilot|openai|chatgpt|gemini|cursor|devin|cognition|codex|codeium|windsurf|tabnine|\[bot\]'
+if grep -iE '^co-authored-by:' <<<"$msg" | grep -qiE "$ai"; then
+  echo "commit-msg: remove the AI co-author trailer; AI tools are disclosed in the README instead" >&2
+  exit 1
+fi
+if grep -qiE '^claude-session:|generated with .*(claude|copilot|cursor|devin|codex)' <<<"$msg"; then
+  echo "commit-msg: remove the AI attribution line" >&2
+  exit 1
+fi
+exit 0
