@@ -24,6 +24,35 @@ function setup(overrides: Partial<Loaders> = {}) {
 }
 
 describe('createModelHost', () => {
+  it('answers the typed questions with the loaded model and times the whole set', async () => {
+    const decide = vi.fn(async (message: string) => ({ answers: { 'yesno.fever': [0.9, 0.1] }, prefixTokens: 40, prefixMs: 300 }));
+    const { host, tick } = setup({
+      gemma4: async () => ({ probe: async () => ({ detail: 'ok' }), dispose: async () => {}, decide: async (m: string) => (tick(900), decide(m)) }),
+    });
+    await host.handle({ id: 1, type: 'load', model: 'gemma4-q4f16', embeddings: 'q4f16' });
+    const reply = await host.handle({ id: 2, type: 'decide', message: 'nilalagnat ako' });
+    expect(decide).toHaveBeenCalledWith('nilalagnat ako');
+    expect(reply).toEqual({
+      id: 2,
+      type: 'decided',
+      model: 'gemma4-q4f16',
+      answers: { 'yesno.fever': [0.9, 0.1] },
+      prefixTokens: 40,
+      prefixMs: 300,
+      totalMs: 900,
+    });
+  });
+
+  it('refuses typed questions when the loaded model cannot answer them', async () => {
+    const { host } = setup();
+    await host.handle({ id: 1, type: 'load', model: 'embeddinggemma2-text' });
+    expect(await host.handle({ id: 2, type: 'decide', message: 'x' })).toEqual({
+      id: 2,
+      type: 'error',
+      message: 'The loaded model cannot answer typed questions',
+    });
+  });
+
   it('loads Gemma 4, streams progress and reports the load time', async () => {
     const { host, loaders, sent } = setup();
     const reply = await host.handle({ id: 1, type: 'load', model: 'gemma4-q4f16', embeddings: 'q4f16' });

@@ -1,5 +1,7 @@
 import { AutoConfig, AutoModel, AutoTokenizer, Gemma4ForCausalLM } from '@huggingface/transformers';
 import type { ProgressEvent } from '../src/ai/protocol';
+import { QUESTIONS } from '../src/ai/typed-decisions';
+import { answerQuestions } from './decide';
 import type { Loaders } from './host';
 
 type Info = { status: string; file?: string; loaded?: number; total?: number };
@@ -29,6 +31,9 @@ export const loaders: Loaders = {
           dims: number[];
         };
         return { detail: `generated 1 token; output shape [${output.dims.join(', ')}]` };
+      },
+      decide(message) {
+        return answerQuestions(model as never, tokenizer as never, message, QUESTIONS, () => performance.now());
       },
       async dispose() {
         await model.dispose();

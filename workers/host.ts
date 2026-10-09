@@ -1,8 +1,11 @@
 import { specFor, type ModelSpec } from '../src/ai/model-specs';
 import type { ModelName, ProgressEvent, WorkerRequest, WorkerResponse } from '../src/ai/protocol';
 
+export type Decided = { answers: Record<string, number[]>; prefixTokens: number; prefixMs: number };
+
 export type LoadedModel = {
   probe(): Promise<{ detail: string; embeddingSize?: number }>;
+  decide?(message: string): Promise<Decided>;
   dispose(): Promise<void>;
 };
 
@@ -46,6 +49,13 @@ export function createModelHost(loaders: Loaders, now: () => number, post: (resp
             const started = now();
             const result = await current.model.probe();
             return { id, type: 'probed', model: current.name, probeMs: now() - started, ...result };
+          }
+          case 'decide': {
+            if (!current) throw new Error('No model is loaded');
+            if (!current.model.decide) throw new Error('The loaded model cannot answer typed questions');
+            const started = now();
+            const result = await current.model.decide(request.message);
+            return { id, type: 'decided', model: current.name, ...result, totalMs: now() - started };
           }
           case 'release':
             await release();

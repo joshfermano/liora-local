@@ -10,6 +10,9 @@ import {
   type Inflight,
 } from '../../src/ai/eval-log';
 import type { LoadTarget, TokenEmbeddings, WorkerName } from '../../src/ai/protocol';
+import { toFindings } from '../../src/ai/typed-decisions';
+import { PROVISIONAL_THRESHOLDS } from '../../src/core/merge';
+import { evaluate } from '../../src/core/rules';
 import { createWorkerClient, workerUrl } from '../../src/ai/worker-client';
 
 type Step = {
@@ -20,7 +23,14 @@ type Step = {
   embeddingSize?: number;
   downloadedMB?: number;
   error?: string;
+  answers?: Record<string, number[]>;
 };
+
+const DEMO_PHRASES = [
+  '32 weeks na ako, sobrang sakit ng ulo tapos malabo paningin',
+  'medyo masakit ang balakang ko',
+  'masakit ulo ko',
+] as const;
 
 type Run = { label: string; startedAt: string; finished: boolean; steps: Step[]; storageUsageMB?: number };
 
@@ -145,6 +155,16 @@ export default function Eval() {
         record.detail = reply.detail;
         record.embeddingSize = reply.embeddingSize;
       }
+      if (reply.type === 'decided') {
+        const findings = toFindings(reply.answers, PROVISIONAL_THRESHOLDS);
+        const decision = evaluate(findings, { status: 'pregnant' });
+        const found = findings.map((f) => `${f.code} ${f.severity} ${f.confidence?.toFixed(2)}`).join(', ');
+        record.ms = Math.round(reply.totalMs);
+        record.detail = `prefix ${reply.prefixTokens} tokens in ${Math.round(reply.prefixMs)} ms; rules: ${decision.level}${decision.follow_up ? ` (${decision.follow_up.code})` : ''}; findings: ${found || 'none'}`;
+        record.answers = Object.fromEntries(
+          Object.entries(reply.answers).map(([id, probs]) => [id, probs.map((p) => Math.round(p * 1000) / 1000)]),
+        );
+      }
       run.steps.push(record);
       setRuns((all) => [...all.filter((r) => r !== run), { ...run, steps: [...run.steps] }]);
       return true;
@@ -154,7 +174,7 @@ export default function Eval() {
     }
   }
 
-  async function execute(label: string, plan: { worker: WorkerName; target?: LoadTarget }[]) {
+  async function execute(label: string, plan: { worker: WorkerName; target?: LoadTarget; decide?: readonly string[] }[]) {
     if (busy) return;
     setBusy(label);
     setPrevious(null);
@@ -170,11 +190,14 @@ export default function Eval() {
         clients.set(name, { client: createWorkerClient(worker), worker });
       }
       let ok = true;
-      for (const { worker, target } of plan) {
+      for (const { worker, target, decide } of plan) {
         if (!ok || !target) break;
         const { client } = clients.get(worker)!;
         ok = await step(run, `load ${target.model}`, client, { type: 'load', ...target });
         if (ok) ok = await step(run, `probe ${target.model}`, client, { type: 'probe' });
+        for (const message of decide ?? []) {
+          if (ok) ok = await step(run, `decide "${message}"`, client, { type: 'decide', message });
+        }
       }
       if (ok && plan.length > 1) {
         run.steps.push({ step: 'both models resident, tab alive', ok: true, ms: Math.round(performance.now() - started) });
@@ -234,6 +257,11 @@ export default function Eval() {
       </View>
 
       <Button disabled={Boolean(busy)} title="Load Gemma 4 E2B q4f16" onPress={() => execute(`gemma4-q4f16 (embeddings ${embeddings})`, [{ worker: 'ai', target: gemma }])} />
+      <Button
+        disabled={Boolean(busy)}
+        title="Gemma 4 q4f16: load, then answer the 3 demo phrases"
+        onPress={() => execute(`typed decisions: gemma4-q4f16 (embeddings ${embeddings})`, [{ worker: 'ai', target: gemma, decide: DEMO_PHRASES }])}
+      />
       <Button disabled={Boolean(busy)} title="Load Gemma 4 E2B 2-bit (qat-mobile)" onPress={() => execute('gemma4-qat-mobile', [{ worker: 'ai', target: mobile }])} />
       <Button disabled={Boolean(busy)} title="Load EmbeddingGemma 2 (text)" onPress={() => execute('embeddinggemma2-text', [{ worker: 'ml', target: embedder }])} />
       <Button

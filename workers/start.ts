@@ -22,7 +22,7 @@ export function startWorker(name: WorkerName) {
 
   scope.addEventListener('message', (event) => {
     const request = event.data;
-    if (request.type === 'load' || request.type === 'probe' || request.type === 'release') {
+    if (request.type === 'load' || request.type === 'probe' || request.type === 'decide' || request.type === 'release') {
       void host.handle(request).then((response: WorkerResponse) => scope.postMessage(response));
     } else {
       scope.postMessage(handleRequest(name, request, info));

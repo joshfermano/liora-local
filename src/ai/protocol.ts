@@ -13,6 +13,7 @@ export type WorkerRequestBody =
   | { type: 'ping' }
   | ({ type: 'load' } & LoadTarget)
   | { type: 'probe' }
+  | { type: 'decide'; message: string }
   | { type: 'release' };
 
 export type WorkerRequest = WorkerRequestBody & { id: number };
@@ -24,5 +25,14 @@ export type WorkerResponse =
   | ({ id: number; type: 'progress' } & ProgressEvent)
   | { id: number; type: 'loaded'; model: ModelName; loadMs: number }
   | { id: number; type: 'probed'; model: ModelName; probeMs: number; detail: string; embeddingSize?: number }
+  | {
+      id: number;
+      type: 'decided';
+      model: ModelName;
+      answers: Record<string, number[]>;
+      prefixTokens: number;
+      prefixMs: number;
+      totalMs: number;
+    }
   | { id: number; type: 'released' }
   | { id: number; type: 'error'; message: string };
