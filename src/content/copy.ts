@@ -153,6 +153,7 @@ export const COPY = {
   'checklist.check': ui('Check'),
   'checklist.none': ui('Choose at least one'),
   // mood and crisis (LUM-63)
+  // The two mood results and the crisis headline are team phrases, not quotes; the team confirms them (LUM-47).
   'home.mood': ui('Mood check'),
   'mood.of': ui('of'),
   'mood.back': ui('Back'),
