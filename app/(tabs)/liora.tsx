@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { Keyboard, KeyboardAvoidingView, Platform, ScrollView, View } from 'react-native';
 import { en } from '../../src/content/copy';
 import { useCompanionStore } from '../../src/store/companion';
-import { Block, Bubble } from '../../src/ui/companion/Blocks';
+import { Bubble, LioraMessage } from '../../src/ui/companion/Blocks';
 import { Composer, STARTERS } from '../../src/ui/companion/Composer';
 import { GlassCard } from '../../src/ui/Glass';
 import { tap } from '../../src/ui/haptics';
@@ -28,6 +28,7 @@ export default function Liora() {
   const thinking = useCompanionStore((s) => s.thinking);
   const clear = useCompanionStore((s) => s.clear);
   const [text, setText] = useState('');
+  const last = messages[messages.length - 1];
   const canClear = messages.length > 0 && !thinking;
   const [keyboard, setKeyboard] = useState(false);
 
@@ -44,7 +45,7 @@ export default function Liora() {
   useEffect(() => {
     const t = setTimeout(() => scroll.current?.scrollToEnd({ animated: true }), 50);
     return () => clearTimeout(t);
-  }, [messages.length, thinking]);
+  }, [messages.length, messages[messages.length - 1]?.blocks?.length, thinking]);
 
   return (
     // The padding it adds shows through the glass keyboard, so it wears the screen's ground.
@@ -108,14 +109,10 @@ export default function Liora() {
                     </Text>
                   </Bubble>
                 ) : (
-                  <View key={m.id} className="gap-xs">
-                    {(m.blocks ?? []).map((b, i) => (
-                      <Block key={i} block={b} />
-                    ))}
-                  </View>
+                  <LioraMessage key={m.id} blocks={m.blocks ?? []} thinking={thinking && m.id === last?.id} />
                 ),
               )}
-              {thinking ? <Typing /> : null}
+              {thinking && last?.role !== 'liora' ? <Typing /> : null}
             </View>
           )}
         </ScrollView>

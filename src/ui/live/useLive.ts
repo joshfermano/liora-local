@@ -18,14 +18,17 @@ export type LivePhase = 'starting' | 'listening' | 'thinking' | 'speaking' | 'se
 
 const fill = (s: string, v: Record<string, string> = {}) => s.replace(/\{(\w+)\}/g, (_, k: string) => v[k] ?? '');
 
-// Only fixed sentences, her own saved data and the warm line are spoken; a decision is read on the result screen.
+// Only the reply line (or its fixed fallback), her own saved data and one fixed sentence for a source card
+// are spoken; a decision is read on the result screen and a card's words are not read aloud.
 function spoken(blocks: ReplyBlock[]): string {
+  const lead =
+    blocks.find((b) => b.kind === 'reply') ?? blocks.find((b) => b.kind === 'warm') ?? blocks.find((b) => b.kind === 'text');
   const parts: string[] = [];
-  for (const b of blocks) {
-    if (b.kind === 'text') parts.push(fill(en(b.key), b.params));
-    else if (b.kind === 'warm') parts.push(b.text ?? en(`warm.${b.tone}`));
-    else if (b.kind === 'logged') parts.push(...b.items.map(savedLine));
-  }
+  if (lead?.kind === 'reply') parts.push(lead.text ?? fill(en(lead.fallback.key), lead.fallback.params));
+  else if (lead?.kind === 'warm') parts.push(lead.text ?? en(`warm.${lead.tone}`));
+  else if (lead?.kind === 'text') parts.push(fill(en(lead.key), lead.params));
+  for (const b of blocks) if (b.kind === 'logged') parts.push(...b.items.map(savedLine));
+  if (blocks.some((b) => b.kind === 'card')) parts.push(en('reply.card_spoken'));
   return parts.join(' ');
 }
 
