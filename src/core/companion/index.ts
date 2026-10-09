@@ -2,6 +2,7 @@ import { predictNext } from '../cycle';
 import { readMoods } from '../lexicon';
 import type { Context, CycleSettings, Decision, Entry, Extraction, Mood, PeriodRecord, Prediction } from '../types';
 import { DANGER_CODES } from '../vocabulary';
+import type { Step } from '../agent/steps';
 import type { AgentAction, SavedItem, Tone } from '../agent/types';
 
 // The companion never writes medical text: every reply is fixed copy, her own data, a quoted card
@@ -25,7 +26,9 @@ export type ReplyBlock =
   | { kind: 'logged'; items: SavedItem[]; undoId: string }
   | { kind: 'confirm'; actions: AgentAction[]; confirmId: string }
   // Words about not wanting to live: Call 1553 and the crisis screen, under the fixed headline.
-  | { kind: 'crisis' };
+  | { kind: 'crisis' }
+  // What Liora's tools did this turn, oldest first; only present when they did something.
+  | { kind: 'steps'; steps: Step[] };
 
 const isDanger = (code: string) => (DANGER_CODES as readonly string[]).includes(code);
 const CYCLE_QUESTION = /\b(?:kailan|when)\b.*\b(?:regla|period|mens|dalaw)\b|\bnext\s+period\b|\b(?:cycle|siklo)\b/i;

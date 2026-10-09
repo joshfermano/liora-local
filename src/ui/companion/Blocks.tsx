@@ -25,6 +25,7 @@ import { SURFACE } from '../theme';
 import { Thinking } from '../Thinking';
 import { agentStore } from './agent-store';
 import { FadingText } from './FadingText';
+import { Steps } from './Steps';
 import { confirmLine, savedLine } from './saved';
 
 const fill = (s: string, v: Record<string, string> = {}) => s.replace(/\{(\w+)\}/g, (_, k: string) => v[k] ?? '');
@@ -317,18 +318,21 @@ function bubbleText(blocks: ReplyBlock[]): { text: string | null; waiting: boole
   return { text: fill(en(key), text.params), waiting: false };
 }
 
-export function LioraMessage({ blocks, thinking = false }: { blocks: ReplyBlock[]; thinking?: boolean }) {
+// Follow-up buttons (mood check, calendar…) belong to the newest reply only; older replies drop them.
+export function LioraMessage({ blocks, thinking = false, latest = true }: { blocks: ReplyBlock[]; thinking?: boolean; latest?: boolean }) {
   const lead = bubbleText(blocks);
   // A reply that was written while she watched fades in word by word; a finished one just shows.
   const streamed = useRef(false);
   if (lead?.waiting && thinking) streamed.current = true;
   const hasLogged = blocks.some((b) => b.kind === 'logged');
-  const actions = [...new Set(blocks.flatMap((b) => (b.kind === 'actions' ? b.items : [])))];
+  const actions = latest ? [...new Set(blocks.flatMap((b) => (b.kind === 'actions' ? b.items : [])))] : [];
   const rest = blocks.filter(
-    (b) => b.kind !== 'reply' && b.kind !== 'warm' && b.kind !== 'text' && b.kind !== 'actions' && !(hasLogged && b.kind === 'mood_noted'),
+    (b) => b.kind !== 'reply' && b.kind !== 'warm' && b.kind !== 'text' && b.kind !== 'actions' && b.kind !== 'steps' && !(hasLogged && b.kind === 'mood_noted'),
   );
+  const steps = blocks.flatMap((b) => (b.kind === 'steps' ? b.steps : []));
   return (
     <View className="gap-xs">
+      {steps.length > 0 ? <Steps steps={steps} /> : null}
       {lead ? (
         <Bubble>
           {lead.waiting && thinking ? (

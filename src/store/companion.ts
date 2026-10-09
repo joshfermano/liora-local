@@ -252,7 +252,7 @@ export const useCompanionStore = create<CompanionState>()(
             return;
           }
           // A go-now earlier in this conversation stays in front of her: fixed words, the card again, no model.
-          const kept = turn.attachments.filter((b) => b.kind === 'logged' || b.kind === 'confirm');
+          const kept = turn.attachments.filter((b) => b.kind === 'steps' || b.kind === 'logged' || b.kind === 'confirm');
           if (goNow) {
             add([{ kind: 'text', key: 'companion.go_now.still' }, ...kept, { kind: 'decision', entryId: goNow, level: 'go_now' }]);
             return;
@@ -281,7 +281,9 @@ export const useCompanionStore = create<CompanionState>()(
           // swelling, dizziness…): that cited card, verbatim, under a fixed line, and no model words.
           const warning = profile.status !== 'neither' && profile.status !== 'postpartum' ? warningSignsCard(ruleText) : null;
           if (warning && !turn.attachments.some((b) => b.kind === 'card')) {
-            add([{ kind: 'reply', text: null, fallback: { key: 'reply.card' } }, ...kept, { kind: 'card', cardId: warning }]);
+            // The timeline must agree with the card she sees.
+            const found = kept.map((b) => (b.kind === 'steps' ? { ...b, steps: b.steps.map((st) => (st.kind === 'sources' ? { ...st, found: true } : st)) } : b));
+            add([{ kind: 'reply', text: null, fallback: { key: 'reply.card' } }, ...found, { kind: 'card', cardId: warning }]);
             return;
           }
           // "Ilang weeks na ako?": her weeks are in her profile, so even without a model she gets them.

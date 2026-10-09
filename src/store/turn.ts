@@ -9,6 +9,7 @@ import {
   replyPlan,
   resolveDate,
   smalltalkKind,
+  stepsOf,
   toneOf,
   withoutMemory,
   type AgentAction,
@@ -211,6 +212,9 @@ export async function runTurn(
     if (asksAboutHerData) attachments.push({ kind: 'actions', items: ['calendar'] });
     else if (facts.no_action_taken === true) attachments.push({ kind: 'actions', items: [...HOME] });
   }
+
+  const steps = stepsOf(outcome);
+  if (steps.length > 0) attachments.unshift({ kind: 'steps', steps });
 
   const memory = useMemoryStore.getState();
   const { value: pack, hit } = packFor(data.periods, data.dayLogs, data.cycleSettings, data.setup, log.entries, log.moods, memory.notes, memory.language, day);
