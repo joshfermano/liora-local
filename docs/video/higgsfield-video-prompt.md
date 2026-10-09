@@ -22,8 +22,8 @@ finished video. Ask me before spending Higgsfield credits on more than 8 generat
   - **Gemma 4 E2B audio encoder**: turns her voice into text, on the phone.
   - **EmbeddingGemma 300M**: finds the reviewed WHO / DOH passage closest to her question.
 - **The AI never decides.** Decisions come from fixed rules written from WHO guidance (the WHO
-  antenatal care digital adaptation kit and WHO's *Pregnancy, childbirth, postpartum and newborn
-  care* guide). Urgent screens use fixed words; sources are shown word for word.
+  antenatal care digital adaptation kit and WHO's _Pregnancy, childbirth, postpartum and newborn
+  care_ guide). Urgent screens use fixed words; sources are shown word for word.
 - **The agent**: she types or speaks; Liora logs her period, flow, symptoms and moods with Undo,
   answers from her own data, follows her mood (upbeat on a good day, gentle on a hard one), and
   refuses prompt-injection attempts.
@@ -47,6 +47,29 @@ finished video. Ask me before spending Higgsfield credits on more than 8 generat
    dignity; stylised, not photoreal, and consistent across shots.
 5. Captions burned in for every spoken line.
 
+## It is a native iPhone app: show it as one
+
+Tell Liora is a **native iOS app** (not a website or a mock-up), and the video must look like an
+iPhone from the first frame to the last.
+
+- **Record every app shot with iOS Screen Recording** (Control Center) on the iPhone 17 Pro, release
+  build. Keep the real iOS status bar (time, airplane-mode icon). No simulator, no browser, no
+  Figma or mock-up screens.
+- **Put these native iOS moments on camera** (each is real in the app):
+  - the **Liquid Glass tab bar** (Today, Calendar, Liora, Profile) with **SF Symbols**;
+  - **Control Center**: turning on airplane mode;
+  - **Face ID** unlocking her private data;
+  - the native **wheel pickers** in Profile (age, height, weight, weeks pregnant);
+  - the **iOS share sheet** when the nurse report becomes a PDF;
+  - **Call / Text Josh** opening the native Phone call sheet or a pre-filled Messages draft (do not
+    place a real call);
+  - the **Home Screen icon**, ideally in Light, Dark and Tinted.
+- **Frame:** show recordings full height inside a simple rounded-rectangle phone frame with the
+  Dynamic Island shape, drawn with `motion-graphics`; no Apple logo or Apple marketing images.
+- **Generated phones** must read as a modern iPhone (flat edges, rounded corners), seen from
+  behind or angled away, never showing a readable screen, never an Android-style device, never an
+  Apple logo in focus.
+
 ## Look (the app's "Capiz Light" design system)
 
 - **Idea:** a capiz window: translucent, light comes in, the room stays private. At 2 AM the phone
@@ -63,33 +86,35 @@ finished video. Ask me before spending Higgsfield credits on more than 8 generat
 
 ## Assets (record these first; real app, iPhone 17 Pro, release build)
 
-- A. Airplane mode on, Tell Liora opens, "AI on".
+- A. Control Center: airplane mode on; Tell Liora opens with Face ID; "AI on" (Liquid Glass tab bar
+  visible).
 - B. Liora Live (voice): "Niregla ako today, medyo malakas, tapos may cramps ako" → period start,
   heavy flow and cramps saved with Undo.
 - C. Chat: "masaya at kalmado ako ngayon" → upbeat reply; Today shows "Logged today".
 - D. Calendar: logged period days, the dashed next-period estimate and the estimated fertile window.
-- E. Profile: name, blood type, emergency contact; status changed to Pregnant, week 32 (and, for
-  after birth, the "after birth" status).
+- E. Profile: name, blood type, emergency contact; the native wheel picker setting Pregnant, week 32
+  (and, for after birth, the "after birth" status).
 - F. Chat: "nilalagnat ako" → "Are you too weak to get out of bed?" → No → "Go to the health centre
   as soon as possible" with the WHO passage.
-- G. Chat: "sobrang sakit ng ulo ko tapos malabo ang paningin ko" → red go-now card, Call / Text.
+- G. Chat: "sobrang sakit ng ulo ko tapos malabo ang paningin ko" → red go-now card; tap Call Josh to
+  show the native call sheet, then cancel.
 - H. Chat: "Kaya ko pa naman" → the go-now held in view.
-- I. Nurse report → Share as PDF sheet; How Liora decided → Sources screen.
-- J. The app icon on the Home Screen.
+- I. Nurse report → Share as PDF in the iOS share sheet; How Liora decided → Sources screen.
+- J. The app icon on the Home Screen (Light, and Dark or Tinted if set).
 
 ## Storyline and shot list (60 seconds)
 
-| Time | Beat | Higgsfield scene (stylised, no readable screens) | Real footage | On-screen text | Narration |
-| --- | --- | --- | --- | --- | --- |
-| 0–6s | **2 AM** | A quiet Filipino home at night; one capiz window glowing warm amber; slow push-in | — | "2 AM. No signal." | "At two in the morning, with no signal, who does she ask?" |
-| 6–12s | **On her phone, offline** | Gweny's hands holding a phone, its glow on her face, screen angled away | A | "Airplane mode. Gemma 4 on-device." | "Tell Liora runs Gemma 4 entirely on her phone. No cloud, no account." |
-| 12–22s | **She just talks (voice + chat)** | Morning light through capiz panes; Gweny speaking softly to her phone | B, C | "Speak Taglish. Liora logs it." · "Undo anytime" | "She just talks. Liora logs her period, her symptoms and her mood, and answers kindly." |
-| 22–27s | **Her cycle** | Calendar pages turning into capiz squares | D | "Estimates, never contraception" | "It learns her cycle and explains every estimate." |
-| 27–31s | **Her profile, her life** | Season shift: the same window, a nursery corner appears | E | "Months later: 32 weeks pregnant" | "When she's pregnant, and after birth, the WHO rules switch on." |
-| 31–36s | **Not every symptom is an emergency** | — | F | "WHO: as soon as possible" | "Not every symptom is an emergency. Liora asks WHO's own question first." |
-| 36–46s | **The danger sign** | Night again; the room dark, the window's warm glow turns urgent red for one beat | G, H | "Go now. Fixed WHO words, no AI text." · "Call Josh" | "But a severe headache with blurred vision means go now, and Liora doesn't let go." |
-| 46–54s | **The report** | A nurse's hands receiving the phone (screen not visible) | I | "Nurse report · Share as PDF" · "Every answer cites WHO" | "At the hospital, the nurse gets her report, with the WHO source behind every answer." |
-| 54–60s | **Close** | The house at dawn; the capiz window becomes the app icon | J | "Tell Liora" · "Know when to go, even with no signal and no one watching." | "Tell Liora. Know when to go." |
+| Time   | Beat                                  | Higgsfield scene (stylised, no readable screens)                                  | Real footage | On-screen text                                                             | Narration                                                                               |
+| ------ | ------------------------------------- | --------------------------------------------------------------------------------- | ------------ | -------------------------------------------------------------------------- | --------------------------------------------------------------------------------------- |
+| 0–6s   | **2 AM**                              | A quiet Filipino home at night; one capiz window glowing warm amber; slow push-in | —            | "2 AM. No signal."                                                         | "At two in the morning, with no signal, who does she ask?"                              |
+| 6–12s  | **On her phone, offline**             | Gweny's hands holding a phone, its glow on her face, screen angled away           | A            | "Airplane mode. Face ID. Gemma 4 on-device."                                        | "Tell Liora runs Gemma 4 entirely on her phone. No cloud, no account."                  |
+| 12–22s | **She just talks (voice + chat)**     | Morning light through capiz panes; Gweny speaking softly to her phone             | B, C         | "Speak Taglish. Liora logs it." · "Undo anytime"                           | "She just talks. Liora logs her period, her symptoms and her mood, and answers kindly." |
+| 22–27s | **Her cycle**                         | Calendar pages turning into capiz squares                                         | D            | "Estimates, never contraception"                                           | "It learns her cycle and explains every estimate."                                      |
+| 27–31s | **Her profile, her life**             | Season shift: the same window, a nursery corner appears                           | E            | "Months later: 32 weeks pregnant" (native wheel picker)                                          | "When she's pregnant, and after birth, the WHO rules switch on."                        |
+| 31–36s | **Not every symptom is an emergency** | —                                                                                 | F            | "WHO: as soon as possible"                                                 | "Not every symptom is an emergency. Liora asks WHO's own question first."               |
+| 36–46s | **The danger sign**                   | Night again; the room dark, the window's warm glow turns urgent red for one beat  | G, H         | "Go now. Fixed WHO words, no AI text." · "Call Josh"                       | "But a severe headache with blurred vision means go now, and Liora doesn't let go."     |
+| 46–54s | **The report**                        | A nurse's hands receiving the phone (screen not visible)                          | I            | "Nurse report · iOS share sheet" · "Every answer cites WHO"                   | "At the hospital, the nurse gets her report, with the WHO source behind every answer."  |
+| 54–60s | **Close**                             | The house at dawn; the capiz window becomes the app icon                          | J            | "Tell Liora" · "Know when to go, even with no signal and no one watching." | "Tell Liora. Know when to go."                                                          |
 
 Feature coverage you must keep: offline AI with the named models (6–12s), cycle logging (12–27s),
 mood and symptoms (12–22s), pregnancy and after birth (27–31s), profile (27–31s, short), and the
@@ -97,8 +122,8 @@ priorities: **AI chat, AI voice, and the safety flow with the report** (12–22s
 
 ## Measured numbers (fill in from the iPhone 17 Pro, or leave blank and omit)
 
-- Gemma 4 cold load: ____ s · Time from message to decision: ____ s · Voice transcription (10 s
-  clip): ____ s
+- Gemma 4 cold load: [fill in] s · Time from message to decision: [fill in] s · Voice transcription
+  (10 s clip): [fill in] s
 
 ## How to build it
 
@@ -110,5 +135,5 @@ priorities: **AI chat, AI voice, and the safety flow with the report** (12–22s
    on top.
 4. Assemble: 1920×1080, 30 fps, about 60 seconds, burned-in captions, music and narration mixed
    under −14 LUFS; also export a 1080×1920 vertical cut for X / LinkedIn.
-5. Before export, check: every UI shot is real footage; no invented number; no logos; every feature
+5. Before export, check: every UI shot is a real iOS screen recording with the iOS status bar; no invented number; no logos; every feature
    in "Feature coverage" appears; the go-now beat is the only red moment; captions match the audio.
