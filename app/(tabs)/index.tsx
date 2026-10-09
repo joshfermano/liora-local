@@ -26,8 +26,8 @@ export default function Home() {
   const day = format(new Date(), 'yyyy-MM-dd');
 
   const model = useMemo(
-    () => today({ entries, moodChecks: moods, periods, cycleSettings, dayLogs, status: profile.status, today: day }),
-    [entries, moods, periods, cycleSettings, dayLogs, profile.status, day],
+    () => today({ entries, moodChecks: moods, periods, cycleSettings, dayLogs, status: profile.status, weeks: profile.weeks, today: day }),
+    [entries, moods, periods, cycleSettings, dayLogs, profile.status, profile.weeks, day],
   );
   const initial = (profile.name?.trim()[0] ?? 'L').toUpperCase();
 
