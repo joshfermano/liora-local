@@ -255,7 +255,7 @@ export function Block({ block }: { block: ReplyBlock }) {
     case 'contact':
       return (
         <GlassCard className="p-md">
-          <EmergencyButtons />
+          <EmergencyButtons message="em.sms.crisis" />
         </GlassCard>
       );
     case 'mood_noted':
