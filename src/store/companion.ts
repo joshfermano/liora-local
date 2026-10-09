@@ -15,6 +15,7 @@ import { toTrace, useTraceStore } from './trace';
 import { CONVERSATION_MS, isNewConversation, recentTurns } from './thread';
 import { runTurn, type AgentTurn } from './turn';
 import { mentionsSelfHarm } from '../core/agent/crisis';
+import { followUpAnswer } from '../core/agent/followon';
 import { warningSignsCard } from '../core/agent/warning';
 
 export interface ThreadMessage {
@@ -117,6 +118,12 @@ function activeGoNow(messages: ThreadMessage[], now = Date.now()): string | null
   return null;
 }
 
+// Liora's last message is still asking the follow-up for this entry.
+function asksFollowUp(messages: ThreadMessage[], entryId: string): boolean {
+  const last = [...messages].reverse().find((m) => m.role === 'liora');
+  return !!last?.blocks?.some((b) => b.kind === 'decision' && b.entryId === entryId && b.level === 'follow_up');
+}
+
 export const useCompanionStore = create<CompanionState>()(
   persist(
     (set, get) => ({
@@ -188,6 +195,23 @@ export const useCompanionStore = create<CompanionState>()(
         if (mentionsSelfHarm(text)) {
           add([{ kind: 'text', key: 'crisis.headline' }, { kind: 'crisis' }]);
           set({ thinking: false });
+          return;
+        }
+        // A short "hindi" or "oo" right after "Sobrang sakit ba?" answers that question, as the card's buttons do.
+        const pending = useTellStore.getState().current;
+        const typed = pending?.decision.level === 'follow_up' && asksFollowUp(get().messages, pending.id) ? followUpAnswer(text) : null;
+        if (pending && typed) {
+          try {
+            const next = await useTellStore.getState().answerFollowUp(typed);
+            const level = next.decision.level;
+            add(
+              level === 'ok'
+                ? [{ kind: 'text', key: 'companion.symptom.ok' }]
+                : [{ kind: 'text', key: `companion.symptom.${level}` }, { kind: 'decision', entryId: next.id, level }],
+            );
+          } finally {
+            set({ thinking: false });
+          }
           return;
         }
         const work = async () => {

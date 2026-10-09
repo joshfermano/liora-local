@@ -26,7 +26,7 @@ describe('aboutLiora', () => {
     (text) => expect(aboutLiora(text)).toBeNull(),
   );
 
-  it.each(['who made you?', 'sino gumawa sa iyo?', 'what can you do?', 'Ano ang kaya mong gawin?', 'ano kaya mo'])('answers "%s" with who Liora is', (text) => {
+  it.each(['bakit ka nandito?', 'para saan ka?', 'who made you?', 'sino gumawa sa iyo?', 'what can you do?', 'Ano ang kaya mong gawin?', 'ano kaya mo'])('answers "%s" with who Liora is', (text) => {
     expect(aboutLiora(text)).toBe('identity');
   });
 
@@ -42,6 +42,7 @@ describe('aboutLiora', () => {
     'write python code for a calculator',
     'who is the president of the Philippines?',
     'explain how airplanes fly',
+    'gawan mo ako ng tula',
   ])('refuses the unrelated "%s"', (text) => {
     expect(aboutLiora(text)).toBe('offtopic');
   });
@@ -70,6 +71,9 @@ describe('aboutLiora', () => {
     'good morning!',
     '???',
     '...',
+    'ano ang dapat kong gawin?',
+    'what should I do?',
+    'help me',
   ])('does not refuse "%s"', (text) => {
     expect(aboutLiora(text)).not.toBe('offtopic');
   });

@@ -17,7 +17,7 @@ export const ENTRIES: Entry[] = [
   { pattern: BELLY_PAIN, codes: ['severe_abdominal_pain'] },
   {
     pattern:
-      /dinudugo|dumudugo|nagdudugo|pagdurugo|duguan|\bmay dugo\b|(?:sobrang|maraming|ang\s+daming|madaming)\s+dugo|(?:malakas|madami|marami)\s+(?:ang\s+|na\s+)?(?:dugo|pagdugo)|buo-?buong\s+dugo|\bbleeding\b|\bbleed\b|\b(?:see|saw|seeing) blood\b|\bblood\s+clots?\b|nakaka-?\w+\s+(?:na\s+)?pads?\b|(?:napupuno|puno|nababad|basang-?basa)\s+(?:na\s+)?(?:ang\s+)?(?:pads?|napkin)|soak(?:ing|ed|s)?\s+(?:through\s+)?(?:my\s+|a\s+)?pads?/i,
+      /dinudugo|dumudugo|nagdudugo|pagdurugo|duguan|\bmay dugo\b|(?:sobrang|maraming|ang\s+daming|madaming)\s+dugo|(?:malakas|madami|marami)\s+(?:ang\s+|na\s+)?(?:dugo|pagdugo)|buo-?buong\s+dugo|\bbleeding\b|\bbleed\b|\b(?:see|saw|seeing) blood\b|\bblood\s+clots?\b|nakaka-?\w+\s+(?:na\s+)?pads?\b|(?:napupuno|puno|nababad|basang-?basa)\s+(?:na\s+)?(?:ang\s+)?(?:pads?|napkin)|soak(?:ing|ed|s)?\s+(?:through\s+)?(?:my\s+|a\s+)?pads?|\bnag-?spotting\b|\bspotting\b|(?:may\s+)?(?:konting|kaunting|kaunti|onting|kunting|kakaunting)\s+dugo/i,
     codes: ['vaginal_bleeding'],
   },
   {
@@ -61,7 +61,7 @@ export const ENTRIES: Entry[] = [
   },
   {
     pattern:
-      /hinimatay|nahimatay|nawalan\s+(?:ako\s+|siya\s+|sya\s+)?ng\s+(?:malay|ulirat)|walang\s+malay|unconscious|passed\s+out|(?:hindi|di)\s+(?:na\s+)?magising/i,
+      /hinimatay|nahimatay|nawalan\s+(?:ako\s+|siya\s+|sya\s+)?ng\s+(?:malay|ulirat)|walang\s+malay|unconscious|passed\s+out|\bfainted\b|(?:hindi|di)\s+(?:na\s+)?magising/i,
     codes: ['unconscious'],
   },
   {
@@ -106,7 +106,7 @@ export const MOOD_ENTRIES: { pattern: RegExp; mood: Mood }[] = [
   { pattern: /pagod|\btired\b|exhaust|\bpuyat\b/i, mood: 'tired' },
   { pattern: /kinakabahan|nababahala|nag-aalala|balisa|anxious|worried|anxiety/i, mood: 'anxious' },
   { pattern: /stress/i, mood: 'stressed' },
-  { pattern: /irritable|iritable|naiirita|\binis\b|mainit ang ulo/i, mood: 'irritable' },
+  { pattern: /irritable|iritable|naiirita|\binis\b|naiinis|nainis|mainit ang ulo/i, mood: 'irritable' },
   { pattern: /malungkot|lungkot|\bsad\b/i, mood: 'sad' },
 ];
 

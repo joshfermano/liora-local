@@ -111,7 +111,7 @@ describe('readText', () => {
 
 describe('danger code phrasings', () => {
   const phrases: Record<DangerCode, string[]> = {
-    vaginal_bleeding: ['dinudugo ako', 'may dugo sa underwear ko', 'I have bleeding', 'malakas ang dugo ko', 'nakaka-tatlong pads na ako sa isang oras', 'napupuno ang pads ko', 'soaking through my pads', 'heavy bleeding after birth', 'may buo-buong dugo', 'passing blood clots'],
+    vaginal_bleeding: ['dinudugo ako', 'may dugo sa underwear ko', 'I have bleeding', 'malakas ang dugo ko', 'nakaka-tatlong pads na ako sa isang oras', 'napupuno ang pads ko', 'soaking through my pads', 'heavy bleeding after birth', 'may buo-buong dugo', 'passing blood clots', 'nag spotting ako', 'may konting dugo', 'spotting today'],
     convulsions: ['nagka-seizure siya', 'may kumbulsyon', 'having a convulsion'],
     fever: ['may lagnat ako', 'nilalagnat', 'I have a fever'],
     severe_headache: ['sakit ng ulo', 'masakit ulo ko', 'headache', 'sumasakit ang ulo ko', 'sumakit ulo ko kanina', 'nananakit ang ulo ko'],
@@ -122,7 +122,7 @@ describe('danger code phrasings', () => {
     severe_vomiting: ['suka nang suka', 'sumusuka ako', 'vomiting all day'],
     severe_pain: ['severe pain', 'hindi ko matiis ang sakit', 'sakit na sakit ako'],
     severe_abdominal_pain: ['sakit ng tiyan', 'masakit tiyan ko', 'stomach pain', 'sumasakit ang tiyan ko', 'nananakit tiyan ko'],
-    unconscious: ['hinimatay siya', 'nawalan ng malay', 'she passed out'],
+    unconscious: ['hinimatay siya', 'nawalan ng malay', 'she passed out', 'I fainted earlier', 'she fainted'],
     central_cyanosis: ['nangingitim ang labi', 'blue lips', 'asul ang labi'],
     severe_difficulty_breathing: ['hirap huminga', 'hindi makahinga', 'shortness of breath'],
   };
@@ -184,7 +184,7 @@ describe('symptom phrasings', () => {
 describe('readMoods', () => {
   it.each([
     ['masaya ako', 'joyful'], ['kalmado', 'calm'], ['pagod ako', 'tired'],
-    ['kinakabahan ako', 'anxious'], ['I feel sad', 'sad'], ['naiirita ako', 'irritable'],
+    ['kinakabahan ako', 'anxious'], ['I feel sad', 'sad'], ['naiirita ako', 'irritable'], ['naiinis ako', 'irritable'],
   ])('"%s" gives %s', (text, mood) => {
     expect(readMoods(text)).toContain(mood);
   });

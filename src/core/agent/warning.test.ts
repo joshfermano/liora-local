@@ -24,6 +24,8 @@ describe('warningSignsCard', () => {
     'may tumutulong tubig sa akin',
     'leaking fluid',
     'masakit pag umiihi ako',
+    'baby hasnt moved since morning',
+    "the baby hasn't kicked today",
   ])('shows the DOH warning-signs card for "%s"', (text) => expect(warningSignsCard(text)).toBe(CARD));
 
   it.each(['masakit ulo ko', 'pagod ako', 'may puting discharge ako', 'gumagalaw si baby', 'Nagsimula regla ko ngayon'])('leaves "%s" alone', (text) =>

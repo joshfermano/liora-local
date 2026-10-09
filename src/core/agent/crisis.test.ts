@@ -17,6 +17,8 @@ describe('mentionsSelfHarm', () => {
     'thinking of ending my life',
     'I might hurt myself',
     'suicidal ako',
+    'ayoko na sa buhay ko',
+    'pagod na ako sa buhay',
   ])('hears "%s"', (text) => expect(mentionsSelfHarm(text)).toBe(true));
 
   it.each(['masakit ulo ko', 'parang mamatay na ako sa sakit ng tiyan', 'sobrang lungkot ko', 'pagod na pagod ako', 'nasaktan ako sa sinabi niya', 'kill the pain please'])(

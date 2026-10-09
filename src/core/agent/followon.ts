@@ -17,3 +17,15 @@ export function severityOnly(text: string): boolean {
 export function painTooMuch(text: string): boolean {
   return CANNOT_BEAR.test(text) || (SEVERE_CUE.test(text) && PAIN.test(text));
 }
+
+// A short typed answer to the follow-up Liora just asked ("Sobrang sakit ba?"): the same as tapping a
+// swipe-card button. Only a whole short reply counts, so "hindi ako makatulog" is never a "no".
+const NO_ANSWER =
+  /^\s*(?:(?:hindi|di)(?:\s+(?:naman|po))*(?:\s+(?:masyado|gaano|ganun|ganoon|ganon))?(?:\s+(?:po|lang))?|no|nope|not\s+really|not\s+(?:that|too|so)\s+bad|konti\s+lang|medyo\s+lang|okay\s+lang(?:\s+naman)?)[\s.!]*$/i;
+const YES_ANSWER = /^\s*(?:oo|opo|oo\s+po|yes|yup|yeah|oo\s+sobra|sobra|sobra\s+po|grabe|very)[\s.!]*$/i;
+
+export function followUpAnswer(text: string): 'yes' | 'no' | null {
+  if (NO_ANSWER.test(text)) return 'no';
+  if (YES_ANSWER.test(text)) return 'yes';
+  return null;
+}

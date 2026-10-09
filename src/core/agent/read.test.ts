@@ -73,6 +73,8 @@ describe('readActions: flow, symptoms, moods, activities, weeks', () => {
   });
   it.each([
     ['nag-exercise ako kahapon', 'exercise'],
+    ['nag-yoga ako', 'exercise'],
+    ['I went swimming', 'exercise'],
     ['nagpahinga ako', 'rest'],
     ['nakatulog nang maayos ako', 'slept_well'],
     ['nagpa-check-up ako', 'checkup_visit'],
@@ -90,6 +92,7 @@ describe('readActions: flow, symptoms, moods, activities, weeks', () => {
 describe('readActions: questions and small talk', () => {
   it('reads "kailan next period ko?" as a cycle question only', () => {
     expect(readActions('kailan next period ko?', TODAY)).toEqual([{ tool: 'cycle_question' }]);
+    expect(readActions('ano ang average cycle ko?', TODAY)).toEqual([{ tool: 'cycle_question' }]);
   });
   it('reads a health question and logs no activity from it', () => {
     expect(readActions('ok lang ba mag-exercise?', TODAY)).toEqual([{ tool: 'health_question' }]);

@@ -26,7 +26,7 @@ import type { Entry, MoodResult } from '../core/types';
 import { commit, dataNow, plan, revertLatest, understand } from './agent';
 import { useLogStore } from './log';
 import { lastResult } from './memo';
-import { aboutLiora } from '../core/agent/about';
+import { aboutLiora, asksForHelp } from '../core/agent/about';
 import { noteHit, noteTurn } from '../core/probe';
 import { useMemoryStore } from './memory';
 import { contextFrom, readProfile } from './profile';
@@ -194,7 +194,7 @@ export async function runTurn(
     attachments.push({ kind: 'actions', items: [open.screen] });
   }
 
-  if (actions.every((a) => a.tool === 'smalltalk')) {
+  if (actions.every((a) => a.tool === 'smalltalk') && !asksForHelp(text)) {
     outcome.smalltalk = smalltalkKind(text) ?? (pick(actions, 'smalltalk') ? 'chat' : null);
     if (outcome.smalltalk === 'greeting') attachments.push({ kind: 'actions', items: [...HOME] });
   }
