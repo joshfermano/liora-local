@@ -685,7 +685,8 @@ export const COPY = {
   'blood.title': ui('Blood type'),
   'blood.unknown': ui("I don't know"),
   // emergency ui (LUM-85)
-  'em.phone_error': ui('Enter a phone number with at least 7 digits.'),
+  'em.phone_error': ui('Enter a Philippine number, like 0917 123 4567 or (02) 8123 4567.'),
+  'em.phone.example': ui('0917 123 4567'),
   'em.name_error': ui('Add a name for this number.'),
   'followup.about': ui('About: {sign}'),
   'handoff.title': ui('Handoff report'),

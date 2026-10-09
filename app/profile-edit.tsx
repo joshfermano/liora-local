@@ -2,8 +2,9 @@ import { useRouter } from 'expo-router';
 import { useState } from 'react';
 import { TextInput, View } from 'react-native';
 import { en } from '../src/content/copy';
+import { formatPhPhone } from '../src/core/phone';
 import { useLogStore } from '../src/store/log';
-import { BLOOD_TYPES, PROFILE_RANGES, dialable, updateProfile, useProfile, type BloodType, type Profile, type Status } from '../src/store/profile';
+import { BLOOD_TYPES, PROFILE_RANGES, updateProfile, useProfile, type BloodType, type Profile, type Status } from '../src/store/profile';
 import { GlassCard } from '../src/ui/Glass';
 import { confirm, tap } from '../src/ui/haptics';
 import { cleanName } from '../src/ui/name';
@@ -91,10 +92,10 @@ export default function ProfileEdit() {
     if (!cName && !cRelation && !cPhone) {
       if (profile.emergency) next.emergency = undefined;
     } else {
-      const digits = dialable(cPhone).replace(/^\+/, '').length;
-      if (digits < 7 || digits > 15) return setError(en('em.phone_error'));
+      const shown = formatPhPhone(cPhone);
+      if (!shown) return setError(en('em.phone_error'));
       if (!cName) return setError(en('em.name_error'));
-      const contact = cRelation ? { name: cName, relation: cRelation, phone: cPhone } : { name: cName, phone: cPhone };
+      const contact = cRelation ? { name: cName, relation: cRelation, phone: shown } : { name: cName, phone: shown };
       const was = profile.emergency;
       if (!was || was.name !== contact.name || was.phone !== contact.phone || (was.relation ?? '') !== (cRelation || '')) next.emergency = contact;
     }
@@ -254,6 +255,8 @@ export default function ProfileEdit() {
                   setPhone(t);
                   setError(null);
                 }}
+                onBlur={() => setPhone((p) => formatPhPhone(p) ?? p)}
+                placeholder={en('em.phone.example')}
                 accessibilityLabel={en('em.phone')}
                 keyboardType="phone-pad"
                 textContentType="telephoneNumber"

@@ -3,6 +3,7 @@ import { useRouter } from 'expo-router';
 import { useMemo, useState } from 'react';
 import { Platform, Switch, View } from 'react-native';
 import { en } from '../../src/content/copy';
+import { formatPhPhone } from '../../src/core/phone';
 import { today } from '../../src/core/today';
 import { useLogStore } from '../../src/store/log';
 import { useProfile } from '../../src/store/profile';
@@ -98,7 +99,7 @@ export default function Profile() {
                   </>
                 ) : null}
                 <Divider />
-                <ValueRow label={en('em.phone')} value={profile.emergency.phone} onPress={openEditor} />
+                <ValueRow label={en('em.phone')} value={formatPhPhone(profile.emergency.phone) ?? profile.emergency.phone} onPress={openEditor} />
               </>
             ) : (
               <PressableSurface label={en('em.add')} onPress={openEditor} role="link" pressScale={0.98} surfaceClassName="min-h-choice justify-center px-md">
