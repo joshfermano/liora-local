@@ -120,20 +120,26 @@ describe('the fertile window, an estimate and never contraception', () => {
 
   it('places likely ovulation 12 to 14 days before each estimated period, and the five days before it', () => {
     const windows = fertileWindows(steady());
-    expect(windows.slice(0, 2)).toEqual([
+    expect(windows.slice(0, 2)).toMatchObject([
       { from: '2026-09-27', to: '2026-10-04', ovulation: { from: '2026-10-02', to: '2026-10-04' } },
       { from: '2026-10-25', to: '2026-11-01', ovulation: { from: '2026-10-30', to: '2026-11-01' } },
     ]);
     expect(windows).toHaveLength(3);
   });
 
-  it('is withheld during a pregnancy, after birth, with fewer than three cycles, or when her cycles vary widely', () => {
+  it('is withheld during a pregnancy, after birth, or when her measured cycles vary by more than 7 days', () => {
     expect(fertileWindows(steady({ status: 'pregnant' }))).toEqual([]);
     expect(fertileWindows(steady({ status: 'postpartum' }))).toEqual([]);
-    expect(fertileWindows(input({ periods: STEADY.slice(-3) }))).toEqual([]);
     const varying = ['2026-03-01', '2026-03-25', '2026-04-30', '2026-05-26', '2026-07-01', '2026-07-27'].map((s) => period(s));
     expect(fertileWindows(input({ periods: varying }))).toEqual([]);
-    expect(fertileWindows(input({ periods: [period('2026-09-18')], cycleSettings: { stated_cycle_length: 28 } }))).toEqual([]);
+    expect(fertileWindows(input({ periods: [period('2026-08-01'), period('2026-08-21'), period('2026-09-20')] }))).toEqual([]);
+  });
+
+  it('is shown with low confidence from a stated length or fewer than three cycles', () => {
+    const stated = fertileWindows(input({ periods: [period('2026-10-10')], cycleSettings: { stated_cycle_length: 28 } }));
+    expect(stated[0]).toEqual({ from: '2026-10-19', to: '2026-10-26', ovulation: { from: '2026-10-24', to: '2026-10-26' }, confidence: 'low' });
+    expect(fertileWindows(input({ periods: STEADY.slice(-3) }))[0]?.confidence).toBe('low');
+    expect(fertileWindows(steady())[0]?.confidence).not.toBe('low');
   });
 
   it('marks the window and likely ovulation on the calendar, never over a period day', () => {

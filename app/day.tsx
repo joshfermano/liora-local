@@ -79,6 +79,11 @@ export default function DayPreview() {
             <Text variant="subheadline" className="font-bold">
               {en('fertile.not_contraception')}
             </Text>
+            {fertileWindow.confidence === 'low' ? (
+              <Text variant="subheadline" tone="secondary">
+                {en('fertile.low')}
+              </Text>
+            ) : null}
             <Text variant="subheadline" tone="secondary">
               {en('fertile.basis')}
             </Text>

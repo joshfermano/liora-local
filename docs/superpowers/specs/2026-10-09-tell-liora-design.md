@@ -445,8 +445,9 @@ steady (1.4826 x MAD / median <= 0.15); basis: Li, Urteaga et al., JAMIA 2022, o
 - **Period length** for drawing predicted days: mean of logged period lengths, else the stated
   period length, else 5.
 - **Never** predicts while `status` is `pregnant` or `postpartum`.
-- **Fertile window (added 2026-10-10, user's call):** for steady, measured cycles only (at least 3
-  cleaned cycle lengths, the latest 6 varying by 7 days or less, `history` basis), likely ovulation
+- **Fertile window (added 2026-10-10, user's call):** withheld when her measured cycles (2 or more
+  cleaned lengths, the latest 6) vary by more than 7 days; low confidence from a stated length or
+  under 3 cycles, otherwise the prediction's confidence. Likely ovulation
   is 12 to 14 days before each estimated period (luteal phase mean 12.4 days, 95% range 7 to 17:
   Bull et al., npj Digital Medicine 2019) and the fertile window runs from the five days before it
   through ovulation (Wilcox, Weinberg and Baird, NEJM 1995). Always labelled "An estimate, not

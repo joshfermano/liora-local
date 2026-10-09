@@ -136,6 +136,7 @@ export function Glance({ model, pregnant }: { model: TodayModel; pregnant: boole
             <Text variant="subheadline">
               {fill('fertile.ovulation', { from: shortDate(model.fertile.ovulation.from), to: shortDate(model.fertile.ovulation.to) })}
             </Text>
+            {model.fertile.confidence === 'low' ? <Text variant="footnote">{en('fertile.low')}</Text> : null}
             <Text variant="subheadline" className="font-bold">
               {en('fertile.not_contraception')}
             </Text>

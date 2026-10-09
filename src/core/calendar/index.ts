@@ -24,6 +24,7 @@ export interface FertileWindow {
   from: string;
   to: string;
   ovulation: { from: string; to: string };
+  confidence: Prediction['confidence'];
 }
 
 export interface DayMark {
@@ -80,8 +81,9 @@ export function estimatedPeriods(input: CalendarInput, count = 3): EstimatedPeri
 
 // Likely ovulation 12 to 14 days before the estimated period (luteal phase mean 12.4 days, Bull et
 // al., npj Digital Medicine, 2019) and the fertile window of the five days before it through
-// ovulation (Wilcox, Weinberg and Baird, NEJM, 1995). Only for steady, measured cycles: withheld
-// during a pregnancy, after birth, under three cycles, or when they vary by more than 7 days.
+// ovulation (Wilcox, Weinberg and Baird, NEJM, 1995). Withheld during a pregnancy, after birth, or
+// when her measured cycles vary by more than 7 days; low confidence from a stated length or under
+// three cycles.
 const LUTEAL = { min: 12, max: 14 };
 const FERTILE_LEAD = 5;
 const STEADY_SPREAD = 7;
@@ -90,15 +92,16 @@ export function fertileWindows(input: CalendarInput, count = 3): FertileWindow[]
   const { periods, cycleSettings, status, today } = input;
   if (status === 'pregnant' || status === 'postpartum') return [];
   const lengths = withoutForgottenPeriods(cycleLengths(periods).reverse()).slice(0, 6);
-  if (lengths.length < 3 || Math.max(...lengths) - Math.min(...lengths) > STEADY_SPREAD) return [];
+  if (lengths.length >= 2 && Math.max(...lengths) - Math.min(...lengths) > STEADY_SPREAD) return [];
   const prediction = predictNext(periods, cycleSettings, today, 'neither');
-  if (!prediction || prediction.basis !== 'history') return [];
+  if (!prediction) return [];
+  const confidence = prediction.basis === 'stated' || lengths.length < 3 ? 'low' : prediction.confidence;
   const last = periods.map((p) => p.start).sort().at(-1)!;
   const cycle = between(last, prediction.next_start);
   return Array.from({ length: count }, (_, k) => {
     const next = shift(prediction.next_start, k * cycle);
     const ovulation = { from: shift(next, -LUTEAL.max), to: shift(next, -LUTEAL.min) };
-    return { from: shift(ovulation.from, -FERTILE_LEAD), to: ovulation.to, ovulation };
+    return { from: shift(ovulation.from, -FERTILE_LEAD), to: ovulation.to, ovulation, confidence };
   });
 }
 
