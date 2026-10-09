@@ -1,9 +1,10 @@
 import { toFindings } from '../ai/typed-decisions';
 import { applyAnswer, type Answer } from './followups';
 import { readText, readWeeks } from './lexicon';
+import { MILD_CUE, SEVERE_CUE } from './lexicon/entries';
 import { mergeFindings, PROVISIONAL_THRESHOLDS } from './merge';
 import { evaluate } from './rules';
-import type { Context, Entry, Extraction } from './types';
+import type { Context, Entry, Extraction, Finding } from './types';
 
 export interface PipelineInput {
   id: string;
@@ -21,10 +22,20 @@ function extract(text: string): Extraction | null {
   return { period: null, symptoms: [], moods: [], danger_signs: [], pregnancy_weeks: weeks };
 }
 
+// SR-1: the model may add caution but never remove a follow-up on its own. Its "mild" reading of a
+// severity sign counts only when her own words carry a mild word from the word list and no strong one.
+function cautious(findings: Finding[], text: string): Finding[] {
+  const mildInHerWords = MILD_CUE.test(text) && !SEVERE_CUE.test(text);
+  if (mildInHerWords) return findings;
+  return findings.map((f) =>
+    f.code.startsWith('severe_') && (f.severity === 'mild' || f.severity === 'moderate') ? { ...f, severity: 'unknown' } : f,
+  );
+}
+
 export function runPipeline({ id, now, text, input, context, typedAnswers, models }: PipelineInput): Entry {
   const findings = mergeFindings([
     ...readText(text),
-    ...(typedAnswers ? toFindings(typedAnswers, PROVISIONAL_THRESHOLDS) : []),
+    ...(typedAnswers ? cautious(toFindings(typedAnswers, PROVISIONAL_THRESHOLDS), text) : []),
   ]);
   return {
     id,

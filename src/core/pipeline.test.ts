@@ -80,3 +80,26 @@ describe('applyFollowUpAnswer', () => {
     expect(applyFollowUpAnswer(ok, 'yes', context)).toEqual(ok);
   });
 });
+
+describe('the model can add caution but never remove a follow-up on its own (SR-1)', () => {
+  const headacheMild = { 'yesno.severe_headache': [0.99, 0.01], 'severe.severe_headache': [0.01, 0.99], 'mild.severe_headache': [0.9, 0.1] };
+  const run = (text: string, typedAnswers: Record<string, number[]>) =>
+    runPipeline({ id: 'e', now: new Date('2026-10-10T00:00:00Z'), text, input: 'text', context: { status: 'pregnant' }, typedAnswers });
+
+  it("asks the follow-up when only the model calls a severity sign mild and her words don't", () => {
+    const entry = run('ang ulo ko', headacheMild);
+    expect(entry.findings.find((f) => f.code === 'severe_headache')?.severity).toBe('unknown');
+    expect(entry.decision.level).toBe('follow_up');
+  });
+
+  it('keeps the mild reading when her own words carry a mild word from the word list', () => {
+    const entry = run('konting sakit lang ng ulo ko', headacheMild);
+    expect(entry.findings.find((f) => f.code === 'severe_headache')?.severity).toBe('moderate');
+    expect(entry.decision.level).toBe('ok');
+  });
+
+  it('ignores the mild reading when her words also carry a strong word', () => {
+    const entry = run('medyo ang ulo ko pero sobrang hirap', headacheMild);
+    expect(entry.findings.find((f) => f.code === 'severe_headache')?.severity).toBe('unknown');
+  });
+});
