@@ -1,7 +1,8 @@
 import { useRouter } from 'expo-router';
-import { useCallback, useMemo, useRef, useState } from 'react';
-import { FlatList, View } from 'react-native';
+import { useCallback, useMemo, useRef, useState, type ReactNode } from 'react';
+import { FlatList, Platform, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { SafeAreaView } from 'react-native-screens/experimental';
 import { en } from '../../src/content/copy';
 import { loggedDays, periodsFromDays, toggleDay, usualLength } from '../../src/core/calendar';
 import { useLogStore } from '../../src/store/log';
@@ -18,6 +19,28 @@ import { SEPARATOR, SURFACE } from '../../src/ui/theme';
 
 const WEEKDAYS = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
 const TAB_BAR_CLEARANCE = 64;
+
+// iOS measures the real tab bar, so the gap above it matches the 8pt under the top bar.
+function FloatAboveTabBar({ children }: { children: ReactNode }) {
+  const insets = useSafeAreaInsets();
+  const row = (
+    <View pointerEvents="box-none" className="items-center pb-xs">
+      {children}
+    </View>
+  );
+  if (Platform.OS === 'ios') {
+    return (
+      <SafeAreaView edges={{ bottom: true }} pointerEvents="box-none" style={{ position: 'absolute', left: 0, right: 0, bottom: 0, flex: 0 }}>
+        {row}
+      </SafeAreaView>
+    );
+  }
+  return (
+    <View pointerEvents="box-none" className="absolute inset-x-0" style={{ bottom: insets.bottom + TAB_BAR_CLEARANCE }}>
+      {row}
+    </View>
+  );
+}
 
 export default function CalendarRoute() {
   return (
@@ -77,8 +100,7 @@ function Calendar() {
     setAway(m !== thisMonth);
   };
 
-  const floatBottom = insets.bottom + TAB_BAR_CLEARANCE - 8;
-  const listPad = floatBottom + 80;
+  const listPad = insets.bottom + TAB_BAR_CLEARANCE + 92;
 
   return (
     <View className={`flex-1 ${SURFACE.ground}`}>
@@ -159,7 +181,7 @@ function Calendar() {
       </View>
 
       {view === 'month' ? (
-        <View pointerEvents="box-none" className="absolute inset-x-0 items-center" style={{ bottom: floatBottom }}>
+        <FloatAboveTabBar>
           <GlassCard interactive style={{ borderRadius: 25 }}>
             {editing ? (
               <View className="flex-row items-center">
@@ -183,7 +205,7 @@ function Calendar() {
               </PressableSurface>
             )}
           </GlassCard>
-        </View>
+        </FloatAboveTabBar>
       ) : null}
     </View>
   );
