@@ -76,7 +76,7 @@ export const ENTRIES: Entry[] = [
   { pattern: /bloat|kabag|busog na busog/i, codes: ['bloating'] },
   { pattern: /pagod|fatigue|exhaust|\bhapo\b/i, codes: ['fatigue'] },
   {
-    pattern: /mood\s+(?:swings?|changes?)|paiba-iba\s+(?:ang\s+)?(?:mood|ugali)/i,
+    pattern: /\bmoody\b|mood\s+(?:swings?|changes?)|paiba-iba\s+(?:ang\s+)?(?:mood|ugali)/i,
     codes: ['mood_changes'],
   },
   { pattern: /\bacne\b|pimple|tigyawat/i, codes: ['acne'] },
@@ -87,13 +87,13 @@ export const ENTRIES: Entry[] = [
   },
   {
     pattern:
-      /(?:hindi|di)\s+(?:ako\s+)?makatulog|walang\s+tulog|\bpuyat\b|insomnia|(?:can'?t|cannot)\s+sleep|trouble\s+sleeping|poor\s+sleep/i,
+      /(?:hindi|di)\s+(?:ako\s+)?(?:makatulog|nakatulog)|(?:could\s*n'?t|couldnt|did\s*n'?t|didnt)\s+sleep|walang\s+tulog|\bpuyat\b|insomnia|(?:can'?t|cannot)\s+sleep|trouble\s+sleeping|poor\s+sleep/i,
     codes: ['sleep_quality'],
   },
   { pattern: /walang\s+(?:energy|lakas)|(?:low|no)\s+energy/i, codes: ['energy'] },
   { pattern: /stress/i, codes: ['stress'] },
   {
-    pattern: /walang\s+(?:gana|ganang|appetite)|(?:no|loss of|poor)\s+appetite|ayaw\s+kumain/i,
+    pattern: /\bnagugutom\b|\bgutom\s+(?:na\s+)?(?:ako|palagi|lagi)\b|\bhungry\b|\bcravings?\b|\bnaglilihi\b|walang\s+(?:gana|ganang|appetite)|(?:no|loss of|poor)\s+appetite|ayaw\s+kumain/i,
     codes: ['appetite'],
   },
 ];

@@ -31,9 +31,27 @@ function namedDate(text: string, today: string): string | null {
   return null;
 }
 
+const WEEKDAYS: Record<string, number> = {
+  sunday: 0, sun: 0, linggo: 0, monday: 1, mon: 1, lunes: 1, tuesday: 2, tue: 2, tues: 2, martes: 2, wednesday: 3, wed: 3, miyerkules: 3, miyerkoles: 3,
+  thursday: 4, thu: 4, thurs: 4, huwebes: 4, friday: 5, fri: 5, biyernes: 5, saturday: 6, sat: 6, sabado: 6,
+};
+// "Last monday", "noong Lunes": the latest such day before today. "Linggo" alone means a week, so it needs "noong".
+const WEEKDAY = /\b(?:last|nung|noong|nitong|this\s+past|on)\s+(sunday|sun|monday|mon|tuesday|tues|tue|wednesday|wed|thursday|thurs|thu|friday|fri|saturday|sat|lunes|martes|miyerkules|miyerkoles|huwebes|biyernes|sabado|linggo)\b/i;
+
+function weekdayDate(text: string, today: string): string | null {
+  const m = WEEKDAY.exec(text);
+  if (!m) return null;
+  const want = WEEKDAYS[m[1]!.toLowerCase()]!;
+  const now = parseISO(today);
+  const back = ((now.getDay() - want + 7) % 7) || 7;
+  return format(new Date(now.getFullYear(), now.getMonth(), now.getDate() - back), 'yyyy-MM-dd');
+}
+
 export function dateWord(text: string, fallback: DateWord, today: string): DateWord {
   const iso = ISO_DATE.exec(text);
   if (iso) return { kind: 'date', date: iso[1]! };
+  const weekday = weekdayDate(text, today);
+  if (weekday) return { kind: 'date', date: weekday };
   const named = namedDate(text, today);
   if (named) return { kind: 'date', date: named };
   if (/\b(?:kahapon|yesterday)\b/i.test(text)) return { kind: 'yesterday' };

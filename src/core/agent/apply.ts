@@ -12,6 +12,9 @@ function step(a: AgentAction, cur: AgentData, today: string): Step {
     const setup = a.status === 'pregnant' ? { ...(cur.setup ?? {}), status: a.status } : { ...rest, status: a.status };
     return { data: { setup }, saved: [{ kind: 'status', status: a.status }] };
   }
+  if (a.tool === 'set_name') {
+    return { data: { setup: { ...(cur.setup ?? {}), name: a.name } }, saved: [{ kind: 'name', name: a.name }] };
+  }
   if (a.tool === 'weeks') {
     return { data: { setup: { ...(cur.setup ?? {}), status: 'pregnant', weeks: a.weeks } }, saved: [{ kind: 'weeks', weeks: a.weeks }] };
   }

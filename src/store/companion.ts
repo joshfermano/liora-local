@@ -16,10 +16,11 @@ import { CONVERSATION_MS, isNewConversation, recentTurns } from './thread';
 import { runTurn, type AgentTurn } from './turn';
 import { mentionsSelfHarm } from '../core/agent/crisis';
 import { mentionsLoss } from '../core/agent/loss';
-import { carryOver, continuesTopic } from '../core/agent/carry';
-import type { SavedItem } from '../core/agent';
+import { carryOver, continuesTopic, dateAnswer } from '../core/agent/carry';
+import type { AgentAction, SavedItem } from '../core/agent';
 import { followUpAnswer } from '../core/agent/followon';
-import { warningSignsCard } from '../core/agent/warning';
+import { afterBirthCard, warningSignsCard } from '../core/agent/warning';
+import { goodNews } from '../core/agent/news';
 
 export interface ThreadMessage {
   id: string;
@@ -105,6 +106,13 @@ function lastSaved(messages: ThreadMessage[], now = Date.now()): SavedItem[] {
   return (last.blocks ?? []).flatMap((b) => (b.kind === 'logged' ? b.items : []));
 }
 
+// The confirm block in Liora's last reply, still waiting for her tap.
+function lastWaiting(messages: ThreadMessage[]): { confirmId: string; actions: AgentAction[] } | null {
+  const last = [...messages].reverse().find((m) => m.role === 'liora');
+  const block = last?.blocks?.find((b) => b.kind === 'confirm');
+  return block?.kind === 'confirm' ? { confirmId: block.confirmId, actions: block.actions } : null;
+}
+
 // A serious sign she described earlier in this conversation, while she is not pregnant.
 function activeSerious(messages: ThreadMessage[], now = Date.now()): boolean {
   for (const m of [...messages].reverse()) {
@@ -186,7 +194,11 @@ export const useCompanionStore = create<CompanionState>()(
         const before = lastHerText(get().messages);
         const ruleText = before && severityOnly(text) ? `${before}. ${text}` : text;
         // "Pati kahapon", "kahapon pala", "burahin mo": about what Liora just saved.
-        const carried = carryOver(text, lastSaved(get().messages), today());
+        // "Hindi naman masyado" right after Liora saved a symptom, with no question asked: noted.
+        const mild = followUpAnswer(text) === 'no' && lastSaved(get().messages).some((i) => i.kind === 'symptoms');
+        const waiting = lastWaiting(get().messages);
+        const dated = waiting ? dateAnswer(text, waiting.actions, today()) : null;
+        const carried = dated ?? carryOver(text, lastSaved(get().messages), today());
         // "Bakit kaya?" right after "masakit puson ko": a question about that, so the card search reads both.
         const topic = before && !carried && continuesTopic(text) ? `${before}. ${text}` : undefined;
         const her: ThreadMessage = { id: newId(), role: 'her', text, at: new Date().toISOString() };
@@ -220,12 +232,17 @@ export const useCompanionStore = create<CompanionState>()(
             const level = next.decision.level;
             add(
               level === 'ok'
-                ? [{ kind: 'text', key: 'companion.symptom.ok' }]
-                : [{ kind: 'text', key: `companion.symptom.${level}` }, { kind: 'decision', entryId: next.id, level }],
+                ? [{ kind: 'text', key: 'companion.symptom.ok' }, { kind: 'decision', entryId: next.id, level }]
+                : [{ kind: 'text', key: typed === 'skip' ? 'companion.symptom.skipped' : `companion.symptom.${level}` }, { kind: 'decision', entryId: next.id, level }],
             );
           } finally {
             set({ thinking: false });
           }
+          return;
+        }
+        if (mild && !typed) {
+          add([{ kind: 'reply', text: null, fallback: { key: 'reply.noted' } }]);
+          set({ thinking: false });
           return;
         }
         const work = async () => {
@@ -297,7 +314,9 @@ export const useCompanionStore = create<CompanionState>()(
           }
           // A sign on the DOH warning-signs list that the WHO rules do not cover (her baby not moving,
           // swelling, dizziness…): that cited card, verbatim, under a fixed line, and no model words.
-          const warning = profile.status !== 'neither' && profile.status !== 'postpartum' ? warningSignsCard(ruleText) : null;
+          // After birth, the WHO go-soon list (stitches, wound, urine, breasts) instead.
+          const warning =
+            profile.status === 'pregnant' ? warningSignsCard(ruleText) : profile.status === 'postpartum' ? afterBirthCard(ruleText) : null;
           if (warning && !turn.attachments.some((b) => b.kind === 'card')) {
             // The timeline must agree with the card she sees.
             const found = kept.map((b) => (b.kind === 'steps' ? { ...b, steps: b.steps.map((st) => (st.kind === 'sources' ? { ...st, found: true } : st)) } : b));
@@ -306,10 +325,23 @@ export const useCompanionStore = create<CompanionState>()(
           }
           // "Ilang weeks na ako?": her weeks are in her profile, so even without a model she gets them.
           const asksWeeks = /\bilang\s+(?:weeks|linggo)\b|\bhow\s+many\s+weeks\b|\bwhat\s+week\b|\bpang-?ilang\s+(?:week|linggo)\b/i.test(text);
-          if (asksWeeks && profile.status === 'pregnant' && profile.weeks !== undefined && !turn.attachments.some((b) => b.kind === 'logged' || b.kind === 'confirm')) {
-            turn = { ...turn, fallback: { key: 'reply.weeks', params: { n: String(profile.weeks) } } };
+          const asksDue = /\bkailan\s+(?:ako\s+)?(?:manganganak|manganak)\b|\bdue\s+date\b|\bkabuwanan\s+ko\b|\bwhen\s+(?:will|am|do)\s+i\s+(?:give\s+birth|deliver|due)\b|\bwhen\s+is\s+(?:my\s+)?(?:baby|due)\b/i.test(text);
+          const quiet = !turn.attachments.some((b) => b.kind === 'logged' || b.kind === 'confirm');
+          if ((asksWeeks || asksDue) && profile.status === 'pregnant' && profile.weeks !== undefined && quiet) {
+            turn = { ...turn, fallback: { key: asksDue ? 'reply.due' : 'reply.weeks', params: { n: String(profile.weeks) } }, attachments: turn.attachments.filter((b) => b.kind !== 'actions' || asksWeeks) };
+          }
+          // Good news about her baby: Liora is glad with her, and anything it saved stays.
+          if (goodNews(text) && entry.findings.length === 0) {
+            const steps = (b: ReplyBlock): ReplyBlock | null => {
+              if (b.kind !== 'steps') return b.kind === 'actions' || b.kind === 'card' ? null : b;
+              const left = b.steps.filter((st) => st.kind !== 'sources');
+              return left.length > 1 ? { ...b, steps: left } : null;
+            };
+            turn = { ...turn, fallback: { key: 'reply.glad' }, attachments: turn.attachments.map(steps).filter((b): b is ReplyBlock => b !== null) };
           }
           const id = add([{ kind: 'reply', text: null, fallback: turn.fallback }, ...turn.attachments]);
+          // Her date answered the question, so the old "which day?" card goes.
+          if (dated && waiting) set((s) => ({ messages: dropBlock(s.messages, (b) => b.kind === 'confirm' && b.confirmId === waiting.confirmId) }));
           const undone = turn.undoneId;
           if (undone) set((s) => ({ messages: dropBlock(s.messages, (b) => b.kind === 'logged' && b.undoId === undone) }));
           if (canSay() && !turn.noModel) {

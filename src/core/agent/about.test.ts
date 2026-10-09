@@ -77,5 +77,20 @@ describe('aboutLiora', () => {
   ])('does not refuse "%s"', (text) => {
     expect(aboutLiora(text)).not.toBe('offtopic');
   });
-});
 
+  it.each([
+    ['tagalog ka ba?', 'language'],
+    ['can you speak tagalog', 'language'],
+    ['marunong ka ba mag-tagalog?', 'language'],
+    ["what's my name?", 'name'],
+    ['ano pangalan ko?', 'name'],
+    ['i love you liora', 'love'],
+    ['mahal kita', 'love'],
+    ["you're useless", 'sorry'],
+    ['walang kwenta ka', 'sorry'],
+    ['kumusta ka?', 'howareyou'],
+    ['how are you', 'howareyou'],
+  ])('reads "%s" as %s', (text, kind) => {
+    expect(aboutLiora(text)).toBe(kind);
+  });
+});

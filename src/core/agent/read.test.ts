@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { mergeActions, readActions, type AgentAction } from './index';
+import { mergeActions, planActions, readActions, type AgentAction } from './index';
 
 const TODAY = '2026-10-10';
 const tools = (text: string) => readActions(text, TODAY).map((a) => a.tool);
@@ -195,6 +195,30 @@ describe('readActions: more than one thing in a message', () => {
       { tool: 'symptoms', date: { kind: 'yesterday' }, symptoms: ['headache'] },
       { tool: 'symptoms', date: { kind: 'today' }, symptoms: ['headache'] },
     ]);
+  });
+});
+
+describe('readActions: weekdays and more words', () => {
+  it('reads "last monday" as the monday before today', () => {
+    expect(readActions('i had cramps last monday', TODAY)).toEqual([{ tool: 'symptoms', date: { kind: 'date', date: '2026-10-05' }, symptoms: ['cramps'] }]);
+  });
+
+  it('reads "noong Lunes" the same way', () => {
+    expect(readActions('masakit puson ko noong Lunes', TODAY)[0]).toMatchObject({ date: { kind: 'date', date: '2026-10-05' } });
+  });
+
+  it('reads "mabigat ang regla ko" as a heavy flow', () => {
+    expect(readActions('mabigat ang regla ko', TODAY)).toEqual([{ tool: 'flow', date: { kind: 'today' }, flow: 'heavy' }]);
+  });
+});
+
+describe('readActions: her name', () => {
+  it.each([['change my name to Bea', 'Bea'], ['call me Bea', 'Bea'], ['tawagin mo akong Ate Bea', 'Ate Bea'], ['palitan mo pangalan ko ng Maria po', 'Maria']])('reads "%s"', (text, name) => {
+    expect(readActions(text, TODAY)).toEqual([{ tool: 'set_name', name }]);
+  });
+
+  it('asks before changing it', () => {
+    expect(planActions([{ tool: 'set_name', name: 'Bea' }], { periods: [], dayLogs: [], cycleSettings: {}, setup: null }, 'neither', TODAY).confirm).toHaveLength(1);
   });
 });
 

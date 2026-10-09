@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { carryOver, continuesTopic } from './carry';
+import { carryOver, continuesTopic, dateAnswer } from './carry';
 import type { SavedItem } from './types';
 
 const TODAY = '2026-10-10';
@@ -50,5 +50,17 @@ describe('a short question that follows her last message', () => {
 
   it.each(['masakit ulo ko', 'who are you?', 'what is the capital of france?', 'kailan next period ko?', 'thanks'])('stands alone: "%s"', (text) => {
     expect(continuesTopic(text)).toBe(false);
+  });
+});
+
+describe('a date given after Liora asked which day', () => {
+  const waiting = [{ tool: 'period_start' as const, date: { kind: 'unknown' as const }, flow: null }];
+  it.each([['kahapon', '2026-10-09'], ['kanina', TODAY], ['2 days ago', '2026-10-08'], ['noong Oct 7', '2026-10-07']])('fills "%s"', (text, date) => {
+    expect(dateAnswer(text, waiting, TODAY)).toEqual([{ tool: 'period_start', date: { kind: 'date', date }, flow: null }]);
+  });
+
+  it('needs a bare date and something waiting', () => {
+    expect(dateAnswer('masakit ulo ko kahapon', waiting, TODAY)).toBeNull();
+    expect(dateAnswer('kahapon', [], TODAY)).toBeNull();
   });
 });

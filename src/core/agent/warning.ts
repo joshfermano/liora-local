@@ -8,3 +8,13 @@ export const WARNING_SIGNS_CARD = 'mcb-p4-warning-signs';
 export function warningSignsCard(text: string): string | null {
   return SIGNS.test(text) ? WARNING_SIGNS_CARD : null;
 }
+
+// After birth: the WHO "go to the health centre as soon as possible" list (PCPNC M4, p. 165).
+const AFTER_BIRTH =
+  /\b(?:tahi|stitch(?:es)?|sugat|wound|incision|hiwa)\b.*\b(?:sakit|masakit|kirot|maga|namamaga|nana|pula|namumula|bumuka|infect\w*|pain\w*|hurts?|sore|swollen|red|pus|open(?:ed)?|mabaho|smell\w*)\b|\b(?:sakit|masakit|kirot|maga|namamaga|nana|pula|namumula|bumuka|infect\w*|pain\w*|hurts?|sore|swollen|red|pus)\b.*\b(?:tahi|stitch(?:es)?|sugat|wound|incision|hiwa)\b|\bperine\w*\b|\bhirap\s+(?:akong\s+|ako\s+)?(?:umihi|mag-?ihi)|\b(?:masakit|mahapdi)\s+(?:(?:pag|kapag|kung)\s+)?(?:umihi|umiihi)|\btumutulo\s+(?:ang\s+)?ihi|\b(?:can'?t|cannot|hard\s+to)\s+pee\b|\bleaking\s+urine\b|\b(?:mabaho(?:ng)?|smelly|foul)\b.*\bdischarge\b|\bdischarge\b.*\b(?:mabaho|smelly|foul)\b|\b(?:dede|suso|utong|breasts?|nipples?)\b.*\b(?:namamaga|maga|pula|namumula|swollen|red)\b|\b(?:namamaga|maga|pula|namumula|swollen|red)\b.*\b(?:dede|suso|utong|breasts?|nipples?)\b/i;
+
+export const AFTER_BIRTH_CARD = 'pcpnc-m4-danger-soon';
+
+export function afterBirthCard(text: string): string | null {
+  return AFTER_BIRTH.test(text) ? AFTER_BIRTH_CARD : null;
+}

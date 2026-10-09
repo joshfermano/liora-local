@@ -23,8 +23,11 @@ function look(step: Step): { sf: string; fallback: IconName; line: string } {
       return { sf: 'arrow.uturn.backward', fallback: 'reset', line: en('agent.steps.undid') };
     case 'nothing_to_undo':
       return { sf: 'arrow.uturn.backward', fallback: 'reset', line: en('agent.steps.nothing_to_undo') };
-    case 'saved':
-      return { sf: 'square.and.pencil', fallback: 'check', line: fill(en('agent.steps.saved'), { what: savedLine(step.item) }) };
+    case 'saved': {
+      const plain = ['period_deleted', 'day_cleared', 'forgot', 'name', 'status', 'remembered'].includes(step.item.kind);
+      const sf = step.item.kind === 'period_deleted' || step.item.kind === 'day_cleared' || step.item.kind === 'forgot' ? 'trash' : 'square.and.pencil';
+      return { sf, fallback: 'check', line: plain ? savedLine(step.item) : fill(en('agent.steps.saved'), { what: savedLine(step.item) }) };
+    }
     case 'not_found':
       return { sf: 'magnifyingglass', fallback: 'info', line: en('agent.steps.not_found') };
     case 'note_not_found':

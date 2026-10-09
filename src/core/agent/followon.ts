@@ -24,7 +24,10 @@ const NO_ANSWER =
   /^\s*(?:(?:hindi|di)(?:\s+(?:naman|po))*(?:\s+(?:masyado|gaano|ganun|ganoon|ganon))?(?:\s+(?:po|lang))?|no|nope|not\s+really|not\s+(?:that|too|so)\s+bad|konti\s+lang|medyo\s+lang|okay\s+lang(?:\s+naman)?)[\s.!]*$/i;
 const YES_ANSWER = /^\s*(?:oo|opo|oo\s+po|yes|yup|yeah|oo\s+sobra|sobra|sobra\s+po|grabe|very)[\s.!]*$/i;
 
-export function followUpAnswer(text: string): 'yes' | 'no' | null {
+const SKIP_ANSWER = /^\s*(?:skip|laktawan|pass|next|ayoko\s+(?:sumagot|sagutin)|i\s+don'?t\s+know|hindi\s+ko\s+alam|di\s+ko\s+alam)[\s.!]*$/i;
+
+export function followUpAnswer(text: string): 'yes' | 'no' | 'skip' | null {
+  if (SKIP_ANSWER.test(text)) return 'skip';
   if (NO_ANSWER.test(text)) return 'no';
   if (YES_ANSWER.test(text)) return 'yes';
   return null;
