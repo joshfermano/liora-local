@@ -102,7 +102,6 @@ describe('a real turn leaves one trace', () => {
 
   it('notes a repeated danger question as a cache hit', async () => {
     useTraceStore.getState().clear();
-    useLogStore.setState({ setup: { status: 'pregnant' } });
     const ref = { role: 'llm' as const, id: 'test', version: '1', prompts: { typed: '1.abc' } };
     setAskModel(async () => ({}), ref);
     await useCompanionStore.getState().send('masakit puson ko');
