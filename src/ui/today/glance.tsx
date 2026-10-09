@@ -63,7 +63,7 @@ function Pane({ width, wash, fertile, children }: { width: number; wash?: boolea
   return (
     <View
       style={{ width }}
-      className={`min-h-[170px] gap-xs rounded-pane border p-md ${
+      className={`min-h-[132px] gap-xs rounded-pane border p-md ${
         fertile
           ? 'border-fertile bg-fertile-soft dark:border-fertile-dark dark:bg-fertile-soft-dark'
           : wash
@@ -139,6 +139,7 @@ export function Glance({ model, pregnant }: { model: TodayModel; pregnant: boole
     <View className="gap-sm">
       <ScrollView
         horizontal
+        contentOffset={{ x: 0, y: 0 }}
         showsHorizontalScrollIndicator={false}
         snapToInterval={paneW + GAP}
         decelerationRate="fast"
@@ -200,6 +201,11 @@ export function Glance({ model, pregnant }: { model: TodayModel; pregnant: boole
         {observations.map((p, i) => (
           <Pane key={i} width={paneW}>
             <Text variant="body">{describe(p)}</Text>
+            {p.kind === 'mood_check' ? (
+              <Text variant="subheadline" tone="tint" accessibilityRole="link" className="mt-auto" onPress={() => { tap(); router.push('/mood' as Href); }}>
+                {en('companion.action.mood_check')}
+              </Text>
+            ) : null}
           </Pane>
         ))}
         {model.cyclesLogged < 2 && !pregnant ? (
