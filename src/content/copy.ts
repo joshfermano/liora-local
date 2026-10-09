@@ -9,9 +9,9 @@ interface Entry {
 }
 
 const ui = (en: string, fil: string | null = null): Entry => ({ fil, en });
-const med = (): Entry => ({ fil: null, en: null, medical: true });
-// English quoted from the WHO ANC DAK danger-sign check (p. 73); the Filipino is the team's to write.
-const who = (en: string): Entry => ({ fil: null, en, medical: true });
+// Quoted from an approved WHO source; the English shows in Filipino slots until the team writes
+// the Filipino (LUM-47), since a cited quote is safer than an empty slot.
+const who = (en: string): Entry => ({ fil: null, en });
 
 export const COPY = {
   'home.prompt': ui('How are you feeling?', "Ano'ng nararamdaman mo?"),
@@ -24,7 +24,7 @@ export const COPY = {
   'home.ai.on': ui('AI on'),
   'home.ai.off': ui('AI off, checklist on'),
   'home.offline': ui('Offline'),
-  'home.error': med(),
+  'home.error': ui('Something went wrong. Try again, or use the checklist.'),
   'home.dev_native': ui('Native model test'),
   'home.setup': ui('Get Liora ready for offline'),
   'home.calendar': ui('Calendar'),
@@ -39,24 +39,24 @@ export const COPY = {
   'result.ask_checkup': ui('Ask at your check-up'),
   'result.home': ui('Done'),
   'result.back': ui('Back'),
-  'result.not_found': med(),
+  'result.not_found': ui('This entry is not on this phone.'),
 
-  'go.headline': med(),
-  'go.line': med(),
-  'go.signs.header': med(),
-  'go.source.header': med(),
+  'go.headline': who('Go to the hospital or health centre immediately'),
+  'go.line': who('Day or night, DO NOT wait.'),
+  'go.signs.header': ui('Signs in your message'),
+  'go.source.header': ui('Source'),
 
-  'followup.skip_means': med(),
+  'followup.skip_means': ui('If you skip, Liora treats it as serious.'),
 
-  'calm.copy': med(),
-  'calm.watch.header': med(),
-  'calm.watch.items': med(),
+  'calm.copy': who("If at any time you have any concerns about your or your baby’s health, go to the health centre."),
+  'calm.watch.header': who('Go to the hospital or health centre immediately, day or night, DO NOT wait, if any of the following signs:'),
+  'calm.watch.items': who('vaginal bleeding\nconvulsions/fits\nsevere headaches with blurred vision\nfever and too weak to get out of bed\nsevere abdominal pain\nfast or difficult breathing.'),
 
-  'nurse.weeks': med(),
-  'nurse.days_since_birth': med(),
-  'nurse.signs': med(),
-  'nurse.logged': med(),
-  'nurse.bp': med(),
+  'nurse.weeks': ui('Weeks pregnant'),
+  'nurse.days_since_birth': ui('Days since giving birth'),
+  'nurse.signs': ui('Signs she reported'),
+  'nurse.logged': ui('Logged'),
+  'nurse.bp': ui('Blood pressure she entered'),
 
   'sign.vaginal_bleeding': who('Bleeding vaginally'),
   'sign.convulsions': who('Convulsing'),
@@ -78,6 +78,13 @@ export const COPY = {
   'severity.mild': ui('mild'),
   'severity.unknown': ui('not sure yet'),
 
+  // "Sobrang sakit ba?" is the team's own wording from the demo script (HANDOFF.md section 10).
+  'fu.severe_headache': ui('Is it very painful?', 'Sobrang sakit ba?'),
+  'fu.severe_pain': ui('Is it very painful?', 'Sobrang sakit ba?'),
+  'fu.severe_abdominal_pain': ui('Is it very painful?', 'Sobrang sakit ba?'),
+  'fu.severe_vomiting': ui('Is the vomiting very bad?'),
+  'fu.severe_difficulty_breathing': ui('Is it very hard to breathe?'),
+
   'why.title': ui('Why?'),
   'why.none': ui('Ask at your check-up'),
 
@@ -97,7 +104,7 @@ export const COPY = {
   'calendar.confidence.high': ui('Confidence: high'),
   'calendar.not_birth_control': ui('Not for birth control.'),
   'calendar.need_period': ui('Mark a period start and Liora can estimate the next one'),
-  'calendar.no_estimate_status': med(),
+  'calendar.no_estimate_status': ui('No period estimate while pregnant or after giving birth.'),
   'calendar.confirm_start': ui('Started {date}, tama ba?'),
   'calendar.confirm_end': ui('Ended {date}, tama ba?'),
   'calendar.legend': ui('Solid: logged. Dashed: estimated.'),
