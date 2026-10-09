@@ -143,7 +143,7 @@ export default function Liora() {
                       </Text>
                     </Bubble>
                   ) : (
-                    <LioraMessage key={m.id} blocks={m.blocks ?? []} thinking={thinking && m.id === last?.id} />
+                    <LioraMessage key={m.id} blocks={m.blocks ?? []} thinking={thinking && m.id === last?.id} latest={m.id === last?.id} />
                   ),
                 )}
                 {thinking && last?.role !== 'liora' ? <Typing /> : null}
