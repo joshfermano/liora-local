@@ -14,6 +14,7 @@ import { EntryRow, entryDay } from '../src/ui/EntryRow';
 import { Icon } from '../src/ui/Icon';
 import { Lattice } from '../src/ui/Lattice';
 import { PressableSurface } from '../src/ui/PressableSurface';
+import { LockGate } from '../src/ui/LockGate';
 import { Screen } from '../src/ui/Screen';
 import { Text } from '../src/ui/Text';
 import { EDGE, SURFACE } from '../src/ui/theme';
@@ -29,7 +30,15 @@ function range(from: string, to: string): string[] {
   return out;
 }
 
-export default function Calendar() {
+export default function CalendarRoute() {
+  return (
+    <LockGate>
+      <Calendar />
+    </LockGate>
+  );
+}
+
+function Calendar() {
   const router = useRouter();
   const entries = useLogStore((s) => s.entries);
   const periods = useLogStore((s) => s.periods);

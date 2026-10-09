@@ -7,12 +7,21 @@ import { score } from '../src/core/phq9/score';
 import { useLogStore } from '../src/store/log';
 import { CapsuleButton } from '../src/ui/CapsuleButton';
 import { ChoiceCard } from '../src/ui/ChoiceCard';
+import { LockGate } from '../src/ui/LockGate';
 import { Screen } from '../src/ui/Screen';
 import { Text } from '../src/ui/Text';
 
 const newId = () => `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
 
-export default function Mood() {
+export default function MoodRoute() {
+  return (
+    <LockGate>
+      <Mood />
+    </LockGate>
+  );
+}
+
+function Mood() {
   const router = useRouter();
   const [answers, setAnswers] = useState<number[]>([]);
   const [above, setAbove] = useState<boolean | null>(null);

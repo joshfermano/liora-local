@@ -109,6 +109,11 @@ export default function Home() {
                 {en('home.mood')}
               </Text>
             </Link>
+            <Link href="/settings">
+              <Text variant="footnote" tone="secondary">
+                {en('home.settings')}
+              </Text>
+            </Link>
           </View>
           {setupDone ? null : (
             <Link href="/setup" className="self-start">

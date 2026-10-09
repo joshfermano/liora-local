@@ -182,6 +182,15 @@ export const COPY = {
   'name.question': ui('What should Liora call you?'),
   'name.optional': ui('Optional. It stays on this phone.'),
   'home.greeting': ui('Hi, {name}'),
+  'home.settings': ui('Settings'),
+  'settings.title': ui('Settings'),
+  'settings.name.save': ui('Save name'),
+  'settings.lock': ui('Lock my private history with Face ID'),
+  'lock.title': ui('Unlock with Face ID'),
+  'lock.body': ui('Your log, mood checks and calendar are locked on this phone.'),
+  'lock.button': ui('Unlock'),
+  'lock.prompt': ui('Unlock your private history'),
+  'lock.fallback': ui('Use passcode'),
 } as const satisfies Record<string, Entry>;
 
 export type CopyKey = keyof typeof COPY;

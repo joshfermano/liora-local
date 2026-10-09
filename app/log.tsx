@@ -7,6 +7,7 @@ import { useLogStore } from '../src/store/log';
 import { CapsuleButton } from '../src/ui/CapsuleButton';
 import { EntryRow } from '../src/ui/EntryRow';
 import { Icon } from '../src/ui/Icon';
+import { LockGate } from '../src/ui/LockGate';
 import { Lattice } from '../src/ui/Lattice';
 import { PressableSurface } from '../src/ui/PressableSurface';
 import { Screen } from '../src/ui/Screen';
@@ -23,7 +24,15 @@ function groupOf(e: Entry): Group {
   return 'symptoms';
 }
 
-export default function Log() {
+export default function LogRoute() {
+  return (
+    <LockGate>
+      <Log />
+    </LockGate>
+  );
+}
+
+function Log() {
   const router = useRouter();
   const entries = useLogStore((s) => s.entries);
   const deleteEntry = useLogStore((s) => s.deleteEntry);
