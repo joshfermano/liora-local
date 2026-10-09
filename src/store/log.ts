@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
-import type { CycleSettings, Entry, MoodResult, PeriodRecord } from '../core/types';
+import { upsertDayLog } from '../core/daylog';
+import type { CycleSettings, DayLog, Entry, MoodResult, PeriodRecord } from '../core/types';
 import { storage } from './storage';
 
 export type SetupAnswers = Record<string, unknown>;
@@ -10,6 +11,7 @@ interface LogData {
   setup: SetupAnswers | null;
   moods: MoodResult[];
   periods: PeriodRecord[];
+  dayLogs: DayLog[];
   cycleSettings: CycleSettings;
 }
 
@@ -19,11 +21,13 @@ export interface LogState extends LogData {
   setSetup(setup: SetupAnswers): void;
   addMood(result: MoodResult): void;
   setPeriods(periods: PeriodRecord[]): void;
+  saveDayLog(log: DayLog, periods?: PeriodRecord[]): void;
+  deleteDayLog(date: string): void;
   setCycleSettings(settings: CycleSettings): void;
   deleteEverything(): Promise<void>;
 }
 
-const EMPTY: LogData = { entries: [], setup: null, moods: [], periods: [], cycleSettings: {} };
+const EMPTY: LogData = { entries: [], setup: null, moods: [], periods: [], dayLogs: [], cycleSettings: {} };
 
 export const useLogStore = create<LogState>()(
   persist(
@@ -35,6 +39,9 @@ export const useLogStore = create<LogState>()(
       setSetup: (setup) => set({ setup }),
       addMood: (result) => set((s) => ({ moods: [result, ...s.moods] })),
       setPeriods: (periods) => set({ periods }),
+      saveDayLog: (log, periods) =>
+        set((s) => ({ dayLogs: upsertDayLog(s.dayLogs, log), periods: periods ?? s.periods })),
+      deleteDayLog: (date) => set((s) => ({ dayLogs: s.dayLogs.filter((l) => l.date !== date) })),
       setCycleSettings: (cycleSettings) => set({ cycleSettings }),
       deleteEverything: async () => {
         set({ ...EMPTY });
@@ -44,11 +51,12 @@ export const useLogStore = create<LogState>()(
     {
       name: 'tell-liora-log',
       storage: createJSONStorage(() => storage),
-      partialize: ({ entries, setup, moods, periods, cycleSettings }) => ({
+      partialize: ({ entries, setup, moods, periods, dayLogs, cycleSettings }) => ({
         entries,
         setup,
         moods,
         periods,
+        dayLogs,
         cycleSettings,
       }),
     },

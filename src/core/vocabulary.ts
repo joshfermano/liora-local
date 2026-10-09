@@ -5,6 +5,10 @@ export const SYMPTOMS = [
   'breast_tenderness', 'sleep_quality', 'energy', 'stress', 'appetite', 'nausea', 'pelvic_pain',
 ] as const;
 
+export const ACTIVITIES = [
+  'walk', 'exercise', 'rest', 'water', 'slept_well', 'checkup_visit', 'medicine_taken',
+] as const;
+
 export const MOODS = [
   'calm', 'joyful', 'energetic', 'romantic', 'tired', 'anxious', 'stressed', 'irritable', 'sad',
 ] as const;
