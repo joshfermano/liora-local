@@ -220,6 +220,13 @@ it. Tell Liora runs the same idea on the phone:
   `follow_up` turn, neither can change a decision, and health facts come only from cards.
 - **SR-3** The decision model is pure, deterministic TypeScript with a source on every rule.
 - **SR-4** Go-now and crisis screens contain only fixed copy.
+- **SR-1b Two WHO lists (user's call, 2026-10-10, 5:20 AM):** in pregnancy the rules follow the
+  woman-facing WHO PCPNC M2 (p. 163) lists her cards quote. "Go to the hospital or health centre
+  immediately": vaginal bleeding, fits, severe headache with blurred vision, fever and too weak to get
+  out of bed, severe abdominal pain, fast or difficult breathing (plus the other DT.01 signs).
+  "Go to the health centre as soon as possible" (decision level `go_soon`): fever, abdominal pain,
+  feeling ill. Fever gets WHO's own question ("Are you too weak to get out of bed?"). After birth the
+  DT.01 rules apply unchanged. Every go-now or go-soon decision shows its WHO card word for word.
 - **SR-5** Unknown severity triggers a follow-up; skipping resolves to serious.
   **Shown calmly (user's call, 2026-10-10):** a skip still decides go-now, but she sees "Let's be
   safe" with why it counts as serious, Call and Text for her contact, the nurse card, and "Answer

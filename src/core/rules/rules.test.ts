@@ -4,7 +4,9 @@ import { FOLLOW_UPS, applyAnswer } from '../followups';
 import { DANGER_CODES } from '../vocabulary';
 import type { Context, Finding, Severity } from '../types';
 
-const ctx: Context = { status: 'pregnant', weeks: 30 };
+// The DT.01 table as the DAK writes it; after birth it applies unchanged. Pregnancy adds WHO PCPNC's
+// two lists on top (tiers.test.ts).
+const ctx: Context = { status: 'postpartum' };
 const finding = (code: Finding['code'], severity: Severity): Finding => ({
   code, severity, sources: ['lexicon'], confidence: null,
 });
@@ -23,7 +25,7 @@ describe('rule table', () => {
       expect(rule?.level).toBe('go_now');
       expect(rule?.source).toEqual({ ...SOURCE, ref: 'ANC.DT.01' });
     }
-    expect(RULES).toHaveLength(15);
+    expect(RULES).toHaveLength(19);
   });
   it('DT.17 cites its own ref', () => {
     expect(RULES.find((r) => r.id === 'ANC.DT.17')?.source).toEqual({ ...SOURCE, ref: 'ANC.DT.17' });
@@ -110,9 +112,9 @@ describe('evaluate', () => {
 });
 
 describe('follow-ups', () => {
-  it('has one entry per severity-gated code, with no wording', () => {
+  it('has one entry per severity-gated code plus the WHO PCPNC fever question, with no wording', () => {
     expect(FOLLOW_UPS.map((q) => q.code).sort()).toEqual(
-      DANGER_CODES.filter((c) => c.startsWith('severe_')).sort(),
+      [...DANGER_CODES.filter((c) => c.startsWith('severe_')), 'fever'].sort(),
     );
     for (const q of FOLLOW_UPS) expect(Object.keys(q).sort()).toEqual(['code', 'question_id']);
   });

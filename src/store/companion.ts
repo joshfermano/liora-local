@@ -172,7 +172,7 @@ export const useCompanionStore = create<CompanionState>()(
           // A danger turn gets the rules' fixed decision block and no model-written words. When the
           // WHO rules do not cover her (not pregnant), a danger word is logged like any symptom.
           const rulesApply = dangerRulesApply(contextFrom(profile), input, text);
-          const urgent = entry.decision.level === 'go_now' || entry.decision.level === 'follow_up' || (read.purpose === 'urgent' && rulesApply);
+          const urgent = entry.decision.level !== 'ok' || (read.purpose === 'urgent' && rulesApply);
           let turn: AgentTurn | null = null;
           if (!urgent) {
             try {

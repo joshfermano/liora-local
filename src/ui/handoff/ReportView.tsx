@@ -14,6 +14,7 @@ import { shareReport } from './share';
 const BANNER: Record<Level, { surface: string; tag: 'onUrgent' | 'tintSoftInk' | 'secondary'; text: 'onUrgent' | 'tintSoftInk' | 'label' }> = {
   go_now: { surface: SURFACE.alarm, tag: 'onUrgent', text: 'onUrgent' },
   follow_up: { surface: SURFACE.tintSoft, tag: 'tintSoftInk', text: 'tintSoftInk' },
+  go_soon: { surface: SURFACE.tintSoft, tag: 'tintSoftInk', text: 'tintSoftInk' },
   ok: { surface: SURFACE.fill, tag: 'secondary', text: 'label' },
 };
 

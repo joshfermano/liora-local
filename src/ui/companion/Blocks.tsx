@@ -113,6 +113,17 @@ function Decision({ block }: { block: Extract<ReplyBlock, { kind: 'decision' }> 
     if (level === 'go_now' && !skipped) warn();
   }, [level, skipped]);
 
+  if (level === 'go_soon') {
+    return (
+      <GlassCard interactive className="p-md gap-sm">
+        <Text variant="headline" tone="tintSoftInk">
+          {en('soon.headline')}
+        </Text>
+        <CapsuleButton variant="filled" label={en('soon.open')} onPress={() => { tap(); open(); }} />
+      </GlassCard>
+    );
+  }
+
   // A skip still counts as serious, shown calmly with a way back to the question.
   if (level === 'go_now' && skipped) {
     return (

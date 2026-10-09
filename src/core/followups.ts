@@ -7,9 +7,11 @@ export interface FollowUp {
 }
 
 // Question wording is human-written in src/content/ (LUM-47), keyed by question_id.
-export const FOLLOW_UPS: FollowUp[] = DANGER_CODES.filter((c) => c.startsWith('severe_')).map(
-  (code) => ({ question_id: `fu.${code}`, code }),
-);
+// Fever gets WHO PCPNC's own split: "fever and too weak to get out of bed" goes now, fever alone soon.
+export const FOLLOW_UPS: FollowUp[] = [
+  ...DANGER_CODES.filter((c) => c.startsWith('severe_')).map((code) => ({ question_id: `fu.${code}`, code })),
+  { question_id: 'fu.fever', code: 'fever' },
+];
 
 export type Answer = 'yes' | 'no' | 'skip';
 

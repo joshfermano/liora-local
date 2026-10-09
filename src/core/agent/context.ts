@@ -31,6 +31,7 @@ const words = (codes: readonly string[]) => codes.map((c) => c.replace(/_/g, ' '
 const LEVEL: Record<Entry['decision']['level'], string> = {
   go_now: 'the rules said go to the hospital now',
   follow_up: 'the rules asked a follow-up question',
+  go_soon: 'the rules said go to the health centre as soon as possible',
   ok: 'calm',
 };
 

@@ -54,6 +54,7 @@ type Tone = 'go' | 'ask' | 'calm';
 const OUTCOME: Record<Entry['decision']['level'], { tone: Tone; key: string; sf: string; fallback: 'danger' | 'info' | 'check' }> = {
   go_now: { tone: 'go', key: 'decided.outcome.go_now', sf: 'exclamationmark.triangle.fill', fallback: 'danger' },
   follow_up: { tone: 'ask', key: 'decided.outcome.follow_up', sf: 'questionmark.circle.fill', fallback: 'info' },
+  go_soon: { tone: 'ask', key: 'decided.outcome.go_soon', sf: 'clock.fill', fallback: 'info' },
   ok: { tone: 'calm', key: 'decided.outcome.ok', sf: 'checkmark.circle.fill', fallback: 'check' },
 };
 

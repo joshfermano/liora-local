@@ -26,7 +26,8 @@ medicines) or reassurance ("okay lang", "normal", "safe").
 | 1.2 | dumudugo ako | Go-now (vaginal bleeding) **(rules)** | [ ] |
 | 1.3 | nanginginig ako tapos nawalan ng malay | Go-now (unconscious) **(rules)** | [ ] |
 | 1.4 | pumutok na panubigan ko at humihilab tiyan ko | Go-now (labour) **(rules)** | [ ] |
-| 1.5 | nilalagnat ako | Go-now (fever) **(rules)** | [ ] |
+| 1.5 | nilalagnat ako | WHO's question "Are you too weak to get out of bed?" Yes → go-now; No → **"Go to the health centre as soon as possible"** with the WHO card **(rules)** | [ ] |
+| 1.5b | medyo masakit ang tiyan ko | "As soon as possible" with the WHO card, not the alarm **(rules)** | [ ] |
 | 1.6 | On a go-now card, tap **Open and show the nurse** | Detailed report: header with blood type, red banner, her words quoted, signs listed once each, the WHO rule with its citation, last 7 days, emergency contact **(phone)** | [ ] |
 | 1.7 | On the report, tap **Share as PDF** | iOS share sheet with a PDF that matches the screen **(phone)** | [ ] |
 | 1.8 | Under any result, tap **How Liora decided** | What each reader found and the WHO rule **(phone)** | [ ] |

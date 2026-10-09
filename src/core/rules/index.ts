@@ -1,15 +1,16 @@
 import { FOLLOW_UPS } from '../followups';
 import type { Context, Decision, Finding } from '../types';
 import type { Rule } from './rule';
-import { DT01_RULES, DT17_RULE } from './who';
+import { DT01_RULES, DT17_RULE, PCPNC_RULES } from './who';
 
 export type { Rule } from './rule';
 
 // The same set applies to every context.status until cited postpartum sets exist.
-export const RULES: Rule[] = [...DT01_RULES, DT17_RULE];
+export const RULES: Rule[] = [...DT01_RULES, DT17_RULE, ...PCPNC_RULES];
 
 export function evaluate(findings: Finding[], context: Context): Decision {
   const fired: Decision['fired'] = [];
+  let urgent = false;
   let pending: string | undefined;
 
   for (const rule of RULES) {
@@ -20,16 +21,20 @@ export function evaluate(findings: Finding[], context: Context): Decision {
     if (rule.minSeverity) {
       if (matched.some((f) => f.severity === rule.minSeverity)) {
         fired.push({ rule_id: rule.id, codes: matched.map((f) => f.code) });
+        urgent ||= rule.level === 'go_now';
       } else if (matched.some((f) => f.severity === 'unknown')) {
         pending ??= rule.codes[0];
       }
     } else {
       fired.push({ rule_id: rule.id, codes: matched.map((f) => f.code) });
+      urgent ||= rule.level === 'go_now';
     }
   }
 
-  if (fired.length > 0) return { level: 'go_now', fired };
+  // Go now beats a question; a question beats "as soon as possible", since her answer may raise it.
+  if (urgent) return { level: 'go_now', fired };
   const question = FOLLOW_UPS.find((q) => q.code === pending);
   if (question) return { level: 'follow_up', fired, follow_up: question };
+  if (fired.length > 0) return { level: 'go_soon', fired };
   return { level: 'ok', fired };
 }

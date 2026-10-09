@@ -45,7 +45,7 @@ export const ContextSchema = z.object({
 });
 
 export const DecisionSchema = z.object({
-  level: z.enum(['go_now', 'follow_up', 'ok']),
+  level: z.enum(['go_now', 'follow_up', 'go_soon', 'ok']),
   fired: z.array(z.object({ rule_id: z.string(), codes: z.array(z.string()) })),
   follow_up: z.object({ question_id: z.string(), code: z.string() }).optional(),
 });

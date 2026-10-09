@@ -56,7 +56,7 @@ export interface ReplyInput {
 export function composeReply({ intent, entry, context, periods, cycleSettings, today, cardId, name }: ReplyInput): ReplyBlock[] {
   const level = entry.decision.level;
   // Safety first: a danger sign or an unclear severity always shows the rules' decision.
-  if (level === 'go_now' || level === 'follow_up') {
+  if (level === 'go_now' || level === 'follow_up' || level === 'go_soon') {
     return [{ kind: 'text', key: `companion.symptom.${level}` }, { kind: 'decision', entryId: entry.id, level }];
   }
   switch (intent) {

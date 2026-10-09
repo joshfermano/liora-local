@@ -3,6 +3,7 @@ import { useTellStore } from '../../src/store/tell';
 import { Calm } from '../../src/ui/screens/Calm';
 import { FollowUp } from '../../src/ui/screens/FollowUp';
 import { GoNow } from '../../src/ui/screens/GoNow';
+import { GoSoon } from '../../src/ui/screens/GoSoon';
 import { SkippedSafe } from '../../src/ui/screens/SkippedSafe';
 
 export default function Result() {
@@ -15,6 +16,8 @@ export default function Result() {
     case 'follow_up':
       // Each question gets a fresh screen: two follow-ups can share the same words.
       return <FollowUp key={`${entry.id}:${entry.decision.follow_up?.code ?? ''}`} entry={entry} />;
+    case 'go_soon':
+      return <GoSoon entry={entry} />;
     case 'ok':
       return <Calm entry={entry} />;
   }

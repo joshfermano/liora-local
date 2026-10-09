@@ -128,21 +128,28 @@ describe('danger code phrasings', () => {
   };
   const serious = (code: string) => code.startsWith('severe_');
 
+  // In pregnancy WHO PCPNC splits fever and feeling ill: a question or "as soon as possible", never calm.
+  const split = (code: string) => code === 'fever' || code === 'looks_very_ill';
   for (const code of DANGER_CODES) {
     it.each(phrases[code])(`"%s" fires ${code}`, (phrase) => {
       const text = serious(code) ? `sobrang ${phrase}` : phrase;
       const d = decide(text);
+      if (split(code)) {
+        expect(['follow_up', 'go_soon']).toContain(d.level);
+        expect(d.fired.flatMap((f) => f.codes).concat(d.follow_up?.code ?? [])).toContain(code);
+        return;
+      }
       expect(d.level).toBe('go_now');
       expect(d.fired.flatMap((f) => f.codes)).toContain(code);
     });
   }
 
-  it.each(DANGER_CODES.filter(serious))('%s without a cue asks, and mild does not fire', (code) => {
+  it.each(DANGER_CODES.filter(serious))('%s without a cue asks, and mild does not go now', (code) => {
     const phrase = phrases[code][1]!;
     expect(sev(phrase, code)).toBe('unknown');
     expect(decide(phrase).level).toBe('follow_up');
     const mild = decide(`medyo ${phrase}`);
-    expect(mild.fired.flatMap((f) => f.codes)).not.toContain(code);
+    expect(mild.level).not.toBe('go_now');
   });
 
   it('covers every danger code', () => {

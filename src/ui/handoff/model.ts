@@ -6,7 +6,7 @@ import { sourceFor } from '../ruleSource';
 import { formatPhPhone } from '../../core/phone';
 
 // One shape for the screen and the PDF, so the two can never say different things.
-export type Level = 'go_now' | 'follow_up' | 'ok';
+export type Level = 'go_now' | 'follow_up' | 'go_soon' | 'ok';
 
 export interface Fact {
   label: string;
@@ -130,6 +130,7 @@ function ruleItems(concern: NonNullable<HandoffReport['concern']>): RuleItem[] {
 const BANNER: Record<Level, { headline: string; line?: string }> = {
   go_now: { headline: 'go.headline', line: 'go.line' },
   follow_up: { headline: 'companion.symptom.follow_up' },
+  go_soon: { headline: 'soon.headline' },
   ok: { headline: 'companion.symptom.ok' },
 };
 
