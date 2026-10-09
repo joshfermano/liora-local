@@ -8,8 +8,8 @@ import type { QuickAction, ReplyBlock } from '../../core/companion';
 import { resolvePeriodDate } from '../../core/cycle';
 import { useLogStore } from '../../store/log';
 import { CapsuleButton } from '../CapsuleButton';
-import { Chip } from '../Chip';
 import { GlassCard } from '../Glass';
+import type { IconName } from '../Icon';
 import { confirm, tap, warn } from '../haptics';
 import { PressableSurface } from '../PressableSurface';
 import { SourceCard } from '../SourceCard';
@@ -78,6 +78,19 @@ function Decision({ block }: { block: Extract<ReplyBlock, { kind: 'decision' }> 
   return <CapsuleButton variant="plain" label={en('decided.link')} onPress={() => { tap(); router.push(`/decided/${block.entryId}`); }} />;
 }
 
+function ActionPill({ label, sf, fallback, onPress }: { label: string; sf: string; fallback: IconName; onPress: () => void }) {
+  return (
+    <PressableSurface label={label} onPress={onPress} surfaceClassName="min-h-tap">
+      <GlassCard interactive className="min-h-tap flex-row items-center gap-xs px-md">
+        <Symbol name={sf as never} fallback={fallback} tone="tint" size={18} />
+        <Text variant="subheadline" tone="tint">
+          {label}
+        </Text>
+      </GlassCard>
+    </PressableSurface>
+  );
+}
+
 function PeriodConfirm({ block }: { block: Extract<ReplyBlock, { kind: 'period_confirm' }> }) {
   const [state, setState] = useState<'ask' | 'added' | 'skipped'>('ask');
   const date = resolvePeriodDate(block.period, ymd(new Date())) ?? block.date;
@@ -89,16 +102,26 @@ function PeriodConfirm({ block }: { block: Extract<ReplyBlock, { kind: 'period_c
       <Text variant="footnote" tone="secondary">
         {fill(en(event === 'started' ? 'calendar.confirm_start' : 'calendar.confirm_end'), { date: short(date) })}
       </Text>
-      <View className="flex-row gap-xs">
-        <Chip
+      <View className="flex-row flex-wrap gap-xs">
+        <ActionPill
           label={en('liora.period.add')}
+          sf="calendar.badge.plus"
+          fallback="calendar"
           onPress={() => {
             addPeriod(event, date);
             confirm();
             setState('added');
           }}
         />
-        <Chip label={en('liora.period.skip')} onPress={() => { tap(); setState('skipped'); }} />
+        <ActionPill
+          label={en('liora.period.skip')}
+          sf="xmark"
+          fallback="close"
+          onPress={() => {
+            tap();
+            setState('skipped');
+          }}
+        />
       </View>
     </View>
   );
@@ -149,22 +172,16 @@ export function Block({ block }: { block: ReplyBlock }) {
       return (
         <View className="flex-row flex-wrap gap-xs">
           {block.items.map((item) => (
-            <PressableSurface
+            <ActionPill
               key={item}
               label={en(`companion.action.${item}`)}
+              sf={ACTION[item].sf}
+              fallback="info"
               onPress={() => {
                 tap();
                 router.push(ACTION[item].href);
               }}
-              surfaceClassName="min-h-tap"
-            >
-              <GlassCard interactive className="min-h-tap flex-row items-center gap-xs px-md">
-                <Symbol name={ACTION[item].sf as never} fallback="info" tone="tint" size={18} />
-                <Text variant="subheadline" tone="tint">
-                  {en(`companion.action.${item}`)}
-                </Text>
-              </GlassCard>
-            </PressableSurface>
+            />
           ))}
         </View>
       );
