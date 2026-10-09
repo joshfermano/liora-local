@@ -207,6 +207,7 @@ check shows a crisis hotline on any self-harm answer. Nothing leaves the phone.
 
 ## 10. Demo script, judge Q&A and the 10 AM checklist
 
+**The 5-minute demo (current, 6:15 AM):** `docs/demo-script.md` supersedes the older script below.
 **Test before the demo:** `docs/demo-test-prompts.md` lists scenario prompts with expected results
 (rules rows verified at 4:20 AM, 10 Oct) and a suggested 5-minute path.
 
