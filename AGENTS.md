@@ -53,7 +53,9 @@ next-period estimate. Everything runs on the device.
 - pnpm only. `.npmrc` has `node-linker=hoisted`.
 - NativeWind **4.2** (not v5), Tailwind 3.4. Never add `react-native-css-interop` to
   `package.json`. Never use function-form `style={({ pressed }) => ...}`.
-- Install Expo packages with `pnpm expo install`.
+- Install Expo packages with `pnpm expo install`. A package with native code (an Expo module,
+  anything with an `ios/` folder) needs a native rebuild of every installed phone build: add a
+  `Needs-native-rebuild: yes` footer to that commit so whoever builds the phones knows.
 - Models run in Web Workers bundled by esbuild into `public/workers/`, outside Metro.
 - TDD for `src/core/`. Vitest.
 - Before claiming done: `pnpm test`, `pnpm typecheck`, `npx expo export -p web` all pass.
