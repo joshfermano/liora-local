@@ -46,6 +46,15 @@ describe('the handoff report for a nurse, BHW or doctor', () => {
     expect(concern?.signs.map((s) => s.code)).toEqual(['severe_headache', 'visual_disturbance']);
   });
 
+  it('keeps how each sign was found and the codes each rule fired on', () => {
+    const { concern } = handoffReport(input());
+    expect(concern?.signs).toEqual([
+      { code: 'severe_headache', severity: 'severe', sources: ['lexicon', 'llm'] },
+      { code: 'visual_disturbance', severity: 'unknown', sources: ['lexicon'] },
+    ]);
+    expect(concern?.fired).toEqual([{ rule_id: 'ANC.DT.01.headache', codes: ['severe_headache'] }]);
+  });
+
   it('lists the last seven days she logged, newest first, and nothing older', () => {
     const { recent } = handoffReport(input());
     expect(recent.map((d) => d.date)).toEqual(['2026-10-10', '2026-10-09']);

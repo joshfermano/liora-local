@@ -38,8 +38,9 @@ export interface HandoffReport {
     at: string;
     input: Entry['input'];
     level: Entry['decision']['level'];
-    signs: { code: string; severity: string }[];
+    signs: { code: string; severity: string; sources: string[] }[];
     rules: string[];
+    fired: { rule_id: string; codes: string[] }[];
   } | null;
   recent: { date: string; flow: DayLog['flow']; symptoms: string[]; moods: string[] }[];
   emergency?: { name: string; relation?: string; phone: string };
@@ -78,8 +79,9 @@ export function handoffReport({ patient, emergency, entry, entries, dayLogs, per
               (SEVERITY_RANK[a.severity] ?? 3) - (SEVERITY_RANK[b.severity] ?? 3) ||
               a.code.localeCompare(b.code),
           )
-          .map((f) => ({ code: f.code, severity: f.severity })),
+          .map((f) => ({ code: f.code, severity: f.severity, sources: [...f.sources] })),
         rules: entry.decision.fired.map((f) => f.rule_id),
+        fired: entry.decision.fired.map((f) => ({ rule_id: f.rule_id, codes: [...f.codes] })),
       }
     : null;
 
