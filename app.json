@@ -4,6 +4,7 @@
     "slug": "liora-local",
     "scheme": "tellliora",
     "version": "0.1.0",
+    "icon": "./assets/images/icon.png",
     "platforms": [
       "web",
       "ios"
