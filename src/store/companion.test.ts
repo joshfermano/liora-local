@@ -12,6 +12,7 @@ vi.mock('./storage', () => ({
 
 import { setAskIntent, useCompanionStore } from './companion';
 import { useLogStore } from './log';
+import { useTellStore } from './tell';
 
 describe('companion thread', () => {
   beforeEach(() => {
@@ -57,4 +58,23 @@ describe('companion thread', () => {
     await useLogStore.getState().deleteEverything();
     expect(useCompanionStore.getState().messages).toEqual([]);
   });
+
+  it('answers with the error line and unlocks when the reply never finishes', async () => {
+    vi.useFakeTimers();
+    const submit = useTellStore.getState().submit;
+    useTellStore.setState({ submit: () => new Promise(() => {}) });
+    try {
+      const sent = useCompanionStore.getState().send('hello');
+      await vi.advanceTimersByTimeAsync(30_000);
+      await sent;
+      const m = useCompanionStore.getState().messages;
+      expect(m.map((x) => x.role)).toEqual(['her', 'liora']);
+      expect(m[1]!.blocks?.[0]).toMatchObject({ kind: 'text', key: 'liora.error' });
+      expect(useCompanionStore.getState().thinking).toBe(false);
+    } finally {
+      useTellStore.setState({ submit });
+      vi.useRealTimers();
+    }
+  });
 });
+
