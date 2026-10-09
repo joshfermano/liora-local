@@ -8,7 +8,7 @@ import { dateWord } from './when';
 // Input patterns only: what she might type, in Tagalog, Taglish or English. No advice here.
 const PERIOD_WORD = /regla|\bmens\b|\bperiod\b|dalaw/i;
 const START =
-  /ni(?:re)?regla|nagka-?regla|nag-?mens|dinatnan|dinalaw|nagkaroon\s+(?:ako\s+)?(?:na\s+)?ng\s+regla|may\s+regla\s+na|dumating\s+na\s+(?:ang\s+)?regla|regla\s+(?:ko\s+)?(?:ay\s+)?(?:nagsimula|dumating)|(?:got|have|had)\s+my\s+period|(?:my\s+)?period\s+(?:has\s+)?(?:started|began|came)|\blog\s+(?:my\s+)?period\b|\bi-?log\s+(?:mo\s+)?(?:ang\s+|yung\s+)?(?:regla|period)|\bmag-?log\s+(?:ng\s+)?(?:regla|period)/i;
+  /ni(?:re)?regla|nagka-?regla|nag-?mens|dinatnan|dinalaw|nagkaroon\s+(?:ako\s+)?(?:na\s+)?ng\s+regla|may\s+regla\s+na|dumating\s+na\s+(?:ang\s+)?regla|regla\s+(?:ko\s+)?(?:ay\s+)?(?:nagsimula|dumating)|(?:got|have|had)\s+my\s+period|(?:my\s+)?period\s+(?:has\s+)?(?:started|began|came)|\blog\s+(?:my\s+)?period\b|\bi-?log\s+(?:mo\s+)?(?:ang\s+|yung\s+)?(?:regla|period)|\bmag-?log\s+(?:ng\s+)?(?:regla|period)|nag-?(?:simula|start)\s+(?:na\s+)?(?:ang\s+)?(?:regla|mens|period)|started\s+my\s+period/i;
 const END = /natapos|tapos\s+na|wala\s+na|huminto|\b(?:ended|stopped|finished)\b/i;
 const NOT_YET = /(?:hindi|di|wala)\s+pa\b|\bnot\s+yet\b|haven'?t/i;
 const NEGATED = /\b(?:hindi|di|walang|ayaw|didn'?t|did\s+not|not|never|no)\b/i;
