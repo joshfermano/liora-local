@@ -30,7 +30,8 @@
           "enableEntitlements": false,
           "enableOpenCLAndHexagon": false
         }
-      ]
+      ],
+      "./plugins/with-scene-lifecycle"
     ],
     "experiments": {
       "baseUrl": "/liora-local"
