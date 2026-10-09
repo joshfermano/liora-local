@@ -27,6 +27,10 @@ export default function RootLayout() {
           name="period"
           options={{ presentation: 'formSheet', animation: 'default', sheetGrabberVisible: true, sheetAllowedDetents: [0.7, 1] }}
         />
+        <Stack.Screen
+          name="profile-edit"
+          options={{ presentation: 'formSheet', animation: 'default', sheetGrabberVisible: true, sheetAllowedDetents: [0.85, 1] }}
+        />
       </Stack>
     </>
   );

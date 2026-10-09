@@ -337,6 +337,15 @@ export const COPY = {
   'symptom.appetite': ui('Appetite'),
   'symptom.nausea': ui('Nausea'),
   'symptom.pelvic_pain': ui('Pelvic pain'),
+  // native pickers and profile edit (LUM-85)
+  'profile.edit.title': ui('Your details'),
+  'profile.edit.open': ui('Edit your details'),
+  'profile.edit.save': ui('Save'),
+  'profile.edit.status': ui('Status'),
+  'profile.edit.height': ui('Height'),
+  'profile.edit.weight': ui('Weight'),
+  'profile.edit.not_set': ui('Not set'),
+  'profile.unit.weeks': ui('weeks'),
 } as const satisfies Record<string, Entry>;
 
 export type CopyKey = keyof typeof COPY;

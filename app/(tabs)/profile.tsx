@@ -1,24 +1,21 @@
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
-import { Switch, TextInput, View } from 'react-native';
+import { Switch, View } from 'react-native';
 import { en } from '../../src/content/copy';
 import { useLogStore } from '../../src/store/log';
-import { PROFILE_RANGES, updateProfile, useProfile, type Status } from '../../src/store/profile';
+import { useProfile } from '../../src/store/profile';
 import { CapsuleButton } from '../../src/ui/CapsuleButton';
-import { ChoiceCard } from '../../src/ui/ChoiceCard';
 import { confirm, tap } from '../../src/ui/haptics';
 import { authenticate, useUnlock } from '../../src/ui/lock';
-import { cleanName, mergeSetup } from '../../src/ui/name';
-import { Divider, NumberRow, Row, Section } from '../../src/ui/profile/parts';
+import { mergeSetup } from '../../src/ui/name';
+import { Divider, NumberRow, Row, Section, ValueRow } from '../../src/ui/profile/parts';
 import { PressableSurface } from '../../src/ui/PressableSurface';
 import { Screen } from '../../src/ui/Screen';
 import { useAiStatus } from '../../src/ui/status';
 import { Symbol } from '../../src/ui/Symbol';
 import { Text } from '../../src/ui/Text';
-import { TEXT_TONE, useColors } from '../../src/ui/theme';
-
-const STATUSES: Status[] = ['pregnant', 'postpartum', 'neither'];
+import { useColors } from '../../src/ui/theme';
 
 export default function Profile() {
   const router = useRouter();
@@ -27,9 +24,11 @@ export default function Profile() {
   const settings = useLogStore((s) => s.cycleSettings);
   const { available, enabled } = useUnlock();
   const aiOn = useAiStatus((s) => s.on);
-  const [name, setName] = useState(profile.name ?? '');
   const [confirming, setConfirming] = useState(false);
-  const saveName = () => updateProfile({ name: cleanName(name) || undefined });
+  const openEditor = () => {
+    tap();
+    router.push('/profile-edit');
+  };
   const setCycle = (patch: { stated_cycle_length?: number; stated_period_length?: number }) =>
     useLogStore.getState().setCycleSettings({ ...settings, ...patch });
 
@@ -59,46 +58,19 @@ export default function Profile() {
         </View>
 
         <Section title={en('profile.about')}>
-          <Row label={en('profile.name')}>
-            <TextInput
-              value={name}
-              onChangeText={setName}
-              onBlur={saveName}
-              onSubmitEditing={saveName}
-              accessibilityLabel={en('profile.name')}
-              autoCapitalize="words"
-              textContentType="givenName"
-              returnKeyType="done"
-              maxLength={40}
-              className={`min-h-tap flex-1 text-right text-body ${TEXT_TONE.tint}`}
-            />
-          </Row>
+          <ValueRow label={en('profile.name')} value={profile.name} onPress={openEditor} />
           <Divider />
-          <NumberRow label={en('profile.age')} unit={en('profile.unit.years')} value={profile.age} range={PROFILE_RANGES.age} onSave={(age) => updateProfile({ age })} />
+          <ValueRow label={en('profile.age')} value={profile.age} unit={en('profile.unit.years')} onPress={openEditor} />
           <Divider />
-          <NumberRow label={en('profile.height')} value={profile.heightCm} range={PROFILE_RANGES.heightCm} onSave={(heightCm) => updateProfile({ heightCm })} />
+          <ValueRow label={en('profile.edit.height')} value={profile.heightCm} unit={en('profile.unit.cm')} onPress={openEditor} />
           <Divider />
-          <NumberRow label={en('profile.weight')} value={profile.weightKg} range={PROFILE_RANGES.weightKg} onSave={(weightKg) => updateProfile({ weightKg })} />
-        </Section>
-
-        <Section title={en('profile.pregnancy')}>
-          <View className="gap-xs p-sm">
-            {STATUSES.map((status) => (
-              <ChoiceCard
-                key={status}
-                label={en(`setup.status.${status}`)}
-                chosen={profile.status === status}
-                onPress={() => {
-                  tap();
-                  updateProfile({ status, weeks: status === 'pregnant' ? profile.weeks : undefined });
-                }}
-              />
-            ))}
-          </View>
+          <ValueRow label={en('profile.edit.weight')} value={profile.weightKg} unit={en('profile.unit.kg')} onPress={openEditor} />
+          <Divider />
+          <ValueRow label={en('profile.edit.status')} value={profile.status ? en(`setup.status.${profile.status}`) : undefined} onPress={openEditor} />
           {profile.status === 'pregnant' ? (
             <>
               <Divider />
-              <NumberRow label={en('setup.weeks')} value={profile.weeks} range={PROFILE_RANGES.weeks} onSave={(weeks) => updateProfile({ weeks })} />
+              <ValueRow label={en('setup.weeks')} value={profile.weeks} unit={en('profile.unit.weeks')} onPress={openEditor} />
             </>
           ) : null}
         </Section>
@@ -145,7 +117,6 @@ export default function Profile() {
                 onPress={() => {
                   confirm();
                   void useLogStore.getState().deleteEverything();
-                  setName('');
                   setConfirming(false);
                 }}
               />

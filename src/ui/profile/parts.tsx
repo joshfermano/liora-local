@@ -2,6 +2,8 @@ import { useState, type ReactNode } from 'react';
 import { TextInput, View } from 'react-native';
 import { en } from '../../content/copy';
 import { GlassCard } from '../Glass';
+import { PressableSurface } from '../PressableSurface';
+import { Symbol } from '../Symbol';
 import { Text } from '../Text';
 import { SEPARATOR, TEXT_TONE } from '../theme';
 
@@ -87,5 +89,21 @@ export function NumberRow({
         </Text>
       ) : null}
     </View>
+  );
+}
+
+// A tappable summary row: value with its unit, a chevron, and it opens the editor.
+export function ValueRow({ label, value, unit, onPress }: { label: string; value: string | number | undefined; unit?: string; onPress: () => void }) {
+  const shown = value === undefined ? en('profile.edit.not_set') : unit ? `${value} ${unit}` : String(value);
+  return (
+    <PressableSurface label={`${label}, ${shown}`} hint={en('profile.edit.open')} onPress={onPress} pressScale={0.98} surfaceClassName="min-h-choice flex-row items-center justify-between gap-md px-md">
+      <Text variant="body">{label}</Text>
+      <View className="flex-row items-center gap-xs">
+        <Text variant="body" tone={value === undefined ? 'tertiary' : 'secondary'}>
+          {shown}
+        </Text>
+        <Symbol name="chevron.right" fallback="chevronRight" tone="tertiary" size={14} />
+      </View>
+    </PressableSurface>
   );
 }
