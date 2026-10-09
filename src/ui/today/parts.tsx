@@ -21,7 +21,7 @@ export function Rise({ order, children }: { order: number; children: ReactNode }
   return (
     <Animated.View
       entering={FadeInDown.duration(420).delay(order * 110).reduceMotion(ReduceMotion.System)}
-      className="gap-xl"
+      style={{ gap: 28 }}
     >
       {children}
     </Animated.View>

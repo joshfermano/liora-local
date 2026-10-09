@@ -59,7 +59,7 @@ export default function Home() {
   return (
     <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} className="flex-1">
       <Screen>
-        <View className="gap-xl pt-lg">
+        <View className={`gap-xl ${Platform.OS === 'web' ? 'pt-[72px]' : 'pt-lg'}`}>
           <Rise order={0}>
             <View className="gap-md">
               <Header name={name} />
