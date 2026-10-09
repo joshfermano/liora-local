@@ -1,3 +1,4 @@
+import { DANGER_CODES } from '../core/vocabulary';
 // Every user-facing string lives here, keyed by id. `null` means "a human has not written this
 // yet": the screen shows `[copy: <key>]`. Medical copy (LUM-47) is never written by code.
 export type Lang = 'fil' | 'en';
@@ -176,6 +177,9 @@ export const COPY = {
   'decided.conf.mid': ui('likely'),
   'decided.conf.low': ui('possible'),
   'decided.rules': ui('Rules that fired'),
+  'decided.scope': ui('WHO danger-sign rules'),
+  'decided.scope.on': ui('Checked. They cover pregnancy and the weeks after birth.'),
+  'decided.scope.off': ui('Not checked. They cover pregnancy and the weeks after birth, and your profile says you are not pregnant, so this was saved as a symptom.'),
   'decided.rules.none': ui('No rule fired'),
   'decided.models': ui('Models that ran'),
   'decided.models.none': ui('No AI model ran; the word list and rules decided.'),
@@ -737,7 +741,9 @@ export function copyText(key: string, lang: Lang): string {
 export const fil = (key: string): string => copyText(key, 'fil');
 export const en = (key: string): string => copyText(key, 'en');
 
-export const signKey = (code: string): string => `sign.${code}`;
+// Danger signs read from the WHO list; everything else is a symptom she logs.
+export const signKey = (code: string): string =>
+  (DANGER_CODES as readonly string[]).includes(code) ? `sign.${code}` : `symptom.${code}`;
 export const severityKey = (level: string): string =>
   (SEVERITY_KEYS as readonly string[]).includes(level) ? `severity.${level}` : `severity.unknown`;
 export const followUpKey = (questionId: string): string => questionId;
