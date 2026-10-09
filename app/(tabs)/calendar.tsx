@@ -47,6 +47,7 @@ function Calendar() {
   const router = useRouter();
   const entries = useLogStore((s) => s.entries);
   const periods = useLogStore((s) => s.periods);
+  const dayLogs = useLogStore((s) => s.dayLogs);
   const moods = useLogStore((s) => s.moods);
   const settings = useLogStore((s) => s.cycleSettings);
   const status = useTellStore((s) => s.context.status);
@@ -118,6 +119,14 @@ function Calendar() {
   };
 
   const dayPeriod = periods.find((p) => spanOf(p).includes(selected));
+  const dayLog = dayLogs.find((l) => l.date === selected);
+  const dayChips = dayLog
+    ? [
+        ...dayLog.symptoms.map((x) => en(`symptom.${x}`)),
+        ...dayLog.moods.map((x) => en(`feeling.${x}`)),
+        ...dayLog.activities.map((x) => en(`activity.${x}`)),
+      ]
+    : [];
   const dayEntries = entries.filter((e) => entryDay(e) === selected);
   const flowOfDay = dayPeriod ? (dayPeriod.flow_by_day[selected] ?? Object.values(dayPeriod.flow_by_day)[0]) : undefined;
   const dayLabel = (d: string, n: number) =>
@@ -232,8 +241,25 @@ function Calendar() {
                 </View>
               </View>
             ) : null}
-            {dayPeriod && dayEntries.length > 0 ? <View className={`h-px ${SEPARATOR}`} /> : null}
-            {dayEntries.length === 0 && !dayPeriod ? (
+            {dayPeriod && (dayChips.length > 0 || dayEntries.length > 0) ? <View className={`h-px ${SEPARATOR}`} /> : null}
+            {dayLog && (dayChips.length > 0 || dayLog.note) ? (
+              <View className="py-sm gap-xs">
+                <Text variant="headline">{en('daylog.shown')}</Text>
+                {dayChips.length > 0 ? (
+                  <View className="flex-row flex-wrap gap-xs">
+                    {dayChips.map((c, i) => (
+                      <Chip key={`${c}-${i}`} label={c} chosen />
+                    ))}
+                  </View>
+                ) : null}
+                {dayLog.note ? (
+                  <Text variant="subheadline" tone="secondary">
+                    {dayLog.note}
+                  </Text>
+                ) : null}
+              </View>
+            ) : null}
+            {dayEntries.length === 0 && !dayPeriod && !dayLog ? (
               <Text variant="body" tone="secondary" className="py-sm">
                 {en('calendar.no_entries')}
               </Text>
@@ -266,6 +292,11 @@ function Calendar() {
               );
             })}
           </GlassCard>
+          <CapsuleButton
+            variant="neutral"
+            label={en(dayLog ? 'daylog.edit_button' : 'daylog.button')}
+            onPress={() => router.push({ pathname: '/log-day', params: { date: selected } })}
+          />
         </View>
 
         <History spans={spans} />
