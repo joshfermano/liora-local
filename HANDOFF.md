@@ -1,6 +1,6 @@
 # HANDOFF: Tell Liora (liora-local)
 
-**Last updated:** 2026-10-10, 3:50 AM Manila (agent, memory, caching, handoff report; release and measurements next).
+**Last updated:** 2026-10-10, 4:00 AM Manila (danger rules for pregnancy and after birth only, comfort-first follow-ups; handoff report redesign in flight; release and measurements next).
 **Deadline:** code freeze and submission **10:00 AM, 10 Oct 2026**, on
 cerebralvalley.ai/e/appbuildersph-hackathon-2026. One submission, no edits after.
 **Read next:** `docs/superpowers/specs/2026-10-09-tell-liora-design.md` (the build spec, v3),
@@ -52,8 +52,13 @@ Update section 1 and section 2 of this file as work completes, so any session ca
    `ARCHITECTURE.md` with a boundary test; estimated fertile window; replay-based windows; full
    period length on log; Today, Calendar, Profile, onboarding, decision and private screens
    redesigned; blood type, emergency contact (Call / Text on go-now and crisis) and the handoff
-   report with a PDF (in flight at 3:50 AM). The iPhone 17 Pro runs a live-reload build
-   (`.tmp/EXTRAS.md`).
+   report with a PDF. The iPhone 17 Pro runs a live-reload build (`.tmp/EXTRAS.md`).
+   **4 AM (user's calls):** the WHO danger rules run only when she is pregnant, after birth, has
+   no status yet, uses the checklist or says she is pregnant (`dangerRulesApply` in
+   `src/core/pipeline.ts`); comfort first: the model alone can no longer call a sign very bad, so
+   she gets a warm fixed line and the one question unless her own words say it is bad (spec SR-1).
+   A detailed handoff report (header, decision banner, de-duplicated signs, WHO citations, 7 days
+   per day, emergency contact, matching PDF) is being built in a worktree.
 2. **Feature cutoff about 5 AM.** Then: the release build on the iPhone 17 Pro without
    `EXPO_PUBLIC_SHOW_DEV`, after one run with it for measurements.
 3. **Measurements (LUM-77):** load, answer and transcription times on the iPhone 17 Pro only (team
