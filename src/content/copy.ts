@@ -493,6 +493,21 @@ export const COPY = {
   'pf.avatar.mark': ui('Picture {n}'),
   'pf.ai.on': ui('On'),
   'pf.ai.off': ui('Off'),
+  // onboarding (LUM-71)
+  'onboarding.brand': ui('Liora'),
+  'onboarding.welcome.title': ui('Welcome to Liora'),
+  'onboarding.welcome.line': ui('Know when to go, even with no signal.'),
+  'onboarding.continue': ui('Continue'),
+  'onboarding.skip': ui('Skip'),
+  'onboarding.back': ui('Back'),
+  'onboarding.step': ui('Step {n} of {total}'),
+  'onboarding.status.line': ui('This helps Liora ask you the right questions.'),
+  'onboarding.last_period': ui('Last period started'),
+  'onboarding.about.line': ui('Only what you want to share. You can change it later in Profile.'),
+  'onboarding.download.title': ui('Get Liora ready for offline'),
+  'onboarding.download_all': ui('Download all'),
+  'onboarding.start': ui('Start using Liora'),
+  'onboarding.downloading': ui('Downloading'),
 } as const satisfies Record<string, Entry>;
 
 export type CopyKey = keyof typeof COPY;
