@@ -7,11 +7,13 @@ import { en } from '../../content/copy';
 import type { QuickAction, ReplyBlock } from '../../core/companion';
 import { resolvePeriodDate } from '../../core/cycle';
 import { useLogStore } from '../../store/log';
+import { useTellStore } from '../../store/tell';
 import { CapsuleButton } from '../CapsuleButton';
 import { EmergencyButtons } from '../EmergencyButtons';
 import { GlassCard } from '../Glass';
 import type { IconName } from '../Icon';
 import { confirm, tap, warn } from '../haptics';
+import { Pair } from '../Pair';
 import { PressableSurface } from '../PressableSurface';
 import { SourceCard } from '../SourceCard';
 import { Symbol } from '../Symbol';
@@ -55,9 +57,48 @@ function addPeriod(event: 'started' | 'ended', day: string) {
   if (target) log.setPeriods(log.periods.map((p) => (p.id === target.id ? { ...p, end: day } : p)));
 }
 
+// The follow-up question right in the thread: swipe the card (right yes, left no) or tap a pill. Skip means
+// serious, as on the result screen; the answer opens the result. Older follow-ups keep their button.
+function FollowUpInline({ entryId }: { entryId: string }) {
+  const router = useRouter();
+  const current = useTellStore((s) => s.current);
+  const answerFollowUp = useTellStore((s) => s.answerFollowUp);
+  const [busy, setBusy] = useState(false);
+  const question = current?.decision.follow_up?.question_id;
+  if (current?.id !== entryId || current.decision.level !== 'follow_up' || !question) return null;
+  const answer = async (a: 'yes' | 'no' | 'skip') => {
+    if (busy) return;
+    setBusy(true);
+    try {
+      const next = await answerFollowUp(a);
+      router.push(`/result/${next.id}`);
+    } catch {
+      setBusy(false);
+    }
+  };
+  return (
+    <View className="gap-xs">
+      <SwipeCard onAnswer={(yes) => void answer(yes ? 'yes' : 'no')} disabled={busy}>
+        <View className="py-sm">
+          <Pair copyKey={question} large="title3" small="body" />
+        </View>
+      </SwipeCard>
+      <View className="flex-row flex-wrap gap-xs">
+        <ActionPill label={en('result.yes')} sf="checkmark" fallback="check" onPress={() => void answer('yes')} />
+        <ActionPill label={en('result.no')} sf="xmark" fallback="close" onPress={() => void answer('no')} />
+        <ActionPill label={en('result.skip')} sf="forward" fallback="chevronRight" onPress={() => void answer('skip')} />
+      </View>
+      <Text variant="footnote" tone="secondary">
+        {en('followup.skip_means')}
+      </Text>
+    </View>
+  );
+}
+
 function Decision({ block }: { block: Extract<ReplyBlock, { kind: 'decision' }> }) {
   const router = useRouter();
   const open = () => router.push(`/result/${block.entryId}`);
+  const live = useTellStore((s) => s.current?.id === block.entryId && s.current.decision.level === 'follow_up');
   useEffect(() => {
     if (block.level === 'go_now') warn();
   }, [block.level]);
@@ -77,6 +118,7 @@ function Decision({ block }: { block: Extract<ReplyBlock, { kind: 'decision' }> 
     );
   }
   if (block.level === 'follow_up') {
+    if (live) return <FollowUpInline entryId={block.entryId} />;
     return (
       <GlassCard interactive className="p-md gap-sm">
         <CapsuleButton variant="filled" label={en('liora.followup.open')} onPress={() => { tap(); open(); }} />
