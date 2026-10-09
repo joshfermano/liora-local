@@ -86,7 +86,7 @@ export function Composer({ text, setText }: { text: string; setText: (t: string)
       </GlassCard>
       {/* Drawn, not an SF Symbol: three bars, short, long, short, are live mode's own mark. */}
       <PressableSurface label={en('liora.live')} onPress={tap} surfaceClassName={`h-[60px] w-[60px] items-center justify-center rounded-full ${SURFACE.tintFill}`}>
-        <Icon name="live" tone="onTint" size={24} />
+        <Icon name="live" tone="onTint" size={32} />
       </PressableSurface>
     </View>
   );
