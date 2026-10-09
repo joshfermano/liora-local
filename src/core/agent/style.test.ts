@@ -1,0 +1,26 @@
+import { describe, expect, it } from 'vitest';
+import { replyPlan, type Outcome } from './outcome';
+
+const calm: Outcome = {
+  saved: [], waiting: false, undid: null, nothingToUndo: false, notFound: false, cycle: null, day: null,
+  card: null, opened: null, smalltalk: 'greeting', asksAboutHerData: false,
+};
+
+describe('the reply follows her moods today', () => {
+  it('gives the reply her moods logged today, so it can name them', () => {
+    const { facts } = replyPlan(calm, { name: 'Ana', tone: 'neutral', today: '2026-10-10', moods: ['joyful', 'romantic'] });
+    expect(facts.her_moods_today).toEqual(['joyful', 'romantic']);
+  });
+
+  it('picks a bright or gentle fixed line to match, and the plain one otherwise', () => {
+    const who = { name: 'Ana', tone: 'neutral' as const, today: '2026-10-10' };
+    expect(replyPlan(calm, { ...who, moods: ['joyful'] }).fallback.key).toBe('reply.greeting.bright');
+    expect(replyPlan(calm, { ...who, moods: ['anxious', 'joyful'] }).fallback.key).toBe('reply.greeting.gentle');
+    expect(replyPlan(calm, who).fallback.key).toBe('reply.greeting');
+  });
+
+  it('keeps fixed lines that report a fact as they are', () => {
+    const undone: Outcome = { ...calm, smalltalk: null, nothingToUndo: true };
+    expect(replyPlan(undone, { tone: 'neutral', today: '2026-10-10', moods: ['sad'] }).fallback.key).toBe('reply.nothing_to_undo');
+  });
+});

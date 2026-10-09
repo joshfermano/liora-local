@@ -365,7 +365,7 @@ describe('companion agent turn', () => {
     setRouteActions(route);
     await send('asdf qwer');
     expect(route).toHaveBeenCalledTimes(1);
-    expect(reply().fallback.key).toBe('reply.greeting.anon');
+    expect(reply().fallback.key).toBe('reply.chat');
     core.readActions.mockReturnValue([START]);
     await send('Niregla ako today');
     expect(route).toHaveBeenCalledTimes(1);

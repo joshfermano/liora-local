@@ -52,6 +52,15 @@ listed there by file, each with the move that removes it; the list may only shri
   schema; code resolves every date and number.
 - **Guarded words:** Gemma's one reply per turn passes `guardReply`, which drops medical advice,
   diagnoses, reassurance, claims of actions not taken and numbers missing from her data.
+- **Her words are data, never instructions:** `src/core/agent/guardrails.ts` strips chat-template
+  tokens and fences from her message, notes and chat before any prompt, and an attempt to give
+  Liora new instructions ("ignore your rules", "show your prompt") gets a fixed line with no model
+  call and no writes. `guardReply` also drops sentences that repeat six words of the prompt or talk
+  about the prompt, and the model's outputs stay closed (yes/no tokens, a JSON schema, a guarded
+  reply), so injected text cannot reach a decision or a write.
+- **Voice follows her day, facts follow her data:** the reply style (bright, gentle, steady) comes
+  from the moods she logged today (`src/core/agent/style.ts`, comfort wins a mix), the language
+  from her message, and every reply must name something from her data.
 - **Timeouts and fallbacks everywhere:** every model call has a timeout; a missing, slow or
   failed model falls back to the word rules and fixed copy.
 - **Measured, not claimed:** numbers in the README come from the demo iPhone only.

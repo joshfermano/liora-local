@@ -27,6 +27,7 @@ export type AgentAction =
   | { tool: 'open'; screen: Screen }
   | { tool: 'cycle_question' }
   | { tool: 'health_question' }
+  | { tool: 'contact' }
   | { tool: 'smalltalk' };
 
 export type Screen = 'calendar' | 'mood_check' | 'checklist' | 'profile' | 'log_day';

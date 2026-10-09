@@ -19,7 +19,7 @@ export interface Triage {
 
 const MEMORY: ReadonlySet<Tool> = new Set(['remember', 'forget']);
 const EDITS: ReadonlySet<Tool> = new Set(['delete_period', 'clear_day', 'undo_last']);
-const READS: ReadonlySet<Tool> = new Set(['ask_day', 'open', 'cycle_question']);
+const READS: ReadonlySet<Tool> = new Set(['ask_day', 'open', 'cycle_question', 'contact']);
 const PERIOD_LOGS: ReadonlySet<Tool> = new Set(['period_start', 'period_end', 'flow']);
 const LOGS: ReadonlySet<Tool> = new Set(['period_start', 'period_end', 'flow', 'symptoms', 'moods', 'activities', 'weeks']);
 

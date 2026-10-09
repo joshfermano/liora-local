@@ -252,6 +252,12 @@ export function Block({ block }: { block: ReplyBlock }) {
       return <Decision block={block} />;
     case 'period_confirm':
       return <PeriodConfirm block={block} />;
+    case 'contact':
+      return (
+        <GlassCard className="p-md">
+          <EmergencyButtons />
+        </GlassCard>
+      );
     case 'mood_noted':
       return (
         <View className="flex-row flex-wrap gap-xs">

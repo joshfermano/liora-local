@@ -12,6 +12,7 @@ function verdict(a: AgentAction, data: AgentData, status: string | undefined, to
     case 'undo_last':
     case 'ask_day':
     case 'open':
+    case 'contact':
       return 'skip';
     case 'remember':
     case 'forget':

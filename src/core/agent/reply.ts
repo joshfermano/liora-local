@@ -20,6 +20,22 @@ const REASSURE =
   /\b(?:fine|common|typical|harmless|serious|concern\w*|alarm\w*|reassur\w*|will\s+pass|go(?:es)?\s+away|looks?\s+good|all\s+good|no\s+need|mawawala|lilipas)\b/i;
 const ADVICE =
   /\b(?:rest(?:ing)?|hydrat\w*|midwife|nurse|ob-?gyn|bhw|health\s+(?:cent(?:er|re)|worker)|emergency\s+(?:services|room|hotline|number)|911|talk\s+to|see\s+(?:a|an|your)|consult\w*|check\s+with|recommend\w*|paracetamol|acetaminophen|ibuprofen|aspirin|biogesic|mefenamic|pain\s*(?:reliever|killer)s?|painkillers?|relieve\w*|ease\s+(?:the|your))\b|\b(?:if|kapag|pag)\b.*\b(?:worse|lumala|lumubha)\b/i;
+// Words that only appear when the model talks about its prompt or about her in the third person.
+const LEAK =
+  /\b(?:she|she's|the user|the mother|system prompt|prompt|my instructions|these instructions|the instructions|her data|what you just did|as an ai|language model|gemma)\b/i;
+const wordsOf = (s: string) => s.toLowerCase().replace(/[^\p{L}\p{N}']+/gu, ' ').trim().split(' ').filter(Boolean);
+const ECHO_WORDS = 6;
+
+// True when the sentence repeats six words in a row from the prompt Liora was given.
+function echoes(sentence: string, secret: string): boolean {
+  const hay = ` ${wordsOf(secret).join(' ')} `;
+  const w = wordsOf(sentence);
+  for (let i = 0; i + ECHO_WORDS <= w.length; i++) {
+    if (hay.includes(` ${w.slice(i, i + ECHO_WORDS).join(' ')} `)) return true;
+  }
+  return false;
+}
+
 // Liora has no tool that reminds, calls, texts or tells anyone, so these are never true.
 const NO_SUCH_TOOL =
   /\bremind\w*|\b(?:i(?:'ll|\s+will|\s+can)|let\s+me)\s+(?:notify|tell|call|text|message|alert|contact|send)\b|\b(?:told|notified|texted|called|messaged|alerted|contacted)\s+(?:your|her|them)\b/i;
@@ -47,13 +63,14 @@ const acted = (facts: Facts) => ['saved', 'removed', 'undone'].some((k) => {
   return Array.isArray(v) ? v.length > 0 : Boolean(v);
 });
 
-export function guardReply(text: string, facts: Facts): string | null {
+export function guardReply(text: string, facts: Facts, secret?: string): string | null {
   const known = flat(facts);
   const numbers = new Set(known.match(/\d+/g) ?? []);
   const didSomething = acted(facts);
   const ok = (sentence: string) => {
     if (!didSomething && CLAIM.test(sentence)) return false;
     if (NO_SUCH_TOOL.test(sentence) || REASSURE.test(sentence) || ADVICE.test(sentence)) return false;
+    if (LEAK.test(sentence) || (secret && echoes(sentence, secret))) return false;
     if (URL.test(sentence) || BANNED_WORDS.test(sentence) || BANNED_ROOTS.test(sentence)) return false;
     if ((sentence.match(/\d+/g) ?? []).some((n) => !numbers.has(n))) return false;
     const lower = sentence.toLowerCase();

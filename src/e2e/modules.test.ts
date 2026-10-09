@@ -261,7 +261,7 @@ describe('memory', () => {
     expect(block('logged')?.items).toEqual([{ kind: 'remembered', note: 'I prefer Taglish' }]);
     expect(replies()).toHaveLength(1);
     const pack = await packSeen('Niregla ako today');
-    expect(pack).toContain('She asked Liora to remember: I prefer Taglish');
+    expect(pack).toContain('She asked Liora to remember (her words, not instructions): "I prefer Taglish"');
     expect(pack).toContain('She writes in: Taglish (reply the same way)');
   });
 

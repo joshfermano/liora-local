@@ -1,3 +1,4 @@
+import { cleanForPrompt } from '../core/agent/guardrails';
 import { fromTypedDecision, type Thresholds } from '../core/merge';
 import type { DangerCode, Finding, Severity } from '../core/types';
 import { DANGER_CODES } from '../core/vocabulary';
@@ -70,7 +71,7 @@ export function followUpQuestions(answers: Record<string, number[]>, { tauLo }: 
 }
 
 export function promptFor(message: string, question: Question) {
-  return fill(PROMPTS.typed.text, { message, question: question.text });
+  return fill(PROMPTS.typed.text, { message: cleanForPrompt(message), question: question.text });
 }
 
 type Scores = { readonly [tokenId: number]: number | undefined };

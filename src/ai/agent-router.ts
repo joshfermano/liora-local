@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { WRITE_TOOLS, type AgentAction, type DateWord, type Screen } from '../core/agent';
+import { cleanForPrompt, WRITE_TOOLS, type AgentAction, type DateWord, type Screen } from '../core/agent';
 import { ActivitySchema, FlowSchema, MoodSchema, SymptomSchema } from '../core/types';
 import { ACTIVITIES, FLOWS, MOODS, SYMPTOMS } from '../core/vocabulary';
 import { runJson } from './gemma-session';
@@ -127,7 +127,7 @@ export function parseActions(raw: unknown): AgentAction[] {
 }
 
 export function routerPrompt(text: string): string {
-  return fill(PROMPTS.router.text, { message: text.replace(/"/g, "'") });
+  return fill(PROMPTS.router.text, { message: cleanForPrompt(text).replace(/"/g, "'") });
 }
 
 // Errors and timeouts mean no actions; the word rules have already read what they could.

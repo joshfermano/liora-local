@@ -9,7 +9,8 @@ const TAGALOG = new Set(
    pero kasi kaya ba din rin pa pang mga ito iyan iyon dito doon ngayon kanina bukas kahapon mamaya sobrang medyo
    talaga siguro gusto ayaw ayoko puwede pwede paano bakit kailan ano saan sino masakit pagod puson ulo regla
    niregla nagka tapos nang salamat kumusta musta magandang umaga gabi nakatulog makatulog naglakad uminom
-   tandaan kalimutan lahat`
+   tandaan kalimutan lahat kamusta komusta nag mag kaba oo sige ikaw alam sabi nga eh daw raw diba sana muna ulit wag
+   huwag tagalog pangalan`
     .split(/\s+/),
 );
 const ENGLISH = new Set(
@@ -34,4 +35,11 @@ export function languageOf(texts: string[]): Language {
   if (english === 0) return 'tagalog';
   const share = tagalog / (tagalog + english);
   return share < 0.15 ? 'english' : share > 0.9 ? 'tagalog' : 'taglish';
+}
+
+// The language of this one message, so the reply follows a switch at once; a message with no clear
+// words keeps the language she usually writes in.
+export function messageLanguage(text: string, usual: Language): Language {
+  const words = text.toLowerCase().match(/[\p{L}]+/gu) ?? [];
+  return words.some((w) => TAGALOG.has(w) || ENGLISH.has(w)) ? languageOf([text]) : usual;
 }

@@ -1,6 +1,9 @@
 import {
   contextPack,
   cycleFacts,
+  looksLikeInjection,
+  messageLanguage,
+  moodsOn,
   dayFacts,
   dayHasData,
   replyPlan,
@@ -34,6 +37,8 @@ export interface AgentTurn {
   request: ReplyRequest;
   // The earlier `logged` block this turn undid, so the thread can drop it.
   undoneId: string | null;
+  // An attempt to give Liora new instructions: nothing is read or written, and no model runs.
+  noModel?: boolean;
 }
 
 const newId = () => `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
@@ -70,6 +75,16 @@ function pick<T extends AgentAction['tool']>(actions: AgentAction[], tool: T): E
 // One calm turn: decide with the rules (Gemma only fills a gap), act through the tools, and collect
 // what happened. The reply is worded from that, never decided by it.
 export async function runTurn(text: string, entry: Entry, day: string, thread: Turn[], read: Triage): Promise<AgentTurn> {
+  if (looksLikeInjection(text)) {
+    noteTurn({ tools: [] });
+    return {
+      attachments: [{ kind: 'actions', items: [...HOME] }],
+      fallback: { key: 'reply.guarded' },
+      request: { text: '', pack: '', facts: {}, allowed: {}, thread: [] },
+      undoneId: null,
+      noModel: true,
+    };
+  }
   // A question about her own data is answered from her data: no source card, and no router to ask.
   const asksAboutHerData = read.purpose === 'ask';
   const understood = asksAboutHerData ? read.actions : await understand(text, read.actions);
@@ -143,6 +158,11 @@ export async function runTurn(text: string, entry: Entry, day: string, thread: T
     attachments.push(cardId ? { kind: 'card', cardId } : { kind: 'actions', items: ['checklist'] });
   }
 
+  if (pick(actions, 'contact')) {
+    outcome.contact = true;
+    attachments.push({ kind: 'contact' });
+  }
+
   const open = pick(actions, 'open');
   if (open) {
     outcome.opened = open.screen;
@@ -150,14 +170,14 @@ export async function runTurn(text: string, entry: Entry, day: string, thread: T
   }
 
   if (actions.every((a) => a.tool === 'smalltalk')) {
-    outcome.smalltalk = smalltalkKind(text) ?? (pick(actions, 'smalltalk') ? 'greeting' : null);
+    outcome.smalltalk = smalltalkKind(text) ?? (pick(actions, 'smalltalk') ? 'chat' : null);
     if (outcome.smalltalk === 'greeting') attachments.push({ kind: 'actions', items: [...HOME] });
   }
 
   if (entry.findings.length > 0) attachments.push({ kind: 'decision', entryId: entry.id, level: entry.decision.level });
 
   const tone = toneOf(text, entry);
-  const { facts, fallback } = replyPlan(outcome, { name: profile.name, tone, today: day });
+  const { facts, fallback, style } = replyPlan(outcome, { name: profile.name, tone, today: day, moods: moodsOn(data.dayLogs, day) });
   if (attachments.length === 0) {
     if (asksAboutHerData) attachments.push({ kind: 'actions', items: ['calendar'] });
     else if (facts.no_action_taken === true) attachments.push({ kind: 'actions', items: [...HOME] });
@@ -169,7 +189,7 @@ export async function runTurn(text: string, entry: Entry, day: string, thread: T
   return {
     attachments,
     fallback,
-    request: { text, pack: pack.text, facts, allowed: { ...pack.facts, ...facts }, thread },
+    request: { text, pack: pack.text, facts, allowed: { ...pack.facts, ...facts }, thread, style, language: messageLanguage(text, memory.language ?? 'english') },
     undoneId,
   };
 }

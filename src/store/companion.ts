@@ -178,7 +178,7 @@ export const useCompanionStore = create<CompanionState>()(
           const id = add([{ kind: 'reply', text: null, fallback: turn.fallback }, ...turn.attachments]);
           const undone = turn.undoneId;
           if (undone) set((s) => ({ messages: dropBlock(s.messages, (b) => b.kind === 'logged' && b.undoId === undone) }));
-          if (canSay()) {
+          if (canSay() && !turn.noModel) {
             const final = await say(turn.request, (guarded) => putReply(set, id, guarded));
             putReply(set, id, final);
             noteTurn({ fallback: final === null });

@@ -16,6 +16,7 @@ export type ReplyBlock =
   | { kind: 'mood_noted'; moods: Mood[] }
   | { kind: 'cycle_answer'; prediction: Prediction; lastStart: string }
   | { kind: 'card'; cardId: string }
+  | { kind: 'contact' }
   | { kind: 'actions'; items: QuickAction[] }
   // The agent's turn: one guarded warm line, what it saved (with Undo), what it asks to save.
   | { kind: 'warm'; text: string | null; tone: Tone }

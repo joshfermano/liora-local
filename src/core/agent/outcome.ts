@@ -1,5 +1,8 @@
 import { addDays, format, parseISO } from 'date-fns';
 import { THANKS } from './edits';
+import type { Mood } from '../types';
+import type { Language } from './language';
+import { replyStyle, type ReplyStyle } from './style';
 import type { AgentData, Facts, SavedItem, Screen, Tone } from './types';
 
 // What an agent turn did, as plain data. The responder (Gemma) may only word these facts; the
@@ -20,7 +23,9 @@ export interface Outcome {
   // null when she did not ask a health question.
   card: boolean | null;
   opened: Screen | null;
-  smalltalk: 'greeting' | 'thanks' | null;
+  // She asked to call or text her emergency contact; the buttons go under the reply.
+  contact?: boolean;
+  smalltalk: 'greeting' | 'thanks' | 'chat' | null;
   // She asked about her own data; Gemma answers from the data it was given.
   asksAboutHerData: boolean;
 }
@@ -45,9 +50,13 @@ export interface ReplyRequest {
   // Every value a sentence may quote: her data plus the tool facts.
   allowed: Facts;
   thread: Turn[];
+  // How the words should sound, from her moods today.
+  style?: ReplyStyle;
+  // The language of her message, or the one she usually writes in.
+  language?: Language;
 }
 
-const GREETING = /^\s*(?:hi+|hello|hey+|hiya|kumusta|kamusta|musta|good\s+(?:morning|afternoon|evening|day)|magandang\s+\w+)\b/i;
+const GREETING = /^\s*(?:hi+|hello|hey+|hiya|kumusta|kamusta|komusta|musta|uy|hoy|good\s+(?:morning|afternoon|evening|day)|magandang\s+\w+)\b/i;
 
 export function smalltalkKind(text: string): 'greeting' | 'thanks' | null {
   if (THANKS.test(text)) return 'thanks';
@@ -124,14 +133,28 @@ function fallbackOf(o: Outcome, name: string | undefined): Fallback {
   if (o.day) return { key: o.day.hasData ? 'reply.day' : 'reply.day_empty' };
   if (o.cycle) return { key: o.cycle.textKey ?? 'reply.cycle' };
   if (o.card !== null) return { key: o.card ? 'reply.card' : 'reply.no_card' };
+  if (o.contact) return { key: 'reply.contact' };
   if (o.opened) return { key: 'reply.open' };
   if (o.smalltalk === 'thanks') return { key: 'reply.thanks' };
+  if (o.smalltalk === 'chat') return { key: 'reply.chat' };
   if (o.smalltalk === 'greeting') return name ? { key: 'reply.greeting', params: { name } } : { key: 'reply.greeting.anon' };
   return { key: 'reply.other' };
 }
 
-export function replyPlan(o: Outcome, who: { name?: string; tone: Tone; today: string }): { facts: Facts; fallback: Fallback } {
+// Fixed lines with a bright and a gentle wording; lines that report a fact stay as they are.
+const STYLED = new Set(['reply.saved', 'reply.other', 'reply.greeting', 'reply.greeting.anon', 'reply.thanks', 'reply.contact', 'reply.chat']);
+
+function styled(fallback: Fallback, style: ReplyStyle): Fallback {
+  return style !== 'steady' && STYLED.has(fallback.key) ? { ...fallback, key: `${fallback.key}.${style}` } : fallback;
+}
+
+export function replyPlan(
+  o: Outcome,
+  who: { name?: string; tone: Tone; today: string; moods?: Mood[] },
+): { facts: Facts; fallback: Fallback; style: ReplyStyle } {
   const facts: Facts = {};
+  const moods = who.moods ?? [];
+  const style = replyStyle(moods, who.tone);
   if (who.name) facts.her_name = who.name;
   const tone = TONE_WORD[who.tone];
   if (tone) facts.her_tone = tone;
@@ -152,14 +175,17 @@ export function replyPlan(o: Outcome, who: { name?: string; tone: Tone; today: s
   }
   if (o.cycle) Object.assign(facts, o.cycle.facts);
   if (o.card !== null) facts.source_card = o.card ? 'found, shown below your message' : 'none found';
+  if (o.contact) facts.call_and_text_buttons = 'shown below for her to tap; you cannot call or text anyone yourself';
   if (o.opened) facts.opened = words(o.opened);
-  if (o.smalltalk) facts.she_said = o.smalltalk === 'thanks' ? 'thank you' : 'hello';
+  if (o.smalltalk === 'chat') facts.she_is_chatting = true;
+  else if (o.smalltalk) facts.she_said = o.smalltalk === 'thanks' ? 'thank you' : 'hello';
   if (o.asksAboutHerData) facts.she_asked_about_her_own_data = true;
 
   const acted = Object.keys(facts).some((k) => k !== 'her_name' && k !== 'her_tone');
+  if (moods.length > 0) facts.her_moods_today = moods;
   if (!acted) {
     facts.no_action_taken = true;
     facts.i_can_help_with = HELP;
   }
-  return { facts, fallback: fallbackOf(o, who.name) };
+  return { facts, fallback: styled(fallbackOf(o, who.name), style), style };
 }
