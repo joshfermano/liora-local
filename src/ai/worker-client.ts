@@ -1,4 +1,4 @@
-import type { WorkerName, WorkerRequest, WorkerRequestBody, WorkerResponse } from './protocol';
+import type { ProgressEvent, WorkerName, WorkerRequest, WorkerRequestBody, WorkerResponse } from './protocol';
 
 export interface WorkerLike {
   postMessage(message: WorkerRequest): void;
@@ -6,16 +6,23 @@ export interface WorkerLike {
   terminate(): void;
 }
 
-type Reply = Exclude<WorkerResponse, { type: 'error' }>;
+type Reply = Exclude<WorkerResponse, { type: 'error' | 'progress' }>;
 
 export function createWorkerClient(worker: WorkerLike) {
   let nextId = 1;
-  const pending = new Map<number, { resolve: (reply: Reply) => void; reject: (error: Error) => void }>();
+  const pending = new Map<
+    number,
+    { resolve: (reply: Reply) => void; reject: (error: Error) => void; onProgress?: (event: ProgressEvent) => void }
+  >();
 
   worker.addEventListener('message', (event) => {
     const response = (event as MessageEvent<WorkerResponse>).data;
     const waiting = pending.get(response.id);
     if (!waiting) return;
+    if (response.type === 'progress') {
+      waiting.onProgress?.({ file: response.file, loaded: response.loaded, total: response.total });
+      return;
+    }
     pending.delete(response.id);
     if (response.type === 'error') waiting.reject(new Error(response.message));
     else waiting.resolve(response);
@@ -28,10 +35,10 @@ export function createWorkerClient(worker: WorkerLike) {
   });
 
   return {
-    request(body: WorkerRequestBody): Promise<Reply> {
+    request(body: WorkerRequestBody, onProgress?: (event: ProgressEvent) => void): Promise<Reply> {
       const id = nextId++;
       return new Promise((resolve, reject) => {
-        pending.set(id, { resolve, reject });
+        pending.set(id, { resolve, reject, onProgress });
         worker.postMessage({ ...body, id });
       });
     },

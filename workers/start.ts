@@ -1,6 +1,8 @@
 import { env } from '@huggingface/transformers';
-import type { WorkerName, WorkerRequest } from '../src/ai/protocol';
+import type { WorkerName, WorkerRequest, WorkerResponse } from '../src/ai/protocol';
 import { handleRequest, localRuntimePaths } from './handle';
+import { createModelHost } from './host';
+import { loaders } from './loaders';
 
 type WorkerScope = {
   location: { href: string };
@@ -16,7 +18,14 @@ export function startWorker(name: WorkerName) {
   env.allowLocalModels = false;
 
   const info = { webgpu: 'gpu' in scope.navigator, runtime: env.version };
+  const host = createModelHost(loaders, () => performance.now(), (response) => scope.postMessage(response));
+
   scope.addEventListener('message', (event) => {
-    scope.postMessage(handleRequest(name, event.data, info));
+    const request = event.data;
+    if (request.type === 'load' || request.type === 'probe' || request.type === 'release') {
+      void host.handle(request).then((response: WorkerResponse) => scope.postMessage(response));
+    } else {
+      scope.postMessage(handleRequest(name, request, info));
+    }
   });
 }

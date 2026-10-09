@@ -63,6 +63,34 @@ describe('createWorkerClient', () => {
   });
 });
 
+describe('createWorkerClient progress', () => {
+  it('hands progress events to the listener of the request they belong to, and keeps waiting', async () => {
+    const worker = new FakeWorker();
+    const client = createWorkerClient(worker);
+    const seen: string[] = [];
+    const first = client.request({ type: 'probe' }, (e) => seen.push(`a:${e.file}:${e.loaded}/${e.total}`));
+    const second = client.request({ type: 'release' }, (e) => seen.push(`b:${e.file}`));
+    const [a, b] = worker.sent;
+    worker.reply({ id: a!.id, type: 'progress', file: 'x.onnx_data', loaded: 5, total: 10 });
+    worker.reply({ id: b!.id, type: 'progress', file: 'y.onnx', loaded: 1, total: 2 });
+    expect(seen).toEqual(['a:x.onnx_data:5/10', 'b:y.onnx']);
+    worker.reply({ id: a!.id, type: 'probed', model: 'embeddinggemma2-text', probeMs: 3, detail: 'ok' });
+    await expect(first).resolves.toMatchObject({ type: 'probed' });
+    worker.reply({ id: b!.id, type: 'released' });
+    await expect(second).resolves.toMatchObject({ type: 'released' });
+  });
+
+  it('ignores progress for a request without a listener', async () => {
+    const worker = new FakeWorker();
+    const client = createWorkerClient(worker);
+    const pending = client.request({ type: 'release' });
+    const sent = worker.sent[0]!;
+    worker.reply({ id: sent.id, type: 'progress', file: 'x', loaded: 1, total: 2 });
+    worker.reply({ id: sent.id, type: 'released' });
+    await expect(pending).resolves.toMatchObject({ type: 'released' });
+  });
+});
+
 describe('workerUrl', () => {
   it('puts the worker file under the site base address', () => {
     expect(workerUrl('ai', '/liora-local')).toBe('/liora-local/workers/ai-worker.js');
