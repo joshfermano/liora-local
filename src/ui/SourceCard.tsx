@@ -1,5 +1,6 @@
 import { Linking, View } from 'react-native';
 import type { SourceCardData } from '../content/cards';
+import { readQuote } from '../content/quote';
 import { PressableSurface } from './PressableSurface';
 import { Symbol } from './Symbol';
 import { Text } from './Text';
@@ -13,13 +14,11 @@ const siteOf = (url: string) => {
   }
 };
 
-// The passage verbatim, set off as a quote under the book it comes from; a list keeps one line per row.
+// The passage verbatim under the book it comes from: its lead set off as a quote, then a clean list.
 // Only her tap on the source opens it, and nothing else leaves the phone.
 export function SourceCard({ card }: { card: SourceCardData }) {
-  const lines = card.quote
-    .split('\n')
-    .map((l) => l.trim())
-    .filter(Boolean);
+  // The PDF's line wraps are rejoined and a list told from its lead; the words are the source's.
+  const { lead, items } = readQuote(card.quote);
   const isLink = /^https?:\/\//.test(card.source);
 
   return (
@@ -30,25 +29,33 @@ export function SourceCard({ card }: { card: SourceCardData }) {
           {card.title}
         </Text>
       </View>
-      <View className="flex-row gap-sm px-md pb-md pt-xs" accessible accessibilityLabel={lines.join('. ')}>
-        <View className="w-[3px] rounded-full bg-tint dark:bg-tint-dark" />
-        <View className="flex-1 gap-xs">
-          {lines.length > 1 ? (
-            lines.map((line, i) => (
-              <View key={i} className="flex-row gap-xs">
-                <View className="pt-[9px]">
-                  <View className="h-1.5 w-1.5 rounded-full bg-tint dark:bg-tint-dark" />
-                </View>
+      {lead.length > 0 ? (
+        <View className="flex-row gap-sm px-md pb-sm pt-xs" accessible accessibilityLabel={lead.join(' ')}>
+          <View className="w-[3px] rounded-full bg-tint dark:bg-tint-dark" />
+          <View className="flex-1 gap-xs">
+            {lead.map((line, i) => (
+              <Text key={i} variant="body" className={i === 0 && lead.length > 1 ? 'font-semibold' : ''}>
+                {line}
+              </Text>
+            ))}
+          </View>
+        </View>
+      ) : null}
+      {items.length > 0 ? (
+        <View className="px-md pb-sm" accessible accessibilityLabel={items.join('. ')}>
+          {items.map((item, i) => (
+            <View key={i}>
+              {i > 0 ? <View className={`ml-[18px] h-px ${SEPARATOR}`} /> : null}
+              <View className="min-h-[36px] flex-row items-center gap-sm py-xs">
+                <View className="h-1.5 w-1.5 rounded-full bg-tint dark:bg-tint-dark" />
                 <Text variant="body" className="flex-1">
-                  {line}
+                  {item}
                 </Text>
               </View>
-            ))
-          ) : (
-            <Text variant="body">{lines[0] ?? card.quote}</Text>
-          )}
+            </View>
+          ))}
         </View>
-      </View>
+      ) : null}
       <View className={`h-px ${SEPARATOR}`} />
       {isLink ? (
         <PressableSurface
