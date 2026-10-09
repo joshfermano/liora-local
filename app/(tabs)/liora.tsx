@@ -1,6 +1,7 @@
 import { useRouter } from 'expo-router';
 import { useEffect, useRef, useState } from 'react';
-import { Keyboard, KeyboardAvoidingView, Platform, ScrollView, View } from 'react-native';
+import { Keyboard, KeyboardAvoidingView, Platform, ScrollView, StyleSheet, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { en } from '../../src/content/copy';
 import { useCompanionStore } from '../../src/store/companion';
 import { Bubble, LioraMessage } from '../../src/ui/companion/Blocks';
@@ -8,7 +9,9 @@ import { Composer, STARTERS } from '../../src/ui/companion/Composer';
 import { GlassCard } from '../../src/ui/Glass';
 import { tap } from '../../src/ui/haptics';
 import { PressableSurface } from '../../src/ui/PressableSurface';
-import { Screen } from '../../src/ui/Screen';
+import { useFooterGap, useMargin } from '../../src/ui/Screen';
+import { FadeBlur } from '../../src/ui/FadeBlur';
+import { LightField } from '../../src/ui/LightField';
 import { Symbol } from '../../src/ui/Symbol';
 import { Text } from '../../src/ui/Text';
 import { Thinking } from '../../src/ui/Thinking';
@@ -24,6 +27,9 @@ function Typing() {
   );
 }
 
+// How far each blur reaches past the header and chat bar, so messages fade rather than cut off.
+const FADE = 28;
+
 export default function Liora() {
   const messages = useCompanionStore((s) => s.messages);
   const thinking = useCompanionStore((s) => s.thinking);
@@ -34,6 +40,11 @@ export default function Liora() {
   const last = messages[messages.length - 1];
   const canClear = messages.length > 0 && !thinking;
   const [keyboard, setKeyboard] = useState(false);
+  const insets = useSafeAreaInsets();
+  const margin = useMargin();
+  const footerGap = useFooterGap({ tabBar: true, keyboardUp: keyboard });
+  const [headerH, setHeaderH] = useState(insets.top + 72);
+  const [footerH, setFooterH] = useState(footerGap + 76);
 
   useEffect(() => {
     const show = Keyboard.addListener('keyboardWillShow', () => setKeyboard(true));
@@ -53,41 +64,16 @@ export default function Liora() {
   return (
     // The padding it adds shows through the glass keyboard, so it wears the screen's ground.
     <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} className={`flex-1 ${SURFACE.ground}`}>
-      <Screen tabBar keyboardUp={keyboard} scroll={false} footer={<Composer text={text} setText={setText} />}>
-        <View className="flex-row items-center justify-between gap-xs pb-sm pt-lg">
-          <Text variant="displayTitle" accessibilityRole="header">
-            {en('tabs.liora')}
-          </Text>
-          <View className="flex-row items-center gap-xs">
-            {hasHistory ? (
-              <PressableSurface
-                label={en('liora.history')}
-                onPress={() => {
-                  tap();
-                  router.push('/history');
-                }}
-              >
-                <GlassCard interactive className="h-tap w-tap items-center justify-center">
-                  <Symbol name="clock.arrow.circlepath" fallback="list" tone="tint" size={20} />
-                </GlassCard>
-              </PressableSurface>
-            ) : null}
-            {canClear ? (
-              <PressableSurface
-                label={en('liora.clear')}
-                onPress={() => {
-                  tap();
-                  clear();
-                }}
-              >
-                <GlassCard interactive className="h-tap w-tap items-center justify-center">
-                  <Symbol name="arrow.counterclockwise" fallback="reset" tone="tint" size={20} />
-                </GlassCard>
-              </PressableSurface>
-            ) : null}
-          </View>
-        </View>
-        <ScrollView ref={scroll} className="flex-1" keyboardShouldPersistTaps="handled" contentContainerStyle={{ flexGrow: 1, paddingBottom: 12 }}>
+      <LightField />
+      <ScrollView
+        ref={scroll}
+        style={StyleSheet.absoluteFill}
+        keyboardShouldPersistTaps="handled"
+        contentInsetAdjustmentBehavior="never"
+        scrollIndicatorInsets={{ top: headerH, bottom: footerH }}
+        contentContainerStyle={{ flexGrow: 1, paddingTop: headerH + 4, paddingBottom: footerH + 12, paddingHorizontal: margin }}
+      >
+        <View className="w-full max-w-column flex-1 self-center">
           {messages.length === 0 && !thinking ? (
             <View className="flex-1 justify-center gap-lg py-xl">
               <View className="gap-xs">
@@ -133,8 +119,57 @@ export default function Liora() {
               {thinking && last?.role !== 'liora' ? <Typing /> : null}
             </View>
           )}
-        </ScrollView>
-      </Screen>
+        </View>
+      </ScrollView>
+      {/* Header and chat bar float over the thread; each blur reaches a little past it so messages fade under. */}
+      <View pointerEvents="box-none" style={{ position: 'absolute', top: 0, left: 0, right: 0 }} onLayout={(e) => setHeaderH(e.nativeEvent.layout.height)}>
+        <View pointerEvents="none" style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: -FADE }}>
+          <FadeBlur edge="top" />
+        </View>
+        <View className="w-full max-w-column self-center" style={{ paddingTop: insets.top + 8, paddingHorizontal: margin }}>
+          <View className="flex-row items-center justify-between gap-xs pb-sm pt-lg">
+            <Text variant="displayTitle" accessibilityRole="header">
+              {en('tabs.liora')}
+            </Text>
+            <View className="flex-row items-center gap-xs">
+              {hasHistory ? (
+                <PressableSurface
+                  label={en('liora.history')}
+                  onPress={() => {
+                    tap();
+                    router.push('/history');
+                  }}
+                >
+                  <GlassCard interactive className="h-tap w-tap items-center justify-center">
+                    <Symbol name="clock.arrow.circlepath" fallback="list" tone="tint" size={20} />
+                  </GlassCard>
+                </PressableSurface>
+              ) : null}
+              {canClear ? (
+                <PressableSurface
+                  label={en('liora.clear')}
+                  onPress={() => {
+                    tap();
+                    clear();
+                  }}
+                >
+                  <GlassCard interactive className="h-tap w-tap items-center justify-center">
+                    <Symbol name="arrow.counterclockwise" fallback="reset" tone="tint" size={20} />
+                  </GlassCard>
+                </PressableSurface>
+              ) : null}
+            </View>
+          </View>
+        </View>
+      </View>
+      <View pointerEvents="box-none" style={{ position: 'absolute', bottom: 0, left: 0, right: 0 }} onLayout={(e) => setFooterH(e.nativeEvent.layout.height)}>
+        <View pointerEvents="none" style={{ position: 'absolute', top: -FADE, left: 0, right: 0, bottom: 0 }}>
+          <FadeBlur edge="bottom" />
+        </View>
+        <View className="w-full max-w-column self-center" style={{ paddingTop: 8, paddingHorizontal: margin, paddingBottom: footerGap }}>
+          <Composer text={text} setText={setText} />
+        </View>
+      </View>
     </KeyboardAvoidingView>
   );
 }
