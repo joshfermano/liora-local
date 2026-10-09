@@ -26,6 +26,7 @@ import type { Entry, MoodResult } from '../core/types';
 import { commit, dataNow, plan, revertLatest, understand } from './agent';
 import { useLogStore } from './log';
 import { lastResult } from './memo';
+import { aboutLiora } from '../core/agent/about';
 import { noteHit, noteTurn } from '../core/probe';
 import { useMemoryStore } from './memory';
 import { contextFrom, readProfile } from './profile';
@@ -88,6 +89,19 @@ export async function runTurn(
     return {
       attachments: [{ kind: 'actions', items: [...HOME] }],
       fallback: { key: 'reply.guarded' },
+      request: { text: '', pack: '', facts: {}, allowed: {}, thread: [] },
+      undoneId: null,
+      noModel: true,
+    };
+  }
+  // Who Liora is, that she has no internet, and what she cannot do: a fixed answer, never a model's,
+  // unless the same message carries a danger sign, which the usual turn handles first.
+  const about = aboutLiora(text);
+  if (about && read.purpose !== 'urgent' && entry.decision.level === 'ok') {
+    noteTurn({ tools: [] });
+    return {
+      attachments: [{ kind: 'actions', items: [...HOME] }],
+      fallback: { key: `reply.about.${about}` },
       request: { text: '', pack: '', facts: {}, allowed: {}, thread: [] },
       undoneId: null,
       noModel: true,
