@@ -21,6 +21,8 @@ export type AgentAction =
   | { tool: 'clear_day'; date: DateWord; what: 'all' | 'flow' | 'symptoms' | 'moods' | 'activities' }
   | { tool: 'undo_last' }
   | { tool: 'set_status'; status: 'pregnant' | 'postpartum' | 'neither' }
+  | { tool: 'remember'; note: string }
+  | { tool: 'forget'; note?: string; all?: boolean }
   | { tool: 'ask_day'; date: DateWord }
   | { tool: 'open'; screen: Screen }
   | { tool: 'cycle_question' }
@@ -63,13 +65,18 @@ export type SavedItem =
   | { kind: 'weeks'; weeks: number }
   | { kind: 'status'; status: 'pregnant' | 'postpartum' | 'neither' }
   | { kind: 'period_deleted'; date: string; end?: string | null }
-  | { kind: 'day_cleared'; date: string; what: 'all' | 'flow' | 'symptoms' | 'moods' | 'activities' };
+  | { kind: 'day_cleared'; date: string; what: 'all' | 'flow' | 'symptoms' | 'moods' | 'activities' }
+  | { kind: 'remembered'; note: string }
+  // null note: she asked Liora to forget everything.
+  | { kind: 'forgot'; note: string | null };
 
 // The slices as they were before an apply, so Undo can put them back exactly.
 export interface Undo {
   periods?: PeriodRecord[];
   dayLogs?: DayLog[];
   setup?: Record<string, unknown> | null;
+  // The memory notes as they were, when the change touched them.
+  notes?: string[];
 }
 
 export interface Applied {

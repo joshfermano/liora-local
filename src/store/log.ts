@@ -28,6 +28,12 @@ export interface LogState extends LogData {
   deleteEverything(): Promise<void>;
 }
 
+const wipes: (() => void)[] = [];
+// Other stores register here so "Delete everything" also empties them (memory, journal).
+export function onDeleteEverything(fn: () => void): void {
+  wipes.push(fn);
+}
+
 const EMPTY: LogData = { entries: [], setup: null, moods: [], periods: [], dayLogs: [], cycleSettings: {} };
 
 export const useLogStore = create<LogState>()(
@@ -47,6 +53,7 @@ export const useLogStore = create<LogState>()(
       setCycleSettings: (cycleSettings) => set({ cycleSettings }),
       deleteEverything: async () => {
         set({ ...EMPTY });
+        for (const wipe of wipes) wipe();
         await storage.clear();
       },
     }),

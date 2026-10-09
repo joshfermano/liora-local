@@ -2,6 +2,7 @@ import { readMoods, readText, readWeeks } from '../lexicon';
 import type { Activity, Flow, Symptom } from '../types';
 import { ACTIVITIES, SYMPTOMS } from '../vocabulary';
 import { readEdit, THANKS } from './edits';
+import { readMemory } from './memory';
 import type { AgentAction, DateWord } from './types';
 import { dateWord } from './when';
 
@@ -51,6 +52,8 @@ function activitiesOf(text: string): Activity[] {
 
 export function readActions(text: string, today: string): AgentAction[] {
   if (GREETING_ONLY.test(text) && text.trim()) return [{ tool: 'smalltalk' }];
+  const memory = readMemory(text);
+  if (memory) return memory;
   const edit = readEdit(text, today);
   if (edit) return edit;
   const cycleQuestion = CYCLE_QUESTION.test(text);

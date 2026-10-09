@@ -19,6 +19,8 @@ import type { DayLog, PeriodRecord } from '../core/types';
 import { setRouteActions, setSayReply } from '../store/agent';
 import { useCompanionStore } from '../store/companion';
 import { useLogStore } from '../store/log';
+import { useJournalStore } from '../store/journal';
+import { useMemoryStore } from '../store/memory';
 import { readProfile } from '../store/profile';
 import { setAskModel, setRetrieveCard } from '../store/tell';
 
@@ -240,5 +242,85 @@ describe('safety', () => {
     await send('Can you remove my period logged this month?');
     expect(block('decision')?.level).not.toBe('go_now');
     expect(octPeriods()).toEqual([]);
+  });
+});
+
+describe('memory', () => {
+  const notes = () => useMemoryStore.getState().notes;
+  const packSeen = async (text: string) => {
+    const say = vi.fn(async (_req: { pack: string }) => null);
+    setSayReply(say);
+    await send(text);
+    setSayReply(null);
+    return say.mock.calls.at(-1)![0].pack;
+  };
+
+  it('"remember that I prefer Taglish" is stored and shows in the next reply pack', async () => {
+    await send('remember that I prefer Taglish');
+    expect(notes()).toEqual(['I prefer Taglish']);
+    expect(block('logged')?.items).toEqual([{ kind: 'remembered', note: 'I prefer Taglish' }]);
+    expect(replies()).toHaveLength(1);
+    const pack = await packSeen('Niregla ako today');
+    expect(pack).toContain('She asked Liora to remember: I prefer Taglish');
+    expect(pack).toContain('She writes in: Taglish (reply the same way)');
+  });
+
+  it('notes never change the rules: the pack is the only place they appear', async () => {
+    await send('remember that I prefer Taglish');
+    expect(log().dayLogs).toEqual([]);
+    expect(octPeriods()).toEqual([]);
+    expect(view().pack).not.toContain('She asked Liora to remember');
+  });
+
+  it('"forget that I prefer Taglish" removes it, and "forget everything" clears all', async () => {
+    await send('remember that I prefer Taglish');
+    await send('tandaan mo na ang kapatid ko ay si Ana');
+    expect(notes()).toHaveLength(2);
+    await send('forget that I prefer Taglish');
+    expect(notes()).toEqual(['ang kapatid ko ay si Ana']);
+    expect(block('logged')?.items).toEqual([{ kind: 'forgot', note: 'I prefer Taglish' }]);
+    await send('forget everything');
+    expect(notes()).toEqual([]);
+  });
+
+  it('forgetting a note she does not have says so and changes nothing', async () => {
+    await send('remember that I prefer Taglish');
+    await send('forget the zebra');
+    expect(notes()).toEqual(['I prefer Taglish']);
+    expect(kinds()).not.toContain('logged');
+    expect(replies()[0]).toMatchObject({ fallback: { key: 'reply.note_not_found' } });
+  });
+
+  it('"undo" takes back a remembered note, also after the journal is reloaded', async () => {
+    await send('remember that I prefer Taglish');
+    await useJournalStore.persist.rehydrate();
+    await send('Can you undo?');
+    expect(notes()).toEqual([]);
+  });
+
+  it.each(['remember na dinudugo ako nang malakas', 'please remember that I have heavy bleeding'])(
+    'a danger message never stores a note: %s',
+    async (text) => {
+      useLogStore.setState({ setup: { status: 'pregnant', weeks: 32 }, periods: [] });
+      await send(text);
+      expect(block('decision')?.level).toBe('go_now');
+      expect(notes()).toEqual([]);
+      expect(kinds()).not.toContain('logged');
+    },
+  );
+
+  it('a model-detected danger on a note turn is not stored either', async () => {
+    useLogStore.setState({ setup: { status: 'pregnant', weeks: 32 }, periods: [] });
+    setAskModel(async () => ({ 'yesno.vaginal_bleeding': [0.95, 0.05] }), { role: 'llm', id: 'test', version: '1' });
+    await send('remember that I prefer Taglish');
+    expect(notes()).toEqual([]);
+  });
+
+  it('Delete everything wipes the notes, the language and the journal', async () => {
+    await send('remember that I prefer Taglish');
+    await log().deleteEverything();
+    expect(notes()).toEqual([]);
+    expect(useMemoryStore.getState().language).toBeUndefined();
+    expect(useJournalStore.getState().entries).toEqual([]);
   });
 });

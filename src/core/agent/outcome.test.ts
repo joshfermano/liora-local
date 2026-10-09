@@ -44,6 +44,16 @@ describe('replyPlan fallback', () => {
     expect(plan({ notFound: true }).fallback.key).toBe('reply.not_found');
     expect(plan({ waiting: true }).fallback.key).toBe('reply.confirm');
   });
+  it('words a remembered or forgotten note from her own words', () => {
+    const remembered = plan({ saved: [{ kind: 'remembered', note: 'I prefer Taglish' }] });
+    expect(remembered.fallback.key).toBe('reply.remembered');
+    expect(remembered.facts.saved).toEqual(['will remember: "I prefer Taglish"']);
+    const forgot = plan({ saved: [{ kind: 'forgot', note: 'I prefer Taglish' }] });
+    expect(forgot.fallback.key).toBe('reply.deleted');
+    expect(forgot.facts.removed).toEqual(['forgot: "I prefer Taglish"']);
+    expect(plan({ saved: [{ kind: 'forgot', note: null }] }).facts.removed).toEqual(['forgot everything she asked me to remember']);
+    expect(plan({ noteNotFound: true }).fallback.key).toBe('reply.note_not_found');
+  });
   it('answers cycle, day, card and open questions', () => {
     expect(plan({ cycle: { facts: { cycle_day: 3 }, textKey: null } }).fallback.key).toBe('reply.cycle');
     expect(plan({ cycle: { facts: {}, textKey: 'companion.cycle.pregnant' } }).fallback.key).toBe('companion.cycle.pregnant');

@@ -13,6 +13,9 @@ function verdict(a: AgentAction, data: AgentData, status: string | undefined, to
     case 'ask_day':
     case 'open':
       return 'skip';
+    case 'remember':
+    case 'forget':
+      return 'apply';
     case 'delete_period': {
       const date = resolveDate(a.date, today);
       return date && periodsToDelete(date, a.span, data, today).length > 0 ? 'apply' : 'skip';

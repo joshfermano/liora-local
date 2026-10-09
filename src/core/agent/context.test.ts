@@ -69,4 +69,24 @@ describe('what Liora knows about her, for the reply prompt', () => {
     const factText = JSON.stringify(facts);
     for (const n of numbers) expect(factText).toContain(n);
   });
+
+  it('lists the notes she asked Liora to remember, and the language she writes in', () => {
+    const { text } = contextPack(input({ memory: { notes: ['I prefer Taglish', 'my sister is Ana'], language: 'taglish' } }));
+    expect(text).toContain('She asked Liora to remember: I prefer Taglish; my sister is Ana');
+    expect(text).toContain('She writes in: Taglish (reply the same way)');
+  });
+
+  it.each([
+    ['tagalog', 'She writes in: Tagalog (reply the same way)'],
+    ['english', 'She writes in: English (reply the same way)'],
+  ] as const)('names %s', (language, line) => {
+    expect(contextPack(input({ memory: { notes: [], language } })).text).toContain(line);
+  });
+
+  it('adds nothing without memory', () => {
+    const { text } = contextPack(input({ memory: { notes: [] } }));
+    expect(text).not.toContain('remember');
+    expect(text).not.toContain('She writes in');
+    expect(contextPack(input()).text).toBe(text);
+  });
 });

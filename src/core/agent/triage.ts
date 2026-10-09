@@ -17,6 +17,7 @@ export interface Triage {
   actions: AgentAction[];
 }
 
+const MEMORY: ReadonlySet<Tool> = new Set(['remember', 'forget']);
 const EDITS: ReadonlySet<Tool> = new Set(['delete_period', 'clear_day', 'undo_last']);
 const READS: ReadonlySet<Tool> = new Set(['ask_day', 'open', 'cycle_question']);
 const PERIOD_LOGS: ReadonlySet<Tool> = new Set(['period_start', 'period_end', 'flow']);
@@ -34,6 +35,8 @@ export function triage(text: string, today: string, status: string | undefined):
   const tools = actions.map((a) => a.tool);
   if (readText(text).some((f) => isDanger(f.code))) return { purpose: 'urgent', typed: 'all', actions };
 
+  // A note is her own words, so Gemma's danger answers still apply; only a clear turn may store it.
+  if (tools.some((t) => MEMORY.has(t))) return { purpose: 'update', typed: 'all', actions };
   if (tools.some((t) => EDITS.has(t))) return { purpose: 'update', typed: 'none', actions };
   if (tools.some((t) => LOGS.has(t))) {
     const typed: TypedScope = tools.includes('symptoms')

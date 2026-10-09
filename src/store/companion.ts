@@ -1,10 +1,11 @@
 import { format } from 'date-fns';
 import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
-import { triage } from '../core/agent';
+import { languageOf, triage } from '../core/agent';
 import { composeReply, ruleIntent, type ReplyBlock } from '../core/companion';
 import { canSay, commit, revert, say } from './agent';
 import { contextFrom, readProfile } from './profile';
+import { useMemoryStore } from './memory';
 import { useLogStore } from './log';
 import { storage } from './storage';
 import { useTellStore } from './tell';
@@ -23,7 +24,8 @@ interface CompanionState {
   messages: ThreadMessage[];
   thinking: boolean;
   send(text: string, input?: 'text' | 'voice'): Promise<void>;
-  // Puts back what a `logged` block saved. False when it is too late (the app was restarted).
+  // Puts back what a `logged` block saved. False when a newer change has since touched the same data
+  // or the change has left the journal (the last 10 are kept, across restarts).
   undo(undoId: string): boolean;
   // Her tap on a `confirm` block: yes saves those actions, no drops them.
   confirm(confirmId: string, yes: boolean): void;
@@ -89,6 +91,7 @@ export const useCompanionStore = create<CompanionState>()(
         const thread = recentTurns(get().messages);
         const her: ThreadMessage = { id: newId(), role: 'her', text, at: new Date().toISOString() };
         set((s) => ({ messages: [...s.messages, her], thinking: true }));
+        useMemoryStore.getState().setLanguage(languageOf(get().messages.filter((m) => m.role === 'her').map((m) => m.text ?? '')));
         const t0 = Date.now();
         const mark = (stage: string) => {
           if (dev) console.log(`[chat] ${stage} at ${Date.now() - t0} ms`);
