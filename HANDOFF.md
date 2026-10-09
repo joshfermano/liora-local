@@ -33,26 +33,40 @@ Update section 1 and section 2 of this file as work completes, so any session ca
 | Deep research       | Done: 5 angles, 23 sources, 25 claims verified 3 ways. See `docs/research-summary.md`.                                                                                                                                                                                                                                                                                                                         |
 | Concept             | **Approved:** "Tell Liora", for the mother herself. Pregnancy danger signs are the demo star; period, symptom and mood logging use the same input.                                                                                                                                                                                                                                                       |
 | Platform            | **Approved:** one web app (Expo exported for web) in Safari on the iPhones and in laptop browsers. No native app.                                                                                                                                                                                                                                                                                              |
+| Platform change     | **Under trial (2026-10-09, 8:45 PM):** the user wants a native iPhone app, built and installed from a Mac, so Gemma 4 E2B can run like it does in native apps. The web app stays the backup until the 30-minute native proof in section 2 passes. |
 | Scope               | **Approved:** text and voice input, danger-sign decision model, go-now screen, nurse card, calm answer, on-device RAG over cited source cards, log, mood check, AI-off checklist, "How Liora decided" drawer, privacy controls, **cycle calendar with next-period estimate**. Stretch: photo of check-up record. Out: photos of the body, medicine advice, fertile-window predictions, contraception guidance. |
 | Spec                | **Approved, v4** (models changed by the user on 2026-10-09 evening: Gemma 4 E2B, Jev-style typed decisions, EmbeddingGemma 2): `docs/superpowers/specs/2026-10-09-tell-liora-design.md`.                                                                                                                                                                                                                                                                                                                                    |
 | Implementation plan | Linear project `liora-local-hackathon`: milestones M1–M7, tickets LUM-44 to LUM-78, each with acceptance criteria and blockers. Ticket rules in `AGENTS.md`; `/tickets` shows progress. |
 | Code                | **Built (2026-10-09, 8 PM):** Expo web scaffold (LUM-44); both workers bundled with esbuild (LUM-51); decision engine in `src/core/`, 253 tests (LUM-52, 53, 55, 56, 59 done; LUM-54 rules waiting on the team); source download and Ivan's card checklist `sources/review.md` (LUM-45); model test page `/dev/eval` (LUM-58). **Not started:** screens (M4), voice, card search, offline mode. |
 | GitHub repo / Pages | Public repo `joshfermano/liora-local`; Pages live at https://joshfermano.github.io/liora-local/ (deploys from `main` through Actions). Quick phone testing through `pnpm expo start --tunnel`. |
-| S1 findings         | iPhone Safari 27.0.1: WebGPU on, shader-f16 on, largest GPU buffer 1,024 MB, not cross-origin isolated (so the CPU runtime runs on one thread), about 39 GB storage. Every Gemma 4 E2B build has a 1,120 MB token-embedding table, too big for the GPU, so the token embeddings run on the CPU (WASM) and the decoder on WebGPU. Not measured yet: load time, memory, answer speed. |
-| Timeline            | At 8:15 PM: decision engine ahead of plan; the S1 model test about 1.25 hours late. Screens must start by 12 AM at the latest. |
+| S1 findings         | iPhone Safari 27.0.1: WebGPU on, shader-f16 on, largest GPU buffer 1,024 MB, not cross-origin isolated, about 39 GB storage. Gemma 4 E2B's 1,120 MB token-embedding table is too big for the GPU, so it was moved to the CPU (f928688). **Then the tab was killed at 1,763 of 2,985 MB downloaded (179 s, about 10 MB/s):** Transformers.js holds each whole file in memory until it finishes, and Gemma 4 E2B q4f16 needs about 3 GB at once, plus 1.5 GB of CPU memory for the token embeddings. As packaged, Gemma 4 E2B does not fit a browser tab. Nothing was cached. |
+| Typed decisions     | Code in a866603 (`src/ai/typed-decisions.ts`, `workers/decide.ts`). Laptop observation only (4-bit decoder on CPU, about 0.7 s per question): phrase 1 go-now, phrase 2 calm, phrase 3 go-now instead of the headache follow-up. Causes: the "very ill" question says yes to any ache; the severity score says "moderate" when the message does not say. A yes/no rewording fixed phrase 3 and the "very ill" question but read "medyo masakit" as neither mild nor severe; not applied yet. |
+| Timeline            | At 8:45 PM: about 13 hours left; the platform question (web or native) must be settled first. At 8:15 PM: decision engine ahead of plan; the S1 model test about 1.25 hours late. Screens must start by 12 AM at the latest. |
 
 ## 2. Next steps, in order
 
-1. **LUM-58 (S1):** deploy the CPU/GPU split for Gemma 4, then the user opens
-   `/liora-local/dev/eval` in Safari on both iPhones, runs Gemma q4f16, Gemma 2-bit and
-   EmbeddingGemma 2, and pastes the copied JSON. Record the results in section 1. If the CPU
-   embeddings run out of memory, take the fallback chain in spec section 10.
-2. **LUM-67:** typed decisions on the three demo phrases, then LUM-72 wires them into the pipeline.
-3. **M4 screens from LUM-57 (foundations),** starting by 12 AM at the latest, while people review.
-4. **Waiting on people:** Ivan approves the source cards (LUM-45); the team confirms the rulings
-   (LUM-54) and the fixed copy, EPDS items and hotline (LUM-46, LUM-47); someone checks Safari on
-   both iPhones (LUM-50, LUM-51).
-5. Cut order if late (unchanged): photo, then AI rewording and Cebuano, then dark-mode polish, then
+1. **Move to the Mac.** Install a current Xcode (it must support iOS 27.2 on the phones), Node 24,
+   pnpm 9, CocoaPods and Claude Code. Then `git clone https://github.com/joshfermano/liora-local`,
+   `bash scripts/setup-dev.sh`, `pnpm install`, and start Claude Code in the repo.
+2. **30-minute native proof (new Linear ticket in M1).** Build the Expo app for iOS
+   (`npx expo run:ios --device`; sign with the team's Apple ID in Xcode) and install it on one
+   iPhone with Developer Mode on. Then run Gemma 4 E2B natively: try `react-native-litert-lm`
+   (Google's LiteRT-LM) first, then `react-native-executorch` (`useLLM`, Gemma 4 E2B). Confirm it
+   can return next-token probabilities for the yes/no method, and whether a free Apple ID allows
+   the increased-memory entitlement that models over about 2 GB need.
+3. **If the proof passes:** record the platform change in section 5, the spec (sections 4, 10, 13,
+   14) and the tickets (Pages, workers and service worker tickets change). Keep `src/core/`, the
+   screens and `src/ai/typed-decisions.ts`; replace the Web Workers with the native runtime.
+   **If it fails:** back to the web app. Either stream downloads straight to storage and look up
+   token embeddings from disk in JS, or take the fallback chain in spec section 10.
+4. **Typed-decision wording:** tune on eval cases other than the three demo phrases, so the
+   measured numbers stay honest.
+5. **M4 screens from LUM-57** as soon as the platform is settled; they are shared by both paths.
+6. **Waiting on people:** Ivan approves the source cards (LUM-45) and is trying to train a
+   decision model on Gemma (anything he trains must fit on the phone, and must not train on the
+   eval phrases); the team confirms the rulings (LUM-54) and the copy, EPDS items and hotline
+   (LUM-46, LUM-47).
+7. Cut order if late (unchanged): photo, then AI rewording and Cebuano, then dark-mode polish, then
    the next-period estimate (keep the calendar), then voice, then card search. **Never cut:**
    typing, the decision model, go-now screen, nurse card, AI-off checklist.
 
