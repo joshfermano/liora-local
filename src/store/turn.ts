@@ -103,8 +103,8 @@ export async function runTurn(
   if (about && (about !== 'offtopic' || unrelated) && read.purpose !== 'urgent' && entry.decision.level === 'ok') {
     noteTurn({ tools: [] });
     return {
-      attachments: [{ kind: 'actions', items: [...HOME] }],
-      fallback: { key: `reply.about.${about}` },
+      attachments: about === 'call' ? [{ kind: 'contact' }] : [{ kind: 'actions', items: [...HOME] }],
+      fallback: { key: about === 'call' ? 'reply.contact' : `reply.about.${about}` },
       request: { text: '', pack: '', facts: {}, allowed: {}, thread: [] },
       undoneId: null,
       noModel: true,

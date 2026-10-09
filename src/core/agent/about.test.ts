@@ -12,6 +12,10 @@ describe('aboutLiora', () => {
     (text) => expect(aboutLiora(text)).toBe('offline'),
   );
 
+  it.each(['can you call the hospital for me?', 'call an ambulance for me', 'tawagan mo ang ospital'])('knows "%s" asks Liora to place a call', (text) =>
+    expect(aboutLiora(text)).toBe('call'),
+  );
+
   it.each(['book me an appointment', 'pa-schedule ng check-up', 'order food for me', 'remind me to take a walk', 'set an alarm', 'send an email to my OB', 'play some music', 'pay my bill'])(
     'knows "%s" is something Liora cannot do',
     (text) => expect(aboutLiora(text)).toBe('cannot'),
@@ -22,7 +26,7 @@ describe('aboutLiora', () => {
     (text) => expect(aboutLiora(text)).toBeNull(),
   );
 
-  it.each(['what can you do?', 'Ano ang kaya mong gawin?', 'ano kaya mo'])('answers "%s" with who Liora is', (text) => {
+  it.each(['who made you?', 'sino gumawa sa iyo?', 'what can you do?', 'Ano ang kaya mong gawin?', 'ano kaya mo'])('answers "%s" with who Liora is', (text) => {
     expect(aboutLiora(text)).toBe('identity');
   });
 
@@ -64,6 +68,8 @@ describe('aboutLiora', () => {
     "what's up?",
     'okay ka lang?',
     'good morning!',
+    '???',
+    '...',
   ])('does not refuse "%s"', (text) => {
     expect(aboutLiora(text)).not.toBe('offtopic');
   });

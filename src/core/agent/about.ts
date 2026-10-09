@@ -1,10 +1,10 @@
 // Questions about Liora herself and requests she cannot meet, read by fixed patterns so the answer
 // never depends on a model: who she is, that she has no internet, what she cannot do, and topics
 // outside her cycle, pregnancy, the weeks after birth and this app.
-export type About = 'identity' | 'offline' | 'cannot' | 'offtopic';
+export type About = 'identity' | 'offline' | 'cannot' | 'call' | 'offtopic';
 
 const IDENTITY =
-  /\bwhat\s+can\s+(?:you|u)\s+do\b|\bano\s+(?:ang\s+)?kaya\s+mo(?:ng\s+gawin)?\b|\b(?:who|what)\s+(?:are|r)\s+(?:you|u)\b|\bsino\s+ka\b|\bano\s+ka\b|\byour\s+name\b|\bpangalan\s+mo\b|\bare\s+you\s+(?:a\s+|an\s+)?(?:bot|ai|robot|human|real|person|chat\s*gpt|gpt|gemini|siri)\b|\btao\s+ka\s+ba\b|\bbot\s+ka\s+ba\b/i;
+  /\bwho\s+(?:made|created|built|programmed)\s+(?:you|u)\b|\bsino\s+(?:ang\s+)?(?:gumawa|lumikha)\s+(?:sa\s+)?(?:iyo|yo|sayo)\b|\bwhat\s+can\s+(?:you|u)\s+do\b|\bano\s+(?:ang\s+)?kaya\s+mo(?:ng\s+gawin)?\b|\b(?:who|what)\s+(?:are|r)\s+(?:you|u)\b|\bsino\s+ka\b|\bano\s+ka\b|\byour\s+name\b|\bpangalan\s+mo\b|\bare\s+you\s+(?:a\s+|an\s+)?(?:bot|ai|robot|human|real|person|chat\s*gpt|gpt|gemini|siri)\b|\btao\s+ka\s+ba\b|\bbot\s+ka\s+ba\b/i;
 
 const OFFLINE =
   /\b(?:search|google|browse|look\s+(?:it\s+)?up|lookup|internet|go\s+online|check\s+online|website)\b|\bi-?search\b|\bhanapin\s+mo\b|\b(?:weather|panahon|news|balita|headlines?|exchange\s+rate)\b/i;
@@ -25,11 +25,18 @@ const CHAT =
   /\b(?:how\s+are\s+(?:you|u)|how'?s\s+it\s+going|what'?s\s+up|kumusta|kamusta|musta|okay\s+ka\s+(?:lang|ba)|ayos\s+ka\s+lang|good\s+(?:morning|afternoon|evening|night))\b/i;
 const QUESTION = /\?\s*$|^\s*(?:what|who|where|when|why|how|which|explain|tell\s+me\s+about|ano|sino|saan|kailan|bakit|paano|ilan|gaano)\b/i;
 
+// A call to a hospital, doctor or ambulance: Liora cannot dial, so her own Call and Text buttons answer.
+const CALL =
+  /\b(?:call|phone|dial|tawagan|tumawag\s+(?:ka\s+)?(?:sa|ng))\s+(?:(?:mo|me|for\s+me|the|an?|my|ang|sa|ng)\s+){0,3}(?:hospital|ospital|doctor|doktor|ambulance|ambulansya|clinic|klinika|911|midwife|komadrona|ob|health\s+cent(?:er|re))\b/i;
+
 export function aboutLiora(text: string): About | null {
   if (IDENTITY.test(text)) return 'identity';
   if (OFFLINE.test(text)) return 'offline';
+  if (CALL.test(text)) return 'call';
   if (CANNOT.test(text)) return 'cannot';
   // A general task, or a question with nothing about her or this app in it.
+  // Nothing to judge without words ("???"): left to the usual turn.
+  if (!/\p{L}/u.test(text)) return null;
   if (!RELEVANT.test(text) && !CHAT.test(text) && (TASK.test(text) || QUESTION.test(text))) return 'offtopic';
   return null;
 }

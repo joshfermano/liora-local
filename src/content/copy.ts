@@ -713,6 +713,7 @@ export const COPY = {
   'reply.thanks.gentle': ui('Anytime. I am always here for you.'),
   'reply.other.bright': ui('I am all yours! I can log your period, symptoms, moods and activities, or tell you about your cycle. What shall we do?'),
   'reply.other.gentle': ui('I am here with you. I can log how you feel, your period and symptoms, or tell you about your cycle. What would help?'),
+  'reply.weeks': ui('You are at {n} weeks.'),
   'reply.contact': ui('I cannot call or text by myself, but you can reach your emergency contact with the buttons below.'),
   'reply.contact.bright': ui('I cannot call or text by myself, but the buttons below reach your emergency contact in one tap.'),
   'reply.contact.gentle': ui('I am here with you. I cannot call by myself, but the buttons below reach your emergency contact right away.'),

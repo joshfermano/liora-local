@@ -254,6 +254,11 @@ export const useCompanionStore = create<CompanionState>()(
             add([{ kind: 'reply', text: null, fallback: { key: 'reply.card' } }, ...kept, { kind: 'card', cardId: warning }]);
             return;
           }
+          // "Ilang weeks na ako?": her weeks are in her profile, so even without a model she gets them.
+          const asksWeeks = /\bilang\s+(?:weeks|linggo)\b|\bhow\s+many\s+weeks\b|\bwhat\s+week\b|\bpang-?ilang\s+(?:week|linggo)\b/i.test(text);
+          if (asksWeeks && profile.status === 'pregnant' && profile.weeks !== undefined && !turn.attachments.some((b) => b.kind === 'logged' || b.kind === 'confirm')) {
+            turn = { ...turn, fallback: { key: 'reply.weeks', params: { n: String(profile.weeks) } } };
+          }
           const id = add([{ kind: 'reply', text: null, fallback: turn.fallback }, ...turn.attachments]);
           const undone = turn.undoneId;
           if (undone) set((s) => ({ messages: dropBlock(s.messages, (b) => b.kind === 'logged' && b.undoId === undone) }));

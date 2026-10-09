@@ -287,5 +287,12 @@ describe('companion thread with the real rules and no model', () => {
     expect(blocks[0]).toEqual({ kind: 'reply', text: null, fallback: { key: 'reply.card' } });
     expect(blocks).toContainEqual({ kind: 'card', cardId: 'mcb-p4-warning-signs' });
   });
+
+  it('tells her how many weeks she is from her profile', async () => {
+    useLogStore.setState({ setup: { status: 'pregnant', weeks: 30 } });
+    await useCompanionStore.getState().send('ilang weeks na ako?');
+    const blocks = useCompanionStore.getState().messages.at(-1)!.blocks ?? [];
+    expect(blocks[0]).toEqual({ kind: 'reply', text: null, fallback: { key: 'reply.weeks', params: { n: '30' } } });
+  });
 });
 
