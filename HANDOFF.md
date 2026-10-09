@@ -128,6 +128,16 @@ check shows a crisis hotline on any self-harm answer. Nothing leaves the phone.
 - `onnx-community/gemma-4-E2B-it-ONNX`: decoder q4f16 ~1,520 MB, token embeddings int8 ~466 MB or
   q4f16 ~1,591 MB, audio encoder q4f16 ~172 MB, vision encoder q4f16 ~99 MB. 2-bit fallback:
   `onnx-community/gemma-4-E2B-it-qat-mobile-ONNX`.
+- **Correction from the Hub file listing (2026-10-09, LUM-58):** `embed_tokens_quantized` (the int8
+  option) is three shards of 465.6 + 2,348.8 + 367.0 MB, about 3.2 GB in all. The "466 MB" was
+  only the first shard. `embed_tokens_q4f16` is one 1,590.7 MB file. Text-only Gemma 4 is therefore
+  about 3.1 GB with q4f16 embeddings and about 4.7 GB with quantized ones. The qat-mobile build is
+  decoder q2f16 994.6 MB + embed_tokens q2f16 1,296.6 MB (about 2.3 GB). Not yet tried on a device.
+- Transformers.js 4.3.1 text-only Gemma 4: `Gemma4ForCausalLM.from_pretrained(repo, { device:
+  'webgpu', dtype: { embed_tokens, decoder_model_merged } })` loads just those two sessions (no
+  audio or vision encoder). dtype `q8` means the `_quantized` file. EmbeddingGemma 2 text only:
+  `AutoConfig` with `vision_config` and `audio_config` set to null, then `AutoModel.from_pretrained`
+  with `dtype: 'q4f16'`; the output is `sentence_embedding`.
 - `onnx-community/embeddinggemma-2-ONNX`: text q4f16 ~157 MB, vision q4f16 ~98 MB.
 - Laya: `convaiinnovations/laya-multilingual` (322M, ~644 MB safetensors); browser runner in the
   repo's `laya-ts/` (not on npm).
