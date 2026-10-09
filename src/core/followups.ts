@@ -16,3 +16,11 @@ export type Answer = 'yes' | 'no' | 'skip';
 export function applyAnswer(answer: Answer): Severity {
   return answer === 'no' ? 'mild' : 'severe';
 }
+
+// Signs she is asked about in the same words ("Sobrang sakit ba?"): one answer covers them all, so she is
+// never asked the same question twice in a row. Wording lives in src/content/; this only groups the codes.
+const SAME_QUESTION: readonly (readonly string[])[] = [['severe_headache', 'severe_pain', 'severe_abdominal_pain']];
+
+export function askedTogether(code: string): readonly string[] {
+  return SAME_QUESTION.find((group) => group.includes(code)) ?? [code];
+}

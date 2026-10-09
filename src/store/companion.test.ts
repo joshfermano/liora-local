@@ -169,6 +169,25 @@ describe('companion thread with the real rules and no model', () => {
       expect(useCompanionStore.getState().history).toEqual([]);
     });
 
+    it('clears all of history but keeps the conversation she is in', () => {
+      useCompanionStore.setState({ messages: [her('1', 'old')] });
+      useCompanionStore.getState().clear();
+      useCompanionStore.setState({ messages: [her('2', 'now')] });
+      useCompanionStore.getState().clearHistory();
+      const { messages, history } = useCompanionStore.getState();
+      expect(history).toEqual([]);
+      expect(messages.map((m) => m.text)).toEqual(['now']);
+    });
+
+    it('starts a fresh chat on launch and keeps the last one in history', async () => {
+      const saved = { messages: [her('1', 'from yesterday')], history: [] };
+      disk.set('tell-liora-thread', JSON.stringify({ state: saved, version: 0 }));
+      await useCompanionStore.persist.rehydrate();
+      const { messages, history } = useCompanionStore.getState();
+      expect(messages).toEqual([]);
+      expect(history.map((c) => c.messages[0]!.text)).toEqual(['from yesterday']);
+    });
+
     it('keeps at most 50 past conversations', () => {
       for (let i = 0; i < 55; i++) {
         useCompanionStore.setState({ messages: [her(String(i), `m${i}`)] });

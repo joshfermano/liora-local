@@ -2,19 +2,23 @@ import { format, parseISO } from 'date-fns';
 import { useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { View } from 'react-native';
+import Animated, { FadeOut } from 'react-native-reanimated';
 import { CARDS } from '../../content/cards';
 import { en } from '../../content/copy';
 import type { QuickAction, ReplyBlock } from '../../core/companion';
 import { resolvePeriodDate } from '../../core/cycle';
 import { useLogStore } from '../../store/log';
+import { useTellStore } from '../../store/tell';
 import { CapsuleButton } from '../CapsuleButton';
 import { EmergencyButtons } from '../EmergencyButtons';
 import { GlassCard } from '../Glass';
 import type { IconName } from '../Icon';
 import { confirm, tap, warn } from '../haptics';
+import { Pair } from '../Pair';
 import { PressableSurface } from '../PressableSurface';
 import { SourceCard } from '../SourceCard';
 import { Symbol } from '../Symbol';
+import { SwipeCard } from '../SwipeCard';
 import { Text } from '../Text';
 import { SURFACE } from '../theme';
 import { Thinking } from '../Thinking';
@@ -54,14 +58,59 @@ function addPeriod(event: 'started' | 'ended', day: string) {
   if (target) log.setPeriods(log.periods.map((p) => (p.id === target.id ? { ...p, end: day } : p)));
 }
 
+// The follow-up question right in the thread: swipe the card (right yes, left no) or tap ✓ or ✕. Skip means
+// serious, as on the result screen; the answer opens the result. Older follow-ups keep their button.
+function FollowUpInline({ entryId }: { entryId: string }) {
+  const router = useRouter();
+  const current = useTellStore((s) => s.current);
+  const answerFollowUp = useTellStore((s) => s.answerFollowUp);
+  const [busy, setBusy] = useState(false);
+  const [picked, setPicked] = useState(false);
+  const question = current?.decision.follow_up?.question_id;
+  if (current?.id !== entryId || current.decision.level !== 'follow_up' || !question) return null;
+  const answer = async (a: 'yes' | 'no' | 'skip') => {
+    if (busy) return;
+    setBusy(true);
+    try {
+      const next = await answerFollowUp(a);
+      router.push(`/result/${next.id}`);
+    } catch {
+      setBusy(false);
+    }
+  };
+  return (
+    <View className="gap-xs">
+      <SwipeCard onAnswer={(yes) => void answer(yes ? 'yes' : 'no')} onChoose={() => setPicked(true)} disabled={busy}>
+        <View className="py-sm">
+          <Pair copyKey={question} large="title3" small="body" />
+        </View>
+      </SwipeCard>
+      {/* Once she has answered, Skip no longer applies, so it fades out. */}
+      {picked ? null : (
+        <Animated.View exiting={FadeOut.duration(180)} className="items-center gap-xxs">
+          <CapsuleButton variant="plain" label={en('result.skip')} onPress={() => void answer('skip')} disabled={busy} />
+          <Text variant="footnote" tone="secondary" className="text-center">
+            {en('followup.skip_means')}
+          </Text>
+        </Animated.View>
+      )}
+    </View>
+  );
+}
+
 function Decision({ block }: { block: Extract<ReplyBlock, { kind: 'decision' }> }) {
   const router = useRouter();
   const open = () => router.push(`/result/${block.entryId}`);
+  const live = useTellStore((s) => s.current?.id === block.entryId && s.current.decision.level === 'follow_up');
+  // The decision as it stands now: answering a follow-up replaces the entry in her log under the same id,
+  // so an answered question shows its outcome rather than the old 'Answer the question' button.
+  const level = useLogStore((s) => s.entries.find((e) => e.id === block.entryId)?.decision.level) ?? block.level;
+  const question = useTellStore((s) => (s.current?.id === block.entryId ? s.current.decision.follow_up?.question_id : undefined));
   useEffect(() => {
-    if (block.level === 'go_now') warn();
-  }, [block.level]);
+    if (level === 'go_now') warn();
+  }, [level]);
 
-  if (block.level === 'go_now') {
+  if (level === 'go_now') {
     return (
       <View className={`${SURFACE.alarm} rounded-pane p-md gap-sm`} accessibilityRole="alert">
         <Text variant="title3" tone="onUrgent">
@@ -75,7 +124,9 @@ function Decision({ block }: { block: Extract<ReplyBlock, { kind: 'decision' }> 
       </View>
     );
   }
-  if (block.level === 'follow_up') {
+  if (level === 'follow_up') {
+    // Keyed by question: a second follow-up gets a fresh card.
+    if (live) return <FollowUpInline key={question} entryId={block.entryId} />;
     return (
       <GlassCard interactive className="p-md gap-sm">
         <CapsuleButton variant="filled" label={en('liora.followup.open')} onPress={() => { tap(); open(); }} />
@@ -182,20 +233,20 @@ function Confirm({ block }: { block: Extract<ReplyBlock, { kind: 'confirm' }> })
     setState(yes ? 'saved' : 'skipped');
   };
   return (
-    <GlassCard className="gap-xs p-md">
-      <Text variant="headline" accessibilityRole="header">
-        {en('agent.confirm.title')}
-      </Text>
-      {lines.map((l, i) => (
-        <Text key={i} variant="body">
-          {l}
-        </Text>
-      ))}
-      <View className="flex-row flex-wrap gap-xs pt-xxs">
-        <ActionPill label={en('agent.confirm.yes')} sf="checkmark" fallback="check" onPress={() => answer(true)} />
-        <ActionPill label={en('agent.confirm.no')} sf="xmark" fallback="close" onPress={() => answer(false)} />
-      </View>
-    </GlassCard>
+    <View className="gap-xs">
+      <SwipeCard onAnswer={answer}>
+        <View className="gap-xs">
+          <Text variant="headline" accessibilityRole="header">
+            {en('agent.confirm.title')}
+          </Text>
+          {lines.map((l, i) => (
+            <Text key={i} variant="body">
+              {l}
+            </Text>
+          ))}
+        </View>
+      </SwipeCard>
+    </View>
   );
 }
 
