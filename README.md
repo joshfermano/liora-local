@@ -40,6 +40,7 @@ Context, from checked sources:
 | **Decide** | A deterministic decision model built from WHO and DOH warning-sign tables makes the call: go to the hospital now, one fixed follow-up question, or a calm answer. |
 | **Explain** | Fixed, pre-written screens; a card to show the nurse; and the WHO or DOH passage behind the answer, shown word for word. |
 | **Remember** | Her log, a cycle calendar and an explained next-period estimate, stored only on her phone. |
+| **Companion** | The Liora tab is a conversation. The word rules (and, only when they read nothing, one typed Gemma question) tell what her message is about; the reply is then built from fixed copy, her own logs, a quoted source card or the rules' decision, with the go-now and nurse card inline. Gemma never writes the reply. |
 
 **The AI only understands her words. Every decision comes from transparent rules she can see.**
 
@@ -92,6 +93,10 @@ reported.
 | "How Liora decided": what each reader found, which rule fired, which models ran | built |
 | Cycle calendar and explained next-period estimate | built |
 | Source-card search by meaning (EmbeddingGemma, on the phone) | built |
+| Native iPhone tabs (Today, Calendar, Liora, Profile) with Liquid Glass, SF Symbols and haptics | built |
+| Liora companion thread: logs periods and moods, answers cycle questions from her logs, shows the rules' decision and nurse card inline | built |
+| Profile: name, age, height, weight, pregnancy status and weeks, cycle settings, Face ID lock (shown on the nurse card; never used to decide) | built |
+| Period tracking: log, edit and delete periods with flow; cycle ring and history | built |
 | Stretch: read blood pressure and weeks from a photo of the check-up record | stretch |
 
 ## Why does this product benefit from running AI locally?
