@@ -1,8 +1,9 @@
-import { useEffect } from 'react';
+import { useEffect, useMemo } from 'react';
 import { View } from 'react-native';
 import Animated, { Easing, useAnimatedStyle, useReducedMotion, useSharedValue, withRepeat, withTiming } from 'react-native-reanimated';
-import Svg, { Circle, Defs, Ellipse, RadialGradient, Stop } from 'react-native-svg';
+import Svg, { Circle, Defs, Ellipse, Path, RadialGradient, Stop } from 'react-native-svg';
 import { useColors } from './theme';
+import { palette } from './tokens';
 
 // Clouds drift inside a lit sphere. Each layer turns at its own pace so the mix never repeats exactly.
 function useSpin(ms: number, reduce: boolean, reverse = false) {
@@ -12,6 +13,50 @@ function useSpin(ms: number, reduce: boolean, reverse = false) {
     turn.value = withRepeat(withTiming(1, { duration: ms, easing: Easing.linear }), -1);
   }, [ms, reduce, turn]);
   return useAnimatedStyle(() => ({ transform: [{ rotate: `${(reverse ? -360 : 360) * turn.value}deg` }] }));
+}
+
+// iOS svg has no noise filter, so the grain is seeded specks, grouped by tone and strength into a few paths.
+const SPECKS = 3600;
+const SPECK = 0.42;
+const STRENGTHS = [0.1, 0.18, 0.26, 0.34];
+
+function seeded(seed: number) {
+  let t = seed >>> 0;
+  return () => {
+    t = (t + 0x6d2b79f5) >>> 0;
+    let x = Math.imul(t ^ (t >>> 15), 1 | t);
+    x = (x + Math.imul(x ^ (x >>> 7), 61 | x)) ^ x;
+    return ((x ^ (x >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
+function grainPaths(): { light: string[]; dark: string[] } {
+  const rand = seeded(7);
+  const light = STRENGTHS.map(() => '');
+  const dark = STRENGTHS.map(() => '');
+  for (let i = 0; i < SPECKS; i++) {
+    const x = (rand() * 100).toFixed(2);
+    const y = (rand() * 100).toFixed(2);
+    const bucket = Math.floor(rand() * STRENGTHS.length);
+    const speck = `M${x} ${y}h${SPECK}v${SPECK}h-${SPECK}z`;
+    if (rand() < 0.5) light[bucket] += speck;
+    else dark[bucket] += speck;
+  }
+  return { light, dark };
+}
+
+function Grain({ size, light, dark }: { size: number; light: string; dark: string }) {
+  const paths = useMemo(grainPaths, []);
+  return (
+    <Svg width={size} height={size} viewBox="0 0 100 100" style={{ position: 'absolute' }}>
+      {STRENGTHS.map((o, i) => (
+        <Path key={`l${i}`} d={paths.light[i]} fill={light} opacity={o} />
+      ))}
+      {STRENGTHS.map((o, i) => (
+        <Path key={`d${i}`} d={paths.dark[i]} fill={dark} opacity={o} />
+      ))}
+    </Svg>
+  );
 }
 
 function Cloud({ size, id, color, cx, cy, r }: { size: number; id: string; color: string; cx: number; cy: number; r: number }) {
@@ -64,6 +109,7 @@ export function Orb({ size }: { size: number }) {
         <Animated.View style={[layer, slow]}>
           <Cloud size={size} id="orb-lit" color={c.lit} cx={60} cy={76} r={20} />
         </Animated.View>
+        <Grain size={size} light={palette.light['on-tint']} dark={palette.light.label} />
         <Svg width={size} height={size} viewBox="0 0 100 100" style={{ position: 'absolute' }}>
           <Defs>
             <RadialGradient id="orb-shine" cx="50%" cy="50%" r="50%">
