@@ -98,6 +98,22 @@ export const COPY = {
   'setup.invalid': ui('Check the number or date'),
   'setup.save': ui('Save and continue'),
   'setup.skip': ui('Skip for now'),
+  'checklist.title': ui('Check the signs'),
+  'checklist.check': ui('Check'),
+  'checklist.none': ui('Choose at least one'),
+  'sign.vaginal_bleeding': med(),
+  'sign.convulsions': med(),
+  'sign.fever': med(),
+  'sign.severe_headache': med(),
+  'sign.visual_disturbance': med(),
+  'sign.imminent_delivery': med(),
+  'sign.labour': med(),
+  'sign.looks_very_ill': med(),
+  'sign.severe_vomiting': med(),
+  'sign.severe_pain': med(),
+  'sign.severe_abdominal_pain': med(),
+  'sign.unconscious': med(),
+  'sign.central_cyanosis': med(),
 } as const satisfies Record<string, Entry>;
 
 export type CopyKey = keyof typeof COPY;
