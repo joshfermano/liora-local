@@ -41,7 +41,7 @@ export function Divider() {
 
 export function Row({ label, children }: { label: string; children?: ReactNode }) {
   return (
-    <View className="min-h-choice flex-row items-center justify-between gap-md px-md">
+    <View className="min-h-choice flex-row items-center justify-between gap-md px-md py-xs">
       <Text variant="body" className="shrink">
         {label}
       </Text>

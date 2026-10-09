@@ -1,5 +1,5 @@
 import { format, getDay, getDaysInMonth, parseISO } from 'date-fns';
-import { memo, useCallback, useMemo, useRef, useState, type RefObject } from 'react';
+import { memo, useCallback, useMemo, useState, type RefObject } from 'react';
 import { FlatList, View, type NativeScrollEvent, type NativeSyntheticEvent } from 'react-native';
 import { en } from '../../content/copy';
 import { markMonth, type CalendarInput, type DayMark } from '../../core/calendar';
@@ -86,20 +86,15 @@ export function MonthList({ months, focus, input, picked, onDay, thisMonth, onAw
   }, [months]);
   const thisIndex = months.indexOf(thisMonth);
   const [initial] = useState(() => Math.max(0, months.indexOf(focus)));
-  const away = useRef(false);
-
+  // Reported on every scroll so the screen's state can never drift from the list; React skips repeats.
   const onScroll = useCallback(
     (e: NativeSyntheticEvent<NativeScrollEvent>) => {
       const y = e.nativeEvent.contentOffset.y;
-      const h = e.nativeEvent.layoutMeasurement.height;
       const start = offsets[thisIndex] ?? 0;
-      const gone = y > start + heightOf(thisMonth) - 40 || y + h < start + 40;
-      if (gone !== away.current) {
-        away.current = gone;
-        onAway(gone);
-      }
+      // A title's height either way of this month's top counts as away.
+      onAway(Math.abs(y - start) > TITLE);
     },
-    [offsets, thisIndex, thisMonth, onAway],
+    [offsets, thisIndex, onAway],
   );
 
   return (
