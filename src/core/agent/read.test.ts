@@ -93,6 +93,9 @@ describe('readActions: questions and small talk', () => {
   it('reads "kailan next period ko?" as a cycle question only', () => {
     expect(readActions('kailan next period ko?', TODAY)).toEqual([{ tool: 'cycle_question' }]);
     expect(readActions('ano ang average cycle ko?', TODAY)).toEqual([{ tool: 'cycle_question' }]);
+    expect(readActions('delayed ako', TODAY)).toEqual([{ tool: 'cycle_question' }]);
+    expect(readActions('late na ang regla ko', TODAY)).toEqual([{ tool: 'cycle_question' }]);
+    expect(readActions('my period is late', TODAY)).toEqual([{ tool: 'cycle_question' }]);
   });
   it('reads a health question and logs no activity from it', () => {
     expect(readActions('ok lang ba mag-exercise?', TODAY)).toEqual([{ tool: 'health_question' }]);

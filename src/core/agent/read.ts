@@ -34,7 +34,7 @@ const ACTIVITY: Record<Activity, RegExp> = {
 };
 
 const GREETING_ONLY =
-  /^(?:\s|[,.!?]|\b(?:hi|hello|hey|liora|kumusta|kamusta|komusta|musta|uy|oy|hoy|ka|na|po|salamat|thanks?|thank|you|maraming|good|morning|afternoon|evening|magandang|umaga|gabi|hapon)\b)+$/i;
+  /^(?:\s|[,.!?]|\b(?:hi|hello|hey|liora|kumusta|kamusta|komusta|musta|uy|oy|hoy|ka|na|po|salamat|thanks?|thank|you|maraming|good|morning|afternoon|evening|night|goodnight|magandang|umaga|gabi|hapon)\b)+$/i;
 const QUESTION_START = /^\s*(?:ano|bakit|paano|puwede|pwede|(?:ok|okay)\s+lang\s+ba|normal\s+ba|safe\s+ba|masama\s+ba|is\s+it|is\s+this|can\s+i|should\s+i|what|why|how)\b/i;
 // She wants her emergency contact: Liora shows her own Call and Text buttons; it never calls anyone.
 const CONTACT =
@@ -43,7 +43,7 @@ const CONTACT =
 const HEALTH =
   /sakit|pain|hurt|ache|dugo|bleed|blood|buntis|pregnan|baby|sanggol|gamot|medicine|vitamin|normal|safe|delikado|danger|kain|\beat|food|pagkain|inom|drink|exercis|ehersisyo|lagnat|fever|suka|vomit|nause|hilo|dizz|cramp|puson|tiyan|ulo|discharge|ihi|\bpee|urin|contraction|hilab|labou?r|panganak|birth|ovulat|obul|fertile|regla|period|mens|cycle|check-?up|doctor|doktor|\bob\b|clinic|ospital|hospital|symptom|sintomas|breast|dede|gatas|milk|tulog|sleep|stress|anxi|weight|timbang|\bsex|contracep|\bpills?\b|condom|trimester|weeks?\b|linggo|swell|manas|maga|headache|bloat|kabag|kirot|hapdi|pagod|tired|manganak|pahinga|\brest\b|ihanda|prepar|tubig|water|kalinisan|hygien|maligo|\bbath|kape|coffee|caffeine|alak|alcohol|beer|wine|yosi|smok|\b(?:pwede|puwede)\s+ba\b|\bcan\s+i\b|\bshould\s+i\b|\bbawal\b|\bok(?:ay)?\s+lang\s+ba\b/i;
 const CYCLE_QUESTION =
-  /\baverage\s+(?:na\s+)?cycle\b|\bcycle\s+(?:length\s+)?ko\b|\bgaano\s+kahaba\s+(?:ang\s+)?(?:cycle|regla)\b|\bkailan\b.*(?:regla|period|mens|dalaw|fertile|obul|ovulat)|(?:regla|period|mens|dalaw).*\bkailan\b|\bwhen\b.*(?:period|next|fertile|ovulat)|next\s+(?:period|regla)|\bmy\s+fertile|fertile\s+(?:window\s+)?ko\b/i;
+  /^\s*(?:delayed|late|delay)\s+(?:na\s+)?(?:ako|po|ako\s+po)\s*[.!?]*\s*$|\b(?:late|delayed|delay)\s+(?:na\s+)?(?:ang\s+|yung\s+)?(?:regla|period|mens|dalaw)|(?:regla|period|mens|dalaw)\s+(?:ko\s+)?(?:is\s+)?(?:late|delayed)|\baverage\s+(?:na\s+)?cycle\b|\bcycle\s+(?:length\s+)?ko\b|\bgaano\s+kahaba\s+(?:ang\s+)?(?:cycle|regla)\b|\bkailan\b.*(?:regla|period|mens|dalaw|fertile|obul|ovulat)|(?:regla|period|mens|dalaw).*\bkailan\b|\bwhen\b.*(?:period|next|fertile|ovulat)|next\s+(?:period|regla)|\bmy\s+fertile|fertile\s+(?:window\s+)?ko\b/i;
 
 
 

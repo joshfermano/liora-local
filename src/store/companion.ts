@@ -15,6 +15,7 @@ import { toTrace, useTraceStore } from './trace';
 import { CONVERSATION_MS, isNewConversation, recentTurns } from './thread';
 import { runTurn, type AgentTurn } from './turn';
 import { mentionsSelfHarm } from '../core/agent/crisis';
+import { mentionsLoss } from '../core/agent/loss';
 import { followUpAnswer } from '../core/agent/followon';
 import { warningSignsCard } from '../core/agent/warning';
 
@@ -269,6 +270,11 @@ export const useCompanionStore = create<CompanionState>()(
           // Pain she cannot bear gets a fixed caring line and her own Call and Text buttons, no model words.
           if (painTooMuch(text)) {
             add([{ kind: 'text', key: 'companion.pain.strong' }, ...kept, { kind: 'contact' }]);
+            return;
+          }
+          // Losing a pregnancy gets a fixed caring line and her own Call and Text buttons, no model words.
+          if (mentionsLoss(text)) {
+            add([{ kind: 'text', key: 'companion.loss' }, ...kept, { kind: 'contact' }]);
             return;
           }
           // A sign on the DOH warning-signs list that the WHO rules do not cover (her baby not moving,

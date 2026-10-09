@@ -104,10 +104,10 @@ export const MOOD_ENTRIES: { pattern: RegExp; mood: Mood }[] = [
   { pattern: /masigla|energetic/i, mood: 'energetic' },
   { pattern: /romantic|malambing/i, mood: 'romantic' },
   { pattern: /pagod|\btired\b|exhaust|\bpuyat\b/i, mood: 'tired' },
-  { pattern: /kinakabahan|nababahala|nag-aalala|balisa|anxious|worried|anxiety/i, mood: 'anxious' },
+  { pattern: /kinakabahan|nababahala|nag-aalala|balisa|anxious|worried|anxiety|natatakot|takot\s+ako|\bscared\b|\bafraid\b/i, mood: 'anxious' },
   { pattern: /stress/i, mood: 'stressed' },
   { pattern: /irritable|iritable|naiirita|\binis\b|naiinis|nainis|mainit ang ulo/i, mood: 'irritable' },
-  { pattern: /malungkot|lungkot|\bsad\b/i, mood: 'sad' },
+  { pattern: /malungkot|lungkot|\bsad\b|(?:umiiyak|naiiyak|iyak)\s+(?:(?:na|lang|pa)\s+)*ako|ako\s+(?:umiiyak|naiiyak)|\bi\s+(?:keep\s+crying|cry\b|am\s+crying|'m\s+crying)/i, mood: 'sad' },
 ];
 
 export const SEVERE_CUE =

@@ -175,6 +175,17 @@ const CASES: [Status, string, string][] = [
   ['pregnant', 'ano ang dapat kong gawin?', 'reply.other'],
   ['pregnant', 'help me', 'reply.other'],
   ['pregnant', 'tulungan mo ako', 'reply.other'],
+  // Round five: situations.
+  ['pregnant', 'dinudugo ang asawa ko', GO],
+  ["pregnant", "my wife's water broke", GO],
+  ['pregnant', 'masaya ako pero pagod', 'reply.saved.gentle | logged:symptoms+moods | decision:ok'],
+  ['postpartum', 'umiiyak ako palagi', 'reply.saved.gentle | logged:moods'],
+  ['pregnant', 'natatakot ako para kay baby', 'reply.saved.gentle | logged:moods'],
+  ['neither', 'late na ang regla ko', 'companion.cycle.no_data'],
+  ['neither', 'delayed ako', 'companion.cycle.no_data'],
+  ['pregnant', 'nakunan ako', 'companion.loss | contact'],
+  ['pregnant', 'good night liora', 'reply.greeting'],
+  ['pregnant', 'I had a miscarriage', 'companion.loss | contact'],
   // Small talk stays friendly.
   ['pregnant', 'hello', 'reply.greeting'],
   ['pregnant', 'kumusta ka?', 'reply.greeting'],

@@ -58,7 +58,7 @@ export interface ReplyRequest {
   opening?: boolean;
 }
 
-const GREETING = /^\s*(?:hi+|hello|hey+|hiya|kumusta|kamusta|komusta|musta|uy|hoy|good\s+(?:morning|afternoon|evening|day)|magandang\s+\w+)\b/i;
+const GREETING = /^\s*(?:hi+|hello|hey+|hiya|kumusta|kamusta|komusta|musta|uy|hoy|good\s*(?:morning|afternoon|evening|day|night)|g\s*night|goodnight|magandang\s+\w+)\b/i;
 
 export function smalltalkKind(text: string): 'greeting' | 'thanks' | null {
   if (THANKS.test(text)) return 'thanks';

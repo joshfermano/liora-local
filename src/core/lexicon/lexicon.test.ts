@@ -184,13 +184,17 @@ describe('symptom phrasings', () => {
 describe('readMoods', () => {
   it.each([
     ['masaya ako', 'joyful'], ['kalmado', 'calm'], ['pagod ako', 'tired'],
-    ['kinakabahan ako', 'anxious'], ['I feel sad', 'sad'], ['naiirita ako', 'irritable'], ['naiinis ako', 'irritable'],
+    ['kinakabahan ako', 'anxious'], ['I feel sad', 'sad'], ['naiirita ako', 'irritable'], ['naiinis ako', 'irritable'], ['umiiyak ako palagi', 'sad'], ['natatakot ako para kay baby', 'anxious'], ['I am scared', 'anxious'], ['naiiyak na lang ako', 'sad'], ['I keep crying', 'sad'],
   ])('"%s" gives %s', (text, mood) => {
     expect(readMoods(text)).toContain(mood);
   });
 
   it('returns nothing for neutral text', () => {
     expect(readMoods('kumain na ako')).toEqual([]);
+  });
+
+  it.each(['umiiyak si baby buong gabi', 'my baby keeps crying'])('does not read her baby crying as her mood: "%s"', (text) => {
+    expect(readMoods(text)).not.toContain('sad');
   });
 });
 
