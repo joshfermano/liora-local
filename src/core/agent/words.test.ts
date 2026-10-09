@@ -51,3 +51,28 @@ describe('guardWarm', () => {
     ['contraception', 'Try the pill.'],
   ])('rejects %s', (_n, t) => expect(guardWarm(t)).toBeNull());
 });
+
+describe('guardWarm blocks reassurance, advice and dates', () => {
+  it.each([
+    "Don't worry, I'm here.",
+    'Everything will be okay.',
+    'You will be fine.',
+    'Try to rest tonight.',
+    'Drink some water.',
+    'Avoid stress today.',
+    'Magpahinga ka muna.',
+    'Huwag mag-alala.',
+    'Wag kang mag-alala.',
+    'See you bukas.',
+    'Talk tomorrow.',
+    'Ganun din kahapon.',
+    'This week is yours.',
+    'Ngayong linggo, kaya mo.',
+  ])('rejects "%s"', (line) => {
+    expect(guardWarm(line)).toBeNull();
+  });
+
+  it('still lets plain warmth through', () => {
+    expect(guardWarm("Salamat sa pagkuwento mo. I'm here with you.")).toBe("Salamat sa pagkuwento mo. I'm here with you.");
+  });
+});

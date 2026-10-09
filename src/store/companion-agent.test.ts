@@ -62,6 +62,24 @@ describe('companion agent turn', () => {
     await vi.waitFor(() => expect(last().blocks![0]).toMatchObject({ kind: 'warm', text: 'Nandito lang ako.', tone: 'tired' }));
   });
 
+  it('never shows words Gemma is still writing, only the line that passed the guard', async () => {
+    core.readActions.mockReturnValue([START]);
+    let release: () => void = () => {};
+    const gate = new Promise<void>((r) => (release = r));
+    setWarmLine(async (_t, _tone, _ctx, onToken) => {
+      onToken?.('Huwag mag-alala, uminom');
+      await gate;
+      return null;
+    });
+    const sending = useCompanionStore.getState().send('Niregla ako today');
+    await vi.waitFor(() => expect(kinds()).toContain('logged'));
+    expect(last().blocks![0]).toMatchObject({ kind: 'warm', text: null });
+    release();
+    await sending;
+    await new Promise((r) => setTimeout(r, 0));
+    expect(last().blocks![0]).toMatchObject({ kind: 'warm', text: null });
+  });
+
   it('keeps the warm text empty when no model gives a line', async () => {
     core.readActions.mockReturnValue([START]);
     await useCompanionStore.getState().send('Niregla ako today');

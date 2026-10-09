@@ -101,14 +101,9 @@ async function writeWarm(id: string, line: { text: string; tone: Tone; saved: Sa
           : m,
       ),
     }));
-  let last = 0;
-  const final = await warm(line.text, line.tone, { name: line.name, saved: line.saved }, (partial) => {
-    const now = Date.now();
-    if (now - last < STREAM_EVERY_MS) return;
-    last = now;
-    put(partial);
-  });
-  put(final);
+  // Only the finished line, after guardWarm, ever reaches the thread; partial tokens are never shown.
+  const final = await warm(line.text, line.tone, { name: line.name, saved: line.saved });
+  if (final !== null) put(final);
 }
 
 export const useCompanionStore = create<CompanionState>()(
