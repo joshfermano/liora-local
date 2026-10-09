@@ -26,6 +26,8 @@ export const COPY = {
   'home.offline': ui('Offline'),
   'home.error': med(),
   'home.dev_native': ui('Native model test'),
+  'home.setup': ui('Get Liora ready for offline'),
+  'home.checklist.hint': ui('Opens the checklist'),
 
   'result.show_nurse': ui('Show this to the nurse'),
   'result.why': ui('Why?'),
@@ -101,19 +103,6 @@ export const COPY = {
   'checklist.title': ui('Check the signs'),
   'checklist.check': ui('Check'),
   'checklist.none': ui('Choose at least one'),
-  'sign.vaginal_bleeding': med(),
-  'sign.convulsions': med(),
-  'sign.fever': med(),
-  'sign.severe_headache': med(),
-  'sign.visual_disturbance': med(),
-  'sign.imminent_delivery': med(),
-  'sign.labour': med(),
-  'sign.looks_very_ill': med(),
-  'sign.severe_vomiting': med(),
-  'sign.severe_pain': med(),
-  'sign.severe_abdominal_pain': med(),
-  'sign.unconscious': med(),
-  'sign.central_cyanosis': med(),
 } as const satisfies Record<string, Entry>;
 
 export type CopyKey = keyof typeof COPY;
