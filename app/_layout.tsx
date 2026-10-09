@@ -36,6 +36,7 @@ export default function RootLayout() {
           options={{ presentation: 'modal', animation: 'default' }}
         />
         <Stack.Screen name="day" options={{ presentation: 'modal', animation: 'default' }} />
+        <Stack.Screen name="avatar" options={{ presentation: 'modal', animation: 'default' }} />
       </Stack>
     </>
   );

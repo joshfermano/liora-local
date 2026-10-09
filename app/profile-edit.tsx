@@ -2,8 +2,7 @@ import { useRouter } from 'expo-router';
 import { useState } from 'react';
 import { TextInput, View } from 'react-native';
 import { en } from '../src/content/copy';
-import { PROFILE_RANGES, updateProfile, useProfile, type Status } from '../src/store/profile';
-import { CapsuleButton } from '../src/ui/CapsuleButton';
+import { PROFILE_RANGES, updateProfile, useProfile, type Profile, type Status } from '../src/store/profile';
 import { GlassCard } from '../src/ui/Glass';
 import { confirm, tap } from '../src/ui/haptics';
 import { cleanName } from '../src/ui/name';
@@ -47,34 +46,38 @@ export default function ProfileEdit() {
   };
 
   const save = () => {
-    confirm();
-    updateProfile({
-      name: cleanName(name) || undefined,
-      age: values.age,
-      heightCm: values.heightCm,
-      weightKg: values.weightKg,
-      status,
-      weeks: status === 'pregnant' ? values.weeks : undefined,
-    });
+    const next: Partial<Profile> = {};
+    const cleaned = cleanName(name) || undefined;
+    if (cleaned !== profile.name) next.name = cleaned;
+    if (status !== profile.status) next.status = status;
+    for (const f of ['age', 'heightCm', 'weightKg'] as const) if (values[f] !== profile[f]) next[f] = values[f];
+    const weeks = status === 'pregnant' ? values.weeks : undefined;
+    if (weeks !== profile.weeks) next.weeks = weeks;
+    if (Object.keys(next).length > 0) {
+      confirm();
+      updateProfile(next);
+    }
     router.back();
   };
 
   return (
-    <Screen
-      field={false}
-      raised
-      topInset={false}
-      footer={
-        <View className="gap-xs px-xs pb-md pt-sm">
-          <CapsuleButton label={en('profile.edit.save')} onPress={save} />
-          <CapsuleButton variant="plain" label={en('log.cancel')} onPress={() => router.back()} />
+    <Screen field={false} raised topInset={false}>
+      <View className="gap-lg pb-lg pt-md">
+        <View className="flex-row items-center justify-between gap-sm">
+          <PressableSurface label={en('log.cancel')} onPress={() => router.back()} surfaceClassName="min-h-tap min-w-tap justify-center">
+            <Text variant="body" tone="tint">
+              {en('log.cancel')}
+            </Text>
+          </PressableSurface>
+          <Text variant="headline" accessibilityRole="header" className="shrink text-center">
+            {en('profile.edit.title')}
+          </Text>
+          <PressableSurface label={en('profile.edit.save')} onPress={save} surfaceClassName="min-h-tap min-w-tap items-end justify-center">
+            <Text variant="headline" tone="tint">
+              {en('profile.edit.save')}
+            </Text>
+          </PressableSurface>
         </View>
-      }
-    >
-      <View className="gap-lg pb-lg pt-lg">
-        <Text variant="displayTitle" accessibilityRole="header" className="text-center">
-          {en('profile.edit.title')}
-        </Text>
 
         <GlassCard>
           <View className="min-h-choice flex-row items-center justify-between gap-md px-md">

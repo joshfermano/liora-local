@@ -477,6 +477,22 @@ export const COPY = {
   'daylog.done': ui('Done'),
   'daylog.footnote': ui('Tap what fits today. Every tap is saved.'),
   'daylog.days': ui('Pick a day'),
+  // profile page (LUM-85)
+  'pf.edit': ui('Edit'),
+  'pf.day': ui('Day {n}'),
+  'pf.usually': ui('usually {n} days'),
+  'pf.pregnant': ui('Pregnant'),
+  'pf.pregnant_week': ui('Pregnant · week {n}'),
+  'pf.after_birth': ui('After birth'),
+  'pf.cycle': ui('Your cycle'),
+  'pf.cycle_length': ui('Cycle length'),
+  'pf.cycles_logged': ui('Cycles logged'),
+  'pf.about_footer': ui('Optional, and only you see them.'),
+  'pf.avatar': ui('Your picture'),
+  'pf.avatar.change': ui('Change your picture'),
+  'pf.avatar.mark': ui('Picture {n}'),
+  'pf.ai.on': ui('On'),
+  'pf.ai.off': ui('Off'),
 } as const satisfies Record<string, Entry>;
 
 export type CopyKey = keyof typeof COPY;
