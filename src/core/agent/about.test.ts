@@ -21,4 +21,46 @@ describe('aboutLiora', () => {
     'leaves "%s" to the usual turn',
     (text) => expect(aboutLiora(text)).toBeNull(),
   );
+
+  it.each(['what can you do?', 'Ano ang kaya mong gawin?', 'ano kaya mo'])('answers "%s" with who Liora is', (text) => {
+    expect(aboutLiora(text)).toBe('identity');
+  });
+
+  it.each([
+    'What is the capital of France?',
+    'Write me a poem about the sea',
+    'solve 12 x 7',
+    'tell me a joke',
+    'who won the NBA finals?',
+    'help me with my math homework',
+    'how do I cook adobo?',
+    'translate this to Spanish',
+    'write python code for a calculator',
+    'who is the president of the Philippines?',
+    'explain how airplanes fly',
+  ])('refuses the unrelated "%s"', (text) => {
+    expect(aboutLiora(text)).toBe('offtopic');
+  });
+
+  it.each([
+    'masakit ulo ko',
+    'pagod ako',
+    'Ang lungkot ko ngayon',
+    'kailan next period ko?',
+    'how does the calendar work?',
+    'normal ba ang discharge?',
+    'pwede ba ako mag-kape?',
+    'ano ang dapat kainin ng buntis?',
+    'what should I eat during pregnancy?',
+    'how many weeks am I?',
+    'hello',
+    'salamat',
+    'okay',
+    'Nag-exercise ako kanina',
+    'can I take a bath after giving birth?',
+    'How does Liora decide?',
+  ])('does not refuse "%s"', (text) => {
+    expect(aboutLiora(text)).not.toBe('offtopic');
+  });
 });
+

@@ -645,6 +645,7 @@ export const COPY = {
   'warm.neutral': ui('Thank you for checking in with me.'),
   'reply.about.identity': ui("I'm Liora. I help you keep track of your cycle, your pregnancy and the weeks after birth, and I check what you tell me against the WHO danger signs. I run only on this phone, without the internet."),
   'reply.about.offline': ui("I can't go online. I run only on this phone, so I can't search the internet or check the news or weather. I can help with your logs, your cycle and how you feel."),
+  'reply.about.offtopic': ui("I can only help with your cycle, your pregnancy, the weeks after birth and how you feel, so I can't answer that."),
   'reply.about.cannot': ui("Sorry, I can't do that. I can log your period, symptoms, moods and discharge, tell you about your cycle, check signs that need care, and show reviewed health sources."),
   'agent.logged.title': ui('Saved to logs'),
   'agent.logged.period_start': ui('Period started {date}'),

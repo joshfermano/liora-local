@@ -97,7 +97,9 @@ export async function runTurn(
   // Who Liora is, that she has no internet, and what she cannot do: a fixed answer, never a model's,
   // unless the same message carries a danger sign, which the usual turn handles first.
   const about = aboutLiora(text);
-  if (about && read.purpose !== 'urgent' && entry.decision.level === 'ok') {
+  // Off topic only when the rules found nothing of hers in it: nothing to log and no sign.
+  const unrelated = about === 'offtopic' && read.actions.length === 0 && entry.findings.length === 0;
+  if (about && (about !== 'offtopic' || unrelated) && read.purpose !== 'urgent' && entry.decision.level === 'ok') {
     noteTurn({ tools: [] });
     return {
       attachments: [{ kind: 'actions', items: [...HOME] }],

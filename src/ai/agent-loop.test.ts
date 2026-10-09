@@ -169,7 +169,7 @@ describe('sayReply', () => {
     beginProbe();
     await sayReply(req());
     const draft = endProbe()!;
-    expect(draft.prompts).toEqual({ persona: '5' });
+    expect(draft.prompts).toEqual({ persona: '6' });
     expect(draft.guardDropped).toBe(1);
   });
 
