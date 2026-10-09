@@ -33,7 +33,7 @@ Update section 1 and section 2 of this file as work completes, so any session ca
 | Deep research       | Done: 5 angles, 23 sources, 25 claims verified 3 ways. See `docs/research-summary.md`.                                                                                                                                                                                                                                                                                                                         |
 | Concept             | **Approved:** "Tell Liora", for the mother herself. Pregnancy danger signs are the demo star; period, symptom and mood logging use the same input.                                                                                                                                                                                                                                                       |
 | Platform            | **Approved:** one web app (Expo exported for web) in Safari on the iPhones and in laptop browsers. No native app.                                                                                                                                                                                                                                                                                              |
-| Platform change     | **Under trial (2026-10-09, 8:45 PM):** the user wants a native iPhone app, built and installed from a Mac, so Gemma 4 E2B can run like it does in native apps. The web app stays the backup until the 30-minute native proof in section 2 passes. |
+| Platform change     | **Under trial (2026-10-09, from 8:45 PM):** the user wants a native iPhone app so Gemma 4 E2B runs like it does in native apps. Built on a teammate's Mac over SSH from this PC (how to reach it: `.tmp/EXTRAS.md`, gitignored). Runtime: **llama.rn 0.13.0-rc.7** with the official `ggml-org/gemma-4-E2B-it-GGUF` Q4_0 file (2.7 GB, memory-mapped), commit 1bf9260; test screen `app/dev/native.tsx` (home screen link "Native model test"). Signing with a free Apple ID works; it refuses Extended Virtual Addressing (dropped in dd299d7) and accepts Increased Memory Limit. The web app stays the backup until the proof passes (LUM-79). |
 | Scope               | **Approved:** text and voice input, danger-sign decision model, go-now screen, nurse card, calm answer, on-device RAG over cited source cards, log, mood check, AI-off checklist, "How Liora decided" drawer, privacy controls, **cycle calendar with next-period estimate**. Stretch: photo of check-up record. Out: photos of the body, medicine advice, fertile-window predictions, contraception guidance. |
 | Spec                | **Approved, v4** (models changed by the user on 2026-10-09 evening: Gemma 4 E2B, Jev-style typed decisions, EmbeddingGemma 2): `docs/superpowers/specs/2026-10-09-tell-liora-design.md`.                                                                                                                                                                                                                                                                                                                                    |
 | Implementation plan | Linear project `liora-local-hackathon`: milestones M1–M7, tickets LUM-44 to LUM-78, each with acceptance criteria and blockers. Ticket rules in `AGENTS.md`; `/tickets` shows progress. |
@@ -45,15 +45,14 @@ Update section 1 and section 2 of this file as work completes, so any session ca
 
 ## 2. Next steps, in order
 
-1. **Move to the Mac.** Install a current Xcode (it must support iOS 27.2 on the phones), Node 24,
-   pnpm 9, CocoaPods and Claude Code. Then `git clone https://github.com/joshfermano/liora-local`,
-   `bash scripts/setup-dev.sh`, `pnpm install`, and start Claude Code in the repo.
-2. **30-minute native proof (new Linear ticket in M1).** Build the Expo app for iOS
-   (`npx expo run:ios --device`; sign with the team's Apple ID in Xcode) and install it on one
-   iPhone with Developer Mode on. Then run Gemma 4 E2B natively: try `react-native-litert-lm`
-   (Google's LiteRT-LM) first, then `react-native-executorch` (`useLLM`, Gemma 4 E2B). Confirm it
-   can return next-token probabilities for the yes/no method, and whether a free Apple ID allows
-   the increased-memory entitlement that models over about 2 GB need.
+1. **Mac set up (done 9:30 PM):** Xcode 27.0, CocoaPods, project cloned and installed, iOS project
+   generated, signing clean. Build and install steps are in `.tmp/EXTRAS.md`.
+2. **Native proof, LUM-79 (in progress):** the Release build installed on a teammate's iPhone 16
+   Pro Max at about 9:55 PM, after two signing fixes (both in `.tmp/EXTRAS.md`). On the phone: trust the developer, open "Native model test",
+   download Gemma 4 (2.7 GB), load it, answer the three demo phrases, share the results. Record
+   load time, answer time and whether it stayed up. llama.rn was chosen over LiteRT-LM and
+   ExecuTorch because it reports next-token probabilities (`n_probs`, `post_sampling_probs: false`)
+   and maps the model from storage. Pitch numbers must come from the iPhone 17 and 17 Pro.
 3. **If the proof passes:** record the platform change in section 5, the spec (sections 4, 10, 13,
    14) and the tickets (Pages, workers and service worker tickets change). Keep `src/core/`, the
    screens and `src/ai/typed-decisions.ts`; replace the Web Workers with the native runtime.
