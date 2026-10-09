@@ -553,6 +553,7 @@ export const COPY = {
   'onboarding.step': ui('Step {n} of {total}'),
   'onboarding.status.line': ui('This helps Liora ask you the right questions.'),
   'onboarding.last_period': ui('Last period started'),
+  'onboarding.date.hint': ui('Opens a calendar to pick the date'),
   'onboarding.about.line': ui('Only what you want to share. You can change it later in Profile.'),
   'onboarding.download.title': ui('Get Liora ready for offline'),
   'onboarding.download_all': ui('Download all'),

@@ -15,11 +15,11 @@ import { CapsuleButton } from '../src/ui/CapsuleButton';
 import { tap } from '../src/ui/haptics';
 import { Lattice } from '../src/ui/Lattice';
 import { cleanName, mergeSetup, NAME_MAX } from '../src/ui/name';
-import { DatePicker } from '../src/ui/native';
 import { SetupRow, type RowState } from '../src/ui/SetupRow';
 import { ChoicePane } from '../src/ui/setup/ChoicePane';
 import { Sheet } from '../src/ui/setup/Sheet';
 import { EXPECTED_BYTES } from '../src/ui/setup/sizes';
+import { DateRow } from '../src/ui/setup/DateRow';
 import { WheelRow } from '../src/ui/setup/WheelRow';
 import { useAiStatus } from '../src/ui/status';
 import { Text } from '../src/ui/Text';
@@ -58,9 +58,11 @@ export default function Setup() {
   const [lastPeriod, setLastPeriod] = useState(() => new Date());
   const [cycle, setCycle] = useState<number | undefined>(undefined);
   const [wheel, setWheel] = useState<'weeks' | 'days' | 'cycle' | null>(null);
+  const [dateOpen, setDateOpen] = useState(false);
   // Opening a wheel shows a starting point; the value counts once she has opened it.
   const openWheel = (which: 'weeks' | 'days' | 'cycle', current: number | undefined, start: number, set: (n: number) => void) => {
     tap();
+    setDateOpen(false);
     if (wheel === which) return setWheel(null);
     if (current === undefined) set(start);
     setWheel(which);
@@ -195,10 +197,18 @@ export default function Setup() {
         ) : null}
         {status === 'neither' ? (
           <Lattice footer={en('profile.cycle.footer')}>
-            <View className="min-h-choice flex-row items-center justify-between gap-md pl-md pr-xs">
-              <Text variant="body">{en('onboarding.last_period')}</Text>
-              <DatePicker label={en('onboarding.last_period')} value={lastPeriod} maximumDate={new Date()} onChange={setLastPeriod} />
-            </View>
+            <DateRow
+              label={en('onboarding.last_period')}
+              value={lastPeriod}
+              maximumDate={new Date()}
+              open={dateOpen}
+              onToggle={() => {
+                tap();
+                setWheel(null);
+                setDateOpen((o) => !o);
+              }}
+              onChange={setLastPeriod}
+            />
             <WheelRow label={en('profile.cycle.stated')} value={cycle} min={15} max={90} unit={en('profile.unit.days')} start={28} open={wheel === 'cycle'} onToggle={() => openWheel('cycle', cycle, 28, setCycle)} onChange={setCycle} />
           </Lattice>
         ) : null}
