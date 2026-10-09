@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { EntrySchema, type Context } from './types';
-import { applyFollowUpAnswer, runPipeline } from './pipeline';
+import { applyFollowUpAnswer, dangerRulesApply, runPipeline } from './pipeline';
 
 const context: Context = { status: 'pregnant' };
 const now = new Date('2026-10-09T14:00:00.000Z');
@@ -158,4 +158,30 @@ describe('the WHO danger-sign rules cover pregnancy and the weeks after birth', 
   it('still decide when she opens the danger-sign checklist herself', () => {
     expect(run('neither', 'checklist').decision.level).toBe('go_now');
   });
+
+  it.each([
+    'kapapanganak ko lang, dumudugo',
+    'kakapanganak ko lang at sobrang dugo',
+    'malapit na akong manganak',
+    'gave birth 3 days ago, heavy bleeding',
+    'giving birth soon and bleeding',
+    'may contractions na',
+    'humihilab ang tiyan ko, dumudugo',
+    'my newborn is 5 days old and i am bleeding',
+    'postpartum bleeding',
+    'c-section ko masakit',
+    'nakunan ako, dumudugo',
+    'miscarriage and bleeding',
+    '8 months na ako, dumudugo',
+  ])('decide when her words are about birth, whatever her profile says: %s', (text) => {
+    expect(dangerRulesApply({ status: 'neither' }, 'text', text)).toBe(true);
+  });
+
+  it.each(['nagdudugo ako nang grabe', 'kakapanganak ko lang at sobrang dugo', 'ang daming dugo'])(
+    'reads bleeding in her words for a pregnant woman: %s',
+    (text) => {
+      const entry = runPipeline({ id: 'x', now: new Date('2026-10-10T04:00:00Z'), text, input: 'text', context: { status: 'pregnant' } });
+      expect(entry.decision.level).toBe('go_now');
+    },
+  );
 });

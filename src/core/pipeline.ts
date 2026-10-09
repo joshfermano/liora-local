@@ -45,7 +45,7 @@ function cautious(findings: Finding[], text: string): Finding[] {
 // her message itself says she is pregnant or she opens the danger-sign checklist. An unset status
 // keeps the full check.
 const SAYS_PREGNANT =
-  /buntis|nagdadalang-?tao|pregnan|\bweeks?\b|linggo\s+na\s+(?:akong|ako)|kabuwanan|(?:ma|na|pa)nganganak|nanganak|\blabou?r\b|\bwaters?\s+broke|panubigan|\bbaby\b|sanggol/i;
+  /buntis|nagdadalang-?tao|pregnan|\bweeks?\b|\bmonths?\b|\bbuwan\b|linggo\s+na\s+(?:akong|ako)|kabuwanan|panganak|manganak|nanganak|\blabou?r\b|contraction|hilab|\bwaters?\s+broke|panubigan|\bbaby\b|sanggol|newborn|postpartum|post-partum|gave\s+birth|giving\s+birth|c-?section|caesarean|cesarean|miscarri|nakunan|makunan/i;
 
 export function dangerRulesApply(context: Context, input: Entry['input'], text: string): boolean {
   return context.status !== 'neither' || input === 'checklist' || SAYS_PREGNANT.test(text);

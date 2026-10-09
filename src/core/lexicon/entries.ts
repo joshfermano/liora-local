@@ -16,7 +16,7 @@ export const ENTRIES: Entry[] = [
   { pattern: HEAD_PAIN, codes: ['severe_headache', 'headache'] },
   { pattern: BELLY_PAIN, codes: ['severe_abdominal_pain'] },
   {
-    pattern: /dinudugo|dumudugo|pagdurugo|\bmay dugo\b|\bbleeding\b|\bbleed\b|\b(?:see|saw|seeing) blood\b/i,
+    pattern: /dinudugo|dumudugo|nagdudugo|pagdurugo|duguan|\bmay dugo\b|(?:sobrang|maraming|ang\s+daming|madaming)\s+dugo|\bbleeding\b|\bbleed\b|\b(?:see|saw|seeing) blood\b/i,
     codes: ['vaginal_bleeding'],
   },
   {
