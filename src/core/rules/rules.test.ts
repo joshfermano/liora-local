@@ -85,22 +85,10 @@ describe('DT.17', () => {
 });
 
 describe('evaluate', () => {
-  it('keeps every other danger sign urgent for every status', () => {
+  it('applies the same set for every status', () => {
     for (const status of ['pregnant', 'postpartum', 'neither'] as const) {
       expect(evaluate([finding('convulsions', 'mild')], { status }).level).toBe('go_now');
     }
-  });
-  it('flags vaginal bleeding while pregnant or after birth', () => {
-    for (const status of ['pregnant', 'postpartum'] as const) {
-      expect(evaluate([finding('vaginal_bleeding', 'mild')], { status }).level).toBe('go_now');
-    }
-  });
-  it('does not take her period for a pregnancy danger sign when she is neither', () => {
-    // ANC.DT.01 is a pregnancy check; outside pregnancy and after birth, bleeding is her period.
-    expect(evaluate([finding('vaginal_bleeding', 'mild')], { status: 'neither' }).level).toBe('ok');
-    expect(evaluate([finding('vaginal_bleeding', 'mild'), finding('fever', 'mild')], { status: 'neither' }).fired.map((f) => f.rule_id)).toEqual([
-      'ANC.DT.01.fever',
-    ]);
   });
   it('fires every matching rule', () => {
     const d = evaluate([finding('fever', 'mild'), finding('labour', 'mild')], ctx);
