@@ -1,6 +1,7 @@
 import { File, Paths } from 'expo-file-system';
 import { initLlama } from 'llama.rn';
 import { GEMMA_GGUF, GEMMA_VOICE, type NativeGemma } from './gemma-model';
+import { INTENT_OPTIONS, intentPrompt } from './intent';
 import { withRetries } from './retry';
 import { PROVISIONAL_THRESHOLDS } from '../core/merge';
 import {
@@ -64,8 +65,8 @@ export async function loadGemma(): Promise<NativeGemma> {
   // tokenize('') reveals a start token the tokenizer adds, which is not part of a spelling.
   const [start] = (await ctx.tokenize('')).tokens;
   const spellings = new Map<string, number[]>();
-  for (const q of QUESTIONS) {
-    for (const option of q.options) {
+  for (const options of [...QUESTIONS.map((q) => q.options), INTENT_OPTIONS]) {
+    for (const option of options) {
       const capital = option.charAt(0).toUpperCase() + option.slice(1);
       for (const s of [option, ` ${option}`, capital, ` ${capital}`]) {
         if (spellings.has(s)) continue;
@@ -78,6 +79,23 @@ export async function loadGemma(): Promise<NativeGemma> {
   for (const q of QUESTIONS) {
     if (!optionIds.has(q.options)) optionIds.set(q.options, optionTokenIds((s) => spellings.get(s) ?? [], q.options));
   }
+  const intentIds = optionTokenIds((s) => spellings.get(s) ?? [], INTENT_OPTIONS);
+
+  const scoreOptions = async (content: string, ids: number[][]) => {
+    const chat = await ctx.getFormattedChat([{ role: 'user', content }], null, {
+      jinja: true,
+      add_generation_prompt: true,
+      enable_thinking: false,
+    });
+    const result = await ctx.completion({
+      prompt: chat.prompt,
+      n_predict: 1,
+      n_probs: 50,
+      post_sampling_probs: false,
+      temperature: 0,
+    });
+    return restrictedSoftmax(logScoresFromTopProbs(result.completion_probabilities?.[0]?.probs ?? []), ids);
+  };
 
   return {
     loadMs,
@@ -108,28 +126,22 @@ export async function loadGemma(): Promise<NativeGemma> {
       const answers: Record<string, number[]> = {};
       const skipped: string[] = [];
       const ask = async (q: Question) => {
-        const chat = await ctx.getFormattedChat([{ role: 'user', content: promptFor(message, q) }], null, {
-          jinja: true,
-          add_generation_prompt: true,
-          enable_thinking: false,
-        });
-        const result = await ctx.completion({
-          prompt: chat.prompt,
-          n_predict: 1,
-          n_probs: 50,
-          post_sampling_probs: false,
-          temperature: 0,
-        });
         try {
-          const top = result.completion_probabilities?.[0]?.probs ?? [];
-          answers[q.id] = restrictedSoftmax(logScoresFromTopProbs(top), optionIds.get(q.options) ?? []);
-        } catch {
+          answers[q.id] = await scoreOptions(promptFor(message, q), optionIds.get(q.options) ?? []);
+        } catch (error) {
+          // A failed run still fails the whole answer; only an unscorable question is skipped.
+          if (!(error instanceof Error) || !error.message.startsWith('None of the options')) throw error;
           skipped.push(q.id);
         }
       };
       for (const q of PRESENCE) await ask(q);
       for (const q of followUpQuestions(answers, PROVISIONAL_THRESHOLDS)) await ask(q);
       return { answers, skipped, ms: Date.now() - t };
+    },
+    // Only routes the companion's reply; the danger questions above still decide nothing alone.
+    async intent(message) {
+      const t = Date.now();
+      return { probs: await scoreOptions(intentPrompt(message), intentIds), ms: Date.now() - t };
     },
     release: () => ctx.release(),
   };

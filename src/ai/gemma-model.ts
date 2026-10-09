@@ -24,5 +24,6 @@ export type NativeGemma = {
   voice: boolean;
   transcribe(wavUri: string): Promise<{ text: string; ms: number }>;
   decide(message: string): Promise<{ answers: Record<string, number[]>; skipped: string[]; ms: number }>;
+  intent(message: string): Promise<{ probs: number[]; ms: number }>;
   release(): Promise<void>;
 };
