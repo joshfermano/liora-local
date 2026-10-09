@@ -1,6 +1,6 @@
 import { addDays, differenceInCalendarDays, format, parseISO } from 'date-fns';
 import { cycleDay, cycleHistory, periodLength, predictNext } from '../cycle';
-import type { Context, CycleSettings, Entry, Mood, MoodResult, PeriodRecord } from '../types';
+import type { Context, CycleSettings, DayLog, Entry, Mood, MoodResult, PeriodRecord } from '../types';
 import { DANGER_CODES, MOODS } from '../vocabulary';
 
 // Today's glance and "Liora noticed": counts and lengths from her own logs, never advice.
@@ -11,6 +11,7 @@ export interface InsightInput {
   cycleSettings: CycleSettings;
   status: Context['status'] | undefined;
   today: string;
+  dayLogs?: DayLog[];
 }
 
 export interface StripDay {
@@ -73,18 +74,31 @@ export const recentLengths = (periods: PeriodRecord[]) =>
     .filter((n): n is number => n !== null)
     .slice(0, MAX_RECENT);
 
-function moodCounts(entries: Entry[], today: string): { mood: Mood; count: number }[] {
-  const counts = new Map<Mood, number>();
-  for (const e of entries) {
-    if (!within(e.created_at, today, WEEK)) continue;
-    for (const m of new Set(e.extraction?.moods ?? [])) counts.set(m, (counts.get(m) ?? 0) + 1);
-  }
+// Days on which each code was logged, whether she told Liora or tapped it in the day log; a day
+// counts once however many times she mentioned it.
+function daysWith(
+  entries: Entry[],
+  dayLogs: DayLog[],
+  today: string,
+  days: number,
+  fromEntry: (e: Entry) => readonly string[],
+  fromLog: (l: DayLog) => readonly string[],
+): Map<string, number> {
+  const seen = new Map<string, Set<string>>();
+  const add = (code: string, date: string) => seen.set(code, (seen.get(code) ?? new Set()).add(date));
+  for (const e of entries) if (within(e.created_at, today, days)) for (const c of fromEntry(e)) add(c, dayOf(e.created_at));
+  for (const l of dayLogs) if (l.date <= today && l.date > shift(today, -days)) for (const c of fromLog(l)) add(c, l.date);
+  return new Map([...seen].map(([code, dates]) => [code, dates.size]));
+}
+
+function moodCounts(entries: Entry[], today: string, dayLogs: DayLog[] = []): { mood: Mood; count: number }[] {
+  const counts = daysWith(entries, dayLogs, today, WEEK, (e) => e.extraction?.moods ?? [], (l) => l.moods) as Map<Mood, number>;
   return [...counts]
     .map(([mood, count]) => ({ mood, count }))
     .sort((a, b) => b.count - a.count || MOODS.indexOf(a.mood) - MOODS.indexOf(b.mood));
 }
 
-export function glance({ entries, periods, cycleSettings, status, today }: InsightInput): Glance {
+export function glance({ entries, periods, cycleSettings, status, today, dayLogs }: InsightInput): Glance {
   const pregnant = status === 'pregnant';
   const prediction = pregnant ? null : predictNext(periods, cycleSettings, today, status ?? 'neither');
   const usual = periodLength(periods, cycleSettings);
@@ -119,17 +133,13 @@ export function glance({ entries, periods, cycleSettings, status, today }: Insig
         periodLength: days.length > 0 ? average(days) : null,
       };
 
-  return { strip, checkIns, moods: moodCounts(entries, today), cycle };
+  return { strip, checkIns, moods: moodCounts(entries, today, dayLogs), cycle };
 }
 
-export function insights({ entries, moodChecks, periods, status, today }: InsightInput): Insight[] {
+export function insights({ entries, moodChecks, periods, status, today, dayLogs }: InsightInput): Insight[] {
   const found: Insight[] = [];
 
-  const mentions = new Map<string, number>();
-  for (const e of entries) {
-    if (!within(e.created_at, today, RECUR_DAYS)) continue;
-    for (const code of new Set(e.findings.map((f) => f.code))) mentions.set(code, (mentions.get(code) ?? 0) + 1);
-  }
+  const mentions = daysWith(entries, dayLogs ?? [], today, RECUR_DAYS, (e) => e.findings.map((f) => f.code), (l) => l.symptoms);
   const recurring = [...mentions]
     .filter(([, count]) => count >= 2)
     .map(([code, count]) => ({ kind: 'recurring' as const, code, danger: isDanger(code), count, withinDays: RECUR_DAYS }))
@@ -150,7 +160,7 @@ export function insights({ entries, moodChecks, periods, status, today }: Insigh
 
   found.push(...recurring.filter((r) => !r.danger).slice(0, 3));
 
-  const [topMood] = moodCounts(entries, today);
+  const [topMood] = moodCounts(entries, today, dayLogs);
   if (topMood && topMood.count >= 2) found.push({ kind: 'mood_pattern', ...topMood, withinDays: WEEK });
 
   const last = moodChecks.map((m) => dayOf(m.created_at)).sort().at(-1);

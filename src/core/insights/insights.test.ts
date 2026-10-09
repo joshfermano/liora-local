@@ -120,3 +120,15 @@ describe('Liora noticed', () => {
     expect(insights(input())).toEqual([]);
   });
 });
+
+describe('patterns from every way she logs', () => {
+  const dayLog = (date: string, symptoms: string[], moods: string[] = []) => ({ date, flow: null, symptoms, moods, activities: [] }) as never;
+
+  it('counts symptoms and moods from the day log, once per day', () => {
+    const dayLogs = [dayLog('2026-10-09', ['cramps'], ['tired']), dayLog('2026-10-08', ['cramps'], ['tired']), dayLog('2026-10-07', ['cramps'])];
+    const entries = [entry('2026-10-09', ['cramps'])];
+    const found = insights({ ...input({ entries }), dayLogs });
+    expect(found).toContainEqual({ kind: 'recurring', code: 'cramps', danger: false, count: 3, withinDays: 14 });
+    expect(found).toContainEqual({ kind: 'mood_pattern', mood: 'tired', count: 2, withinDays: 7 });
+  });
+});
