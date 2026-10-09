@@ -110,15 +110,6 @@ function factLine(item: SavedItem, today: string): string {
   }
 }
 
-const HELP = [
-  'log her period, flow, symptoms, moods and activities',
-  'remove a logged period or clear a day, and undo the last change',
-  'say what she logged on a day',
-  'tell her about her cycle and what her data shows',
-  'show a reviewed source card for a health question',
-  'open the calendar, mood check, checklist, profile or day log',
-  'remember a short note she asks for, and forget it again',
-];
 
 const TONE_WORD: Partial<Record<Tone, string>> = { worried: 'scared', sad: 'sad', tired: 'tired' };
 
@@ -187,7 +178,6 @@ export function replyPlan(
   if (moods.length > 0) facts.her_moods_today = moods;
   if (!acted) {
     facts.no_action_taken = true;
-    facts.i_can_help_with = HELP;
   }
   return { facts, fallback: styled(fallbackOf(o, who.name), style), style };
 }

@@ -206,7 +206,12 @@ export async function runTurn(
       pack: pack.text,
       facts,
       // Her own words in this chat may be repeated back to her, so the guard counts them as known.
-      allowed: { ...pack.facts, ...facts, her_words: [...thread.filter((t) => t.role === 'her').map((t) => t.text), text] },
+      allowed: {
+        ...pack.facts,
+        ...facts,
+        her_words: [...thread.filter((t) => t.role === 'her').map((t) => t.text), text],
+        her_signs: entry.findings.map((f) => f.code),
+      },
       thread,
       style,
       language: messageLanguage(text, memory.language ?? 'english'),

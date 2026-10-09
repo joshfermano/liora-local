@@ -32,7 +32,8 @@ describe('replyPlan fallback', () => {
     const p = plan({});
     expect(p.fallback).toEqual({ key: 'reply.other' });
     expect(p.facts.no_action_taken).toBe(true);
-    expect(p.facts.i_can_help_with).toEqual(expect.any(Array));
+    // A list of what Liora can do made every quiet turn sound the same; the fixed line covers it.
+    expect(p.facts.i_can_help_with).toBeUndefined();
   });
   it('says saved, deleted, undone and not found for what happened', () => {
     expect(plan({ saved: [{ kind: 'period_start', date: TODAY }] }).fallback.key).toBe('reply.saved');
