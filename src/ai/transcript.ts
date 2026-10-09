@@ -1,7 +1,12 @@
-// Gemma 4 can still open a reasoning channel; her box must never show the model's own notes, so that is no transcript.
+// Her box must only ever hold her words. Gemma 4 can open a reasoning channel, or answer about the task
+// ("please provide the recording") when the clip is too short; neither is a transcript.
+const REASONING = /<\|?channel|thinking process/i;
+const ABOUT_THE_TASK =
+  /\b(?:please provide|provide the (?:audio|recording)|i need the (?:audio|recording)|(?:can ?not|can't|unable to) (?:transcribe|hear)|no (?:audio|recording|speech) (?:is |was )?(?:provided|detected|found)|there is no audio|the (?:audio|recording) (?:is|was) (?:empty|silent))\b/i;
+
 export function transcriptOnly(raw: string): string {
   const text = raw.trim();
-  return /<\|?channel|thinking process/i.test(text) ? '' : text;
+  return REASONING.test(text) || ABOUT_THE_TASK.test(text) ? '' : text;
 }
 
 // A clip this short holds no words; Gemma then answers about the audio instead of writing it down.

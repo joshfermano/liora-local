@@ -87,11 +87,11 @@ export async function loadGemma(): Promise<NativeGemma> {
     let timer: ReturnType<typeof setTimeout> | undefined;
     const timeout = new Promise<never>((_, reject) => {
       timer = setTimeout(() => {
+        // Typed as a promise, but on the phone stopCompletion() can return nothing; either way it must not throw here.
+        void Promise.resolve()
+          .then(() => ctx.stopCompletion())
+          .catch(() => {});
         reject(new Error('The model took too long'));
-        // stopCompletion's typing says Promise, but the native call can return nothing.
-        try {
-          void Promise.resolve(ctx.stopCompletion()).catch(() => {});
-        } catch {}
       }, ms);
     });
     try {

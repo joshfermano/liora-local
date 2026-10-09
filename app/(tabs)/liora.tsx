@@ -1,6 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
 import { Keyboard, KeyboardAvoidingView, Platform, ScrollView, View } from 'react-native';
-import Animated, { useAnimatedStyle, useReducedMotion, useSharedValue, withDelay, withRepeat, withSequence, withTiming } from 'react-native-reanimated';
 import { en } from '../../src/content/copy';
 import { useCompanionStore } from '../../src/store/companion';
 import { Block, Bubble } from '../../src/ui/companion/Blocks';
@@ -11,26 +10,14 @@ import { PressableSurface } from '../../src/ui/PressableSurface';
 import { Screen } from '../../src/ui/Screen';
 import { Symbol } from '../../src/ui/Symbol';
 import { Text } from '../../src/ui/Text';
+import { Thinking } from '../../src/ui/Thinking';
 import { SURFACE } from '../../src/ui/theme';
-
-function Dot({ delay }: { delay: number }) {
-  const reduce = useReducedMotion();
-  const v = useSharedValue(0.3);
-  useEffect(() => {
-    if (reduce) return;
-    v.value = withDelay(delay, withRepeat(withSequence(withTiming(1, { duration: 450 }), withTiming(0.3, { duration: 450 })), -1));
-  }, [reduce, delay, v]);
-  const style = useAnimatedStyle(() => ({ opacity: v.value }));
-  return <Animated.View style={style} className="h-[8px] w-[8px] rounded-full bg-tint dark:bg-tint-dark" />;
-}
 
 function Typing() {
   return (
     <Bubble>
-      <View className="flex-row items-center gap-xxs py-xxs" accessible accessibilityLabel={en('liora.typing')} accessibilityLiveRegion="polite">
-        <Dot delay={0} />
-        <Dot delay={150} />
-        <Dot delay={300} />
+      <View className="py-xxs">
+        <Thinking label={en('liora.typing')} />
       </View>
     </Bubble>
   );

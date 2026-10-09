@@ -13,6 +13,16 @@ describe('transcriptOnly', () => {
   it('drops reasoning even without the channel marker', () => {
     expect(transcriptOnly('Thinking Process: the user wants a transcript')).toBe('');
   });
+
+  it('drops the model talking about the task instead of her words', () => {
+    expect(transcriptOnly('Please provide the recording you are referring to. I need the audio file to transcribe it for you.')).toBe('');
+    expect(transcriptOnly("I cannot transcribe this; there is no audio.")).toBe('');
+    expect(transcriptOnly("I'm sorry, I can't hear anything in this recording.")).toBe('');
+  });
+
+  it('keeps her words even when she mentions a recording', () => {
+    expect(transcriptOnly('Nag-record ako ng boses ko kahapon')).toBe('Nag-record ako ng boses ko kahapon');
+  });
 });
 
 describe('heardWords', () => {

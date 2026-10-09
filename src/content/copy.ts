@@ -281,7 +281,7 @@ export const COPY = {
   'liora.send': ui('Send'),
   'liora.live': ui('Liora Live'),
   'live.close': ui('Close'),
-  'live.listening': ui('Listening. Tap the orb when you are done.'),
+  'live.listening': ui('Listening. Liora answers when you pause.'),
   'live.thinking': ui('Thinking…'),
   'live.speaking': ui('Liora is speaking. Tap the orb to interrupt.'),
   'live.retry': ui('I did not catch that. Tap the orb to try again.'),

@@ -23,6 +23,7 @@ import CloudOrb from '../src/ui/orb/CloudOrb';
 import { PressableSurface } from '../src/ui/PressableSurface';
 import { Symbol } from '../src/ui/Symbol';
 import { Text } from '../src/ui/Text';
+import { Thinking } from '../src/ui/Thinking';
 import { SURFACE, useColors } from '../src/ui/theme';
 
 // Owned outside the screen so the closing chime outlives the screen it closes; made on first open so it is loaded by then.
@@ -60,7 +61,7 @@ export default function Live() {
   const size = Math.min(width * 0.9, 380);
   const reduce = useReducedMotion();
   const c = useColors();
-  const colors = { deepColor: c.dusk, upperColor: c.tint, lowerColor: c.peach, highlightColor: c['tint-soft'], launchColor: c['tint-fill'], spinnerColor: c.tint };
+  const colors = { deepColor: c.dusk, upperColor: c.tint, lowerColor: c['light-dawn-source'], highlightColor: c['tint-soft'], launchColor: c['tint-fill'], spinnerColor: c.tint };
   const closing = useRef(false);
   const live = useLive((href) => close(href));
   const chime = useAudioPlayer(require('../assets/sounds/live-in.wav'));
@@ -153,9 +154,13 @@ export default function Live() {
         {HINT[live.phase] ? (
           <Animated.View style={[{ top: height / 2 + size / 2 + 16 }, chromeStyle]} className="absolute inset-x-0 items-center px-xl" pointerEvents="box-none">
             <View className="items-center gap-xs">
-              <Text variant="subheadline" tone="secondary" className="text-center" accessibilityLiveRegion="polite">
-                {en(HINT[live.phase]!)}
-              </Text>
+              {live.phase === 'thinking' ? (
+                <Thinking label={en('live.thinking')} />
+              ) : (
+                <Text variant="subheadline" tone="secondary" className="text-center" accessibilityLiveRegion="polite">
+                  {en(HINT[live.phase]!)}
+                </Text>
+              )}
               {live.phase === 'setup' ? (
                 <PressableSurface label={en('liora.voice.setup.open')} role="link" onPress={() => router.replace('/setup')} surfaceClassName="min-h-tap justify-center">
                   <Text variant="subheadline" tone="tint" className="font-semibold">
