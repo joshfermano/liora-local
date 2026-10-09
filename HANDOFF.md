@@ -37,35 +37,29 @@ Update section 1 and section 2 of this file as work completes, so any session ca
 | Scope               | **Approved:** text and voice input, danger-sign decision model, go-now screen, nurse card, calm answer, on-device RAG over cited source cards, log, mood check, AI-off checklist, "How Liora decided" drawer, privacy controls, **cycle calendar with next-period estimate**. Stretch: photo of check-up record. Out: photos of the body, medicine advice, fertile-window predictions, contraception guidance. |
 | Spec                | **Approved, v4** (models changed by the user on 2026-10-09 evening: Gemma 4 E2B, Jev-style typed decisions, EmbeddingGemma 2): `docs/superpowers/specs/2026-10-09-tell-liora-design.md`.                                                                                                                                                                                                                                                                                                                                    |
 | Implementation plan | Linear project `liora-local-hackathon`: milestones M1–M7, tickets LUM-44 to LUM-78, each with acceptance criteria and blockers. Ticket rules in `AGENTS.md`; `/tickets` shows progress. |
-| Code                | **Built (2026-10-09, 8 PM):** Expo web scaffold (LUM-44); both workers bundled with esbuild (LUM-51); decision engine in `src/core/`, 253 tests (LUM-52, 53, 55, 56, 59 done; LUM-54 rules waiting on the team); source download and Ivan's card checklist `sources/review.md` (LUM-45); model test page `/dev/eval` (LUM-58). **Not started:** screens (M4), voice, card search, offline mode. |
+| Code                | **Built by 11 PM, 9 Oct (main, 345 tests):** decision engine and pipeline; Gemma 4 typed decisions and voice on the iPhone (llama.rn); screens: home, go-now, nurse card, follow-up, calm, "Why?", "How Liora decided" (`/decided/[id]`), setup, AI-off checklist, calendar with estimate, My log, PHQ-9 mood check and crisis screen; 17 reviewed source cards; WHO-quoted fixed copy. **Checked on a phone (iPhone 16 Pro Max):** model download/load, typed decisions, go-now flow. **Not yet on a phone:** everything else (the last builds waited for the phone to reconnect). |
 | GitHub repo / Pages | Public repo `joshfermano/liora-local`; Pages live at https://joshfermano.github.io/liora-local/ (deploys from `main` through Actions). Quick phone testing through `pnpm expo start --tunnel`. |
 | S1 findings         | iPhone Safari 27.0.1: WebGPU on, shader-f16 on, largest GPU buffer 1,024 MB, not cross-origin isolated, about 39 GB storage. Gemma 4 E2B's 1,120 MB token-embedding table is too big for the GPU, so it was moved to the CPU (f928688). **Then the tab was killed at 1,763 of 2,985 MB downloaded (179 s, about 10 MB/s):** Transformers.js holds each whole file in memory until it finishes, and Gemma 4 E2B q4f16 needs about 3 GB at once, plus 1.5 GB of CPU memory for the token embeddings. As packaged, Gemma 4 E2B does not fit a browser tab. Nothing was cached. |
 | Typed decisions     | Code in a866603 (`src/ai/typed-decisions.ts`, `workers/decide.ts`). Laptop observation only (4-bit decoder on CPU, about 0.7 s per question): phrase 1 go-now, phrase 2 calm, phrase 3 go-now instead of the headache follow-up. Causes: the "very ill" question says yes to any ache; the severity score says "moderate" when the message does not say. A yes/no rewording fixed phrase 3 and the "very ill" question but read "medyo masakit" as neither mild nor severe; not applied yet. |
-| Timeline            | At 9:55 PM: about 12 hours left; native settled, screens not started. At 8:45 PM: platform question open. At 8:15 PM: decision engine ahead of plan; the S1 model test about 1.25 hours late. Screens must start by 12 AM at the latest. |
+| Timeline            | At 11 PM: screens done; remaining work is phone checks, the demo iPhones, measurements, the team's Filipino copy, the README numbers, the video and submission. |
 
 ## 2. Next steps, in order
 
-1. **Typed-decision wording (LUM-67), in progress:** on the phone, "masakit ulo ko" went to go-now
-   instead of the headache follow-up. Reword "looks very ill" to "says she is very sick, not just
-   that something hurts"; replace the 4-level severity score with "very bad or severe?" and "only
-   mild or moderate?" yes/no questions (neither clear means unknown, which asks the follow-up); ask
-   severity only for signs present. Rebuild on the Mac, re-run on the phone with more phrases.
-2. **Screens (M4, from LUM-57), not started:** the largest open block. Build them for the native app
-   (Expo Router screens run on iOS); the go-now, nurse card, follow-up and calm screens first.
-3. **Setup screen (LUM-71):** download Gemma 4 with automatic retry (a first try dropped on the phone).
-4. **Voice (LUM-68):** test Gemma 4 audio through llama.rn (`initMultimodal`), else whisper.rn.
-5. **Demo phones:** install on the iPhone 17 and 17 Pro (register each in Xcode on the Mac) and
-   re-measure there; only those numbers go in the README and pitch.
-6. **Spec and tickets:** update spec sections 4, 10, 13 and 14 for native; retire or rewrite the
-   Pages, worker and service-worker tickets (LUM-50, 51, 66).
-7. **Waiting on people:** Ivan approves the source cards (LUM-45) and is fine-tuning Liquid AI's
-   d1-omni-600M as a decision model. Our llama.rn build does not know its decision type
-   (`lfm2-d1-omni`) yet, and its language list has no Tagalog; swap it in only if it beats Gemma on
-   held-out Taglish and runs on the iPhone. The team confirms the rulings (LUM-54) and the copy, EPDS
-   items and hotline (LUM-46, LUM-47).
-8. Cut order if late (unchanged): photo, then AI rewording and Cebuano, then dark-mode polish, then
-   the next-period estimate (keep the calendar), then voice, then card search. **Never cut:**
-   typing, the decision model, go-now screen, nurse card, AI-off checklist.
+1. **Phone check (LUM-79 and every In Review ticket):** the iPhone must be visible to the Mac
+   (plugged in, or unlocked on the same Wi-Fi). A background watcher builds as soon as it is; or run
+   the Terminal build in `.tmp/EXTRAS.md`. Test: home → the three demo phrases → go-now, follow-up,
+   calm, "Why?", "How Liora decided"; the mic; setup; checklist; calendar; log; mood → crisis.
+2. **Demo iPhones (iPhone 17 and 17 Pro):** plug each into the Mac once, Developer Mode on, trust
+   the developer; build to each (UDID from `xcrun devicectl list devices`); download Gemma 4 via setup.
+3. **Measurements (LUM-77):** on both demo phones, the native test screen's load and answer times,
+   and the eval phrases; then fill the README table (only demo-phone numbers).
+4. **Team content:** Filipino copy (LUM-47 lists every key); confirm the breathing sign and the
+   headache split (LUM-54); decide whether a question-9 answer is saved (LUM-63); open doh.gov.ph in
+   a browser to confirm the 1553 hotline (LUM-46); team names for the README.
+5. **Optional if time:** EmbeddingGemma 2 card search (LUM-69); Tagalog PHQ-9; period extraction
+   for the calendar's date chip; Ivan's d1 model only if it runs on the iPhone and beats Gemma.
+6. **Submission:** README numbers and team (LUM-78), 1-minute video and X/LinkedIn post (LUM-48),
+   submit on Cerebral Valley before 10:00 AM (LUM-49). Repo is already public.
 
 ## 3. The product in one paragraph
 
