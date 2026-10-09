@@ -26,3 +26,20 @@ describe('recentTurns', () => {
     expect(recentTurns([{ role: 'her', text: 'x'.repeat(400) }])[0]!.text.length).toBeLessThanOrEqual(161);
   });
 });
+
+describe('the current conversation', () => {
+  const now = new Date('2026-10-10T04:40:00Z');
+  it('counts only the last 30 minutes, so a new day starts a new conversation', () => {
+    const turns = recentTurns(
+      [
+        { role: 'her', text: 'yesterday', at: '2026-10-09T10:00:00Z' },
+        { role: 'her', text: 'just now', at: '2026-10-10T04:35:00Z' },
+      ],
+      now,
+    );
+    expect(turns.map((t) => t.text)).toEqual(['just now']);
+  });
+  it('is empty when she has not talked to Liora for a while', () => {
+    expect(recentTurns([{ role: 'her', text: 'old', at: '2026-10-10T03:00:00Z' }], now)).toEqual([]);
+  });
+});

@@ -194,7 +194,7 @@ export async function runTurn(text: string, entry: Entry, day: string, thread: T
   return {
     attachments,
     fallback,
-    request: { text, pack: pack.text, facts, allowed: { ...pack.facts, ...facts }, thread, style, language: messageLanguage(text, memory.language ?? 'english') },
+    request: { text, pack: pack.text, facts, allowed: { ...pack.facts, ...facts }, thread, style, language: messageLanguage(text, memory.language ?? 'english'), opening: thread.length === 0 },
     undoneId,
   };
 }

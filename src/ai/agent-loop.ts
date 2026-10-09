@@ -1,4 +1,4 @@
-import { cleanForPrompt, guardReply, type ReplyRequest } from '../core/agent';
+import { cleanForPrompt, guardReply, withoutGreeting, type ReplyRequest } from '../core/agent';
 import { noteDropped, notePrompt } from '../core/probe';
 import type { SayMessage } from './gemma-model';
 import { runSay } from './gemma-session';
@@ -15,11 +15,19 @@ const LANGUAGE = {
   english: 'English',
 } as const;
 
-export function replyMessages({ text, pack, facts, thread, style, language }: ReplyRequest): SayMessage[] {
+const opens = (req: ReplyRequest) => req.opening ?? req.thread.length === 0;
+
+export function replyMessages(req: ReplyRequest): SayMessage[] {
+  const { text, pack, facts, thread, style, language } = req;
   const parts: string[] = [];
   if (pack.trim()) parts.push(`HER DATA:\n${pack.trim()}`);
   parts.push(`WHAT YOU JUST DID:\n${JSON.stringify(facts)}`);
   parts.push(`STYLE: ${style ?? 'steady'}`);
+  parts.push(
+    opens(req)
+      ? 'CONVERSATION: start (greet her warmly once and say one kind, specific thing about what she logged)'
+      : 'CONVERSATION: ongoing (no greeting, do not open with her name, answer straight away)',
+  );
   if (thread.length > 0) {
     parts.push(`Recent chat:\n${thread.map((t) => `${t.role === 'her' ? 'Her' : 'Liora'}: ${cleanForPrompt(t.text, 300)}`).join('\n')}`);
   }
@@ -45,6 +53,9 @@ const sentenceCount = (text: string | null) => (text ? text.split(/(?<=[.!?…])
 
 export async function sayReply(req: ReplyRequest, onText?: (guarded: string) => void): Promise<string | null> {
   notePrompt('persona', PROMPTS.persona.version);
+  // Only the first turn greets; small models greet every time, so later turns drop it in code too.
+  const name = typeof req.facts.her_name === 'string' ? req.facts.her_name : undefined;
+  const tidy = (guarded: string | null) => (guarded === null || opens(req) ? guarded : withoutGreeting(guarded, name));
   let shown: string | null = null;
   let finished = false;
   let sentences = '';
@@ -67,13 +78,13 @@ export async function sayReply(req: ReplyRequest, onText?: (guarded: string) => 
           const done = completeSentences(streamed);
           if (done === sentences) return;
           sentences = done;
-          show(guardReply(done, req.allowed, PERSONA));
+          show(tidy(guardReply(done, req.allowed, PERSONA)));
         },
       }),
       timeout,
     ]);
     if (said === null) return shown;
-    const guarded = guardReply(said, req.allowed, PERSONA);
+    const guarded = tidy(guardReply(said, req.allowed, PERSONA));
     noteDropped(Math.max(0, sentenceCount(said) - sentenceCount(guarded)));
     return guarded;
   } catch {
