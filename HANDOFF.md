@@ -1,6 +1,6 @@
 # HANDOFF: Tell Liora (liora-local)
 
-**Last updated:** 2026-10-10, 4:00 AM Manila (danger rules for pregnancy and after birth only, comfort-first follow-ups; handoff report redesign in flight; release and measurements next).
+**Last updated:** 2026-10-10, 5:28 AM Manila (two WHO lists with go-soon, Sources screen, chat memory, Face ID lock on every tab, capiz window icon; release build and measurements next).
 **Deadline:** code freeze and submission **10:00 AM, 10 Oct 2026**, on
 cerebralvalley.ai/e/appbuildersph-hackathon-2026. One submission, no edits after.
 **Read next:** `docs/superpowers/specs/2026-10-09-tell-liora-design.md` (the build spec, v3),
@@ -59,6 +59,13 @@ Update section 1 and section 2 of this file as work completes, so any session ca
    she gets a warm fixed line and the one question unless her own words say it is bad (spec SR-1).
    A detailed handoff report (header, decision banner, de-duplicated signs, WHO citations, 7 days
    per day, emergency contact, matching PDF) is being built in a worktree.
+   **5:30 AM (user's calls):** in pregnancy the rules follow WHO PCPNC M2's two lists (go now /
+   go to the health centre as soon as possible, level `go_soon`, fever asks "too weak to get out of
+   bed?"); skip shows a calm "Let's be safe" screen and can be re-answered; Liora remembers the
+   last 10 turns, reads "sobrang sakit" with the message before, and starts each reply from a
+   "Right now" line; Face ID locks every tab; a Sources screen (Profile → Sources Liora uses)
+   lists each WHO and DOH document with its passages and official link; the app icon is the lit
+   capiz window (`docs/brand/app-icon.md`). Test prompts: `docs/demo-test-prompts.md`.
 2. **Feature cutoff about 5 AM.** Then: the release build on the iPhone 17 Pro without
    `EXPO_PUBLIC_SHOW_DEV`, after one run with it for measurements.
 3. **Measurements (LUM-77):** load, answer and transcription times on the iPhone 17 Pro only (team
