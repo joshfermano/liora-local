@@ -1,6 +1,6 @@
 # HANDOFF: Tell Liora (liora-local)
 
-**Last updated:** 2026-10-10, 1:35 AM Manila (Today, Calendar, Profile rebuilt; art and onboarding in flight).
+**Last updated:** 2026-10-10, 3:50 AM Manila (agent, memory, caching, handoff report; release and measurements next).
 **Deadline:** code freeze and submission **10:00 AM, 10 Oct 2026**, on
 cerebralvalley.ai/e/appbuildersph-hackathon-2026. One submission, no edits after.
 **Read next:** `docs/superpowers/specs/2026-10-09-tell-liora-design.md` (the build spec, v3),
@@ -45,22 +45,23 @@ Update section 1 and section 2 of this file as work completes, so any session ca
 
 ## 2. Next steps, in order
 
-1. **Done by 1:35 AM** (all on main, 462 tests): tabs; Liora companion; Today, Calendar (month,
-   year, edit mode, day sheet) and Profile rebuilt in the reference design language with fresh code;
-   day-log sheet; native wheel pickers; the rules now follow her saved status after a restart.
-   In flight: the art kit (capiz window, season, avatar and log marks) and a four-step onboarding
-   in place of the setup form. The iPhone 17 Pro runs a live-reload build (`.tmp/EXTRAS.md`).
-2. **Check every screen on the iPhone 17 Pro** while it live-reloads, then swap the drawn marks into
-   Today (season mark) and the day log (log marks) once the art kit lands. Older screens still in
-   the first design: result screens, nurse card, checklist, mood check, My log.
-3. **Release build on the iPhone 17 Pro** for measurements (`.tmp/build.command`, with the test
-   screen on): the live-reload build is a debug build and its timings do not count.
-4. **Measurements (LUM-77):** load and answer times and the eval phrases on the iPhone 17 Pro only
-   (team decision, 10 Oct); fill the README table. Ivan develops on his own iPhone 17 and pushes to
-   `main` too: pull before every push.
+1. **Done by 3:50 AM** (all on `main`, about 1,090 tests): Liora is a tool-using agent (System 1
+   triage in `src/core/agent/triage.ts` → word rules and Gemma's closed router → tools → one
+   guarded Gemma reply from `contextPack`); deletes, undo with a saved journal, "remember that…"
+   notes, language memory; cached card vectors and danger answers; per-turn traces;
+   `ARCHITECTURE.md` with a boundary test; estimated fertile window; replay-based windows; full
+   period length on log; Today, Calendar, Profile, onboarding, decision and private screens
+   redesigned; blood type, emergency contact (Call / Text on go-now and crisis) and the handoff
+   report with a PDF (in flight at 3:50 AM). The iPhone 17 Pro runs a live-reload build
+   (`.tmp/EXTRAS.md`).
+2. **Feature cutoff about 5 AM.** Then: the release build on the iPhone 17 Pro without
+   `EXPO_PUBLIC_SHOW_DEV`, after one run with it for measurements.
+3. **Measurements (LUM-77):** load, answer and transcription times on the iPhone 17 Pro only (team
+   decision, 10 Oct), from the test screen and the per-turn traces; fill the README table.
+4. **Safety review** of the agent, emergency buttons and handoff report before the release build.
 5. **Team content (Ivan):** Filipino copy (LUM-47), eval phrases (LUM-77), confirmations (LUM-54).
-6. **Submission:** README (LUM-78), 1-minute video and post (LUM-48), final demo build without
-   `EXPO_PUBLIC_SHOW_DEV`, submit on Cerebral Valley before 10:00 AM (LUM-49).
+6. **Submission:** README (LUM-78), 1-minute video and post (LUM-48), submit on Cerebral Valley
+   before 10:00 AM (LUM-49).
 
 ## 3. The product in one paragraph
 
