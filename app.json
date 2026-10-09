@@ -31,7 +31,13 @@
           "enableOpenCLAndHexagon": false
         }
       ],
-      "./plugins/with-scene-lifecycle"
+      "./plugins/with-scene-lifecycle",
+      [
+        "expo-audio",
+        {
+          "microphonePermission": "Liora uses the microphone only when you tap the mic, to write down what you say. Your voice stays on this phone."
+        }
+      ]
     ],
     "experiments": {
       "baseUrl": "/liora-local"

@@ -1,6 +1,6 @@
 import { File, Paths } from 'expo-file-system';
 import { initLlama } from 'llama.rn';
-import { GEMMA_GGUF, type NativeGemma } from './gemma-model';
+import { GEMMA_GGUF, GEMMA_VOICE, type NativeGemma } from './gemma-model';
 import { withRetries } from './retry';
 import { PROVISIONAL_THRESHOLDS } from '../core/merge';
 import {
@@ -14,14 +14,34 @@ import {
   type Question,
 } from './typed-decisions';
 
-export { GEMMA_GGUF, type NativeGemma } from './gemma-model';
+export { GEMMA_GGUF, GEMMA_VOICE, type NativeGemma } from './gemma-model';
 
 const model = () => new File(Paths.document, GEMMA_GGUF.file);
+const voiceModel = () => new File(Paths.document, GEMMA_VOICE.file);
+const bytes = (file: File) => (file.exists ? (file.size ?? 0) : 0);
 
 export function modelBytesOnDisk(): number {
-  const file = model();
-  return file.exists ? (file.size ?? 0) : 0;
+  return bytes(model());
 }
+
+export function voiceBytesOnDisk(): number {
+  return bytes(voiceModel());
+}
+
+export async function downloadVoice(onProgress: (written: number, total: number) => void): Promise<void> {
+  await withRetries(
+    () =>
+      File.downloadFileAsync(GEMMA_VOICE.url, voiceModel(), {
+        idempotent: true,
+        onProgress: ({ bytesWritten, totalBytes }) => onProgress(bytesWritten, totalBytes),
+      }),
+    { attempts: 3 },
+  );
+}
+
+const TRANSCRIBE =
+  'Write down exactly what is said in this recording, word for word, in the language it is spoken ' +
+  '(Tagalog, Taglish, Cebuano or English). Write only the words that are said.';
 
 // A 2.7 GB download over home Wi-Fi drops now and then ("network connection was lost" on the phone).
 export async function downloadModel(onProgress: (written: number, total: number) => void): Promise<void> {
@@ -38,6 +58,7 @@ export async function downloadModel(onProgress: (written: number, total: number)
 export async function loadGemma(): Promise<NativeGemma> {
   const started = Date.now();
   const ctx = await initLlama({ model: model().uri, n_ctx: 1024, n_gpu_layers: 99, use_mmap: true, use_mlock: false });
+  const voice = voiceBytesOnDisk() > 0 && (await ctx.initMultimodal({ path: voiceModel().uri, use_gpu: true }));
   const loadMs = Date.now() - started;
 
   // tokenize('') reveals a start token the tokenizer adds, which is not part of a spelling.
@@ -62,6 +83,26 @@ export async function loadGemma(): Promise<NativeGemma> {
     loadMs,
     gpu: ctx.gpu,
     reasonNoGPU: ctx.reasonNoGPU,
+    voice,
+    // A transcript of her own words, shown in the editable box before anything is decided (FR-3).
+    async transcribe(wavUri) {
+      if (!voice) throw new Error('The voice add-on is not loaded');
+      const t = Date.now();
+      const result = await ctx.completion({
+        messages: [
+          {
+            role: 'user',
+            content: [
+              { type: 'text', text: TRANSCRIBE },
+              { type: 'input_audio', input_audio: { format: 'wav', url: wavUri } },
+            ],
+          },
+        ],
+        n_predict: 160,
+        temperature: 0,
+      });
+      return { text: result.text.trim(), ms: Date.now() - t };
+    },
     async decide(message) {
       const t = Date.now();
       const answers: Record<string, number[]> = {};

@@ -1,9 +1,10 @@
 import { useEffect, useRef, useState } from 'react';
 import { Pressable, ScrollView, Share, Text } from 'react-native';
 import { CHECK_PHRASES, DEMO_PHRASES } from '../../src/ai/demo-phrases';
-import { downloadModel, modelBytesOnDisk, type NativeGemma } from '../../src/ai/gemma-native';
+import { downloadModel, downloadVoice, modelBytesOnDisk, voiceBytesOnDisk, type NativeGemma } from '../../src/ai/gemma-native';
 import { gemmaSession, releaseGemma } from '../../src/ai/gemma-session';
 import { toFindings } from '../../src/ai/typed-decisions';
+import { useVoiceNote } from '../../src/ai/use-voice-note';
 import { PROVISIONAL_THRESHOLDS } from '../../src/core/merge';
 import { evaluate } from '../../src/core/rules';
 
@@ -20,12 +21,17 @@ function Button({ title, onPress, disabled }: { title: string; onPress: () => vo
 
 export default function NativeModelTest() {
   const [onDisk, setOnDisk] = useState(0);
+  const [voiceOnDisk, setVoiceOnDisk] = useState(0);
+  const voiceNote = useVoiceNote();
   const [status, setStatus] = useState('');
   const [busy, setBusy] = useState(false);
   const [log, setLog] = useState<Record<string, unknown>[]>([]);
   const gemma = useRef<NativeGemma | null>(null);
 
-  useEffect(() => setOnDisk(modelBytesOnDisk()), []);
+  useEffect(() => {
+    setOnDisk(modelBytesOnDisk());
+    setVoiceOnDisk(voiceBytesOnDisk());
+  }, []);
   const record = (entry: Record<string, unknown>) => setLog((all) => [...all, { at: new Date().toISOString(), ...entry }]);
 
   async function run(label: string, task: () => Promise<void>) {
@@ -41,6 +47,7 @@ export default function NativeModelTest() {
       setStatus(`${label}: failed (${message})`);
     } finally {
       setOnDisk(modelBytesOnDisk());
+      setVoiceOnDisk(voiceBytesOnDisk());
       setBusy(false);
     }
   }
@@ -61,8 +68,8 @@ export default function NativeModelTest() {
     run('load', async () => {
       await releaseGemma();
       gemma.current = await gemmaSession();
-      const { loadMs, gpu, reasonNoGPU } = gemma.current;
-      record({ step: 'load', ok: true, ms: loadMs, gpu, reasonNoGPU });
+      const { loadMs, gpu, reasonNoGPU, voice } = gemma.current;
+      record({ step: 'load', ok: true, ms: loadMs, gpu, reasonNoGPU, voice });
     });
 
   const answer = (label: string, phrases: readonly string[]) =>
@@ -86,7 +93,35 @@ export default function NativeModelTest() {
       }
     });
 
-  const report = JSON.stringify({ build: 'native', modelOnDiskMB: Math.round(onDisk / 1048576), log }, null, 2);
+  const downloadVoiceAddOn = () =>
+    run('download voice', async () => {
+      const started = Date.now();
+      let last = 0;
+      await downloadVoice((written, total) => {
+        if (Date.now() - last < 500) return;
+        last = Date.now();
+        setStatus(`download voice: ${MB(written)} of ${MB(total)}`);
+      });
+      record({ step: 'download voice', ok: true, ms: Date.now() - started, bytes: voiceBytesOnDisk() });
+    });
+
+  const toggleRecording = async () => {
+    if (voiceNote.state !== 'recording') {
+      await voiceNote.start().catch((e: unknown) => record({ step: 'record', ok: false, error: String(e) }));
+      return;
+    }
+    const seconds = voiceNote.seconds;
+    setStatus('writing down what you said');
+    const heard = await voiceNote.stop();
+    record({ step: 'transcribe', ok: Boolean(heard), seconds, ms: heard?.ms, text: heard?.text ?? null, error: voiceNote.error });
+    setStatus(heard ? `heard: ${heard.text}` : `nothing heard${voiceNote.error ? ` (${voiceNote.error})` : ''}`);
+  };
+
+  const report = JSON.stringify(
+    { build: 'native', modelOnDiskMB: Math.round(onDisk / 1048576), voiceOnDiskMB: Math.round(voiceOnDisk / 1048576), log },
+    null,
+    2,
+  );
 
   return (
     <ScrollView className="flex-1" contentContainerClassName="p-4 pt-16">
@@ -96,6 +131,13 @@ export default function NativeModelTest() {
       <Button disabled={busy} title="2. Load Gemma 4 on this iPhone" onPress={load} />
       <Button disabled={busy} title="3. Answer the 3 demo phrases" onPress={() => answer('demo phrases', DEMO_PHRASES)} />
       <Button disabled={busy} title="4. Answer 5 more phrases" onPress={() => answer('more phrases', CHECK_PHRASES)} />
+      <Text>Voice add-on on this phone: {voiceOnDisk ? MB(voiceOnDisk) : 'not downloaded'}</Text>
+      <Button disabled={busy} title="5. Download the voice add-on (about 530 MB), then tap 2 again" onPress={downloadVoiceAddOn} />
+      <Button
+        disabled={busy || voiceNote.state === 'transcribing'}
+        title={voiceNote.state === 'recording' ? `6. Stop (${voiceNote.seconds} s) and write it down` : '6. Record a sentence'}
+        onPress={toggleRecording}
+      />
       <Text>{status}</Text>
       <Button title="Share results" onPress={() => Share.share({ message: report })} />
       <Text selectable>{report}</Text>
