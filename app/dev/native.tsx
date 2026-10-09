@@ -4,6 +4,9 @@ import { CHECK_PHRASES, DEMO_PHRASES } from '../../src/ai/demo-phrases';
 import { downloadModel, downloadVoice, modelBytesOnDisk, voiceBytesOnDisk, type NativeGemma } from '../../src/ai/gemma-native';
 import { gemmaSession, releaseGemma } from '../../src/ai/gemma-session';
 import { toFindings } from '../../src/ai/typed-decisions';
+import { runPipeline } from '../../src/core/pipeline';
+import { parseCases, scoreRun } from '../../src/eval/score';
+import casesJson from '../../eval/cases.json';
 import { useVoiceNote } from '../../src/ai/use-voice-note';
 import { rankCards } from '../../src/ai/card-index';
 import { downloadEmbedder, embedderBytesOnDisk } from '../../src/ai/embedder';
@@ -95,6 +98,34 @@ export default function NativeModelTest() {
       }
     });
 
+  // LUM-77: the team's held-out phrases through the real pipeline (word list, Gemma, the rules).
+  const runEval = () =>
+    run('eval', async () => {
+      if (!gemma.current) throw new Error('Load Gemma 4 first');
+      const cases = parseCases(casesJson);
+      if (cases.length === 0) throw new Error('eval/cases.json has no cases yet (LUM-77)');
+      const results = [];
+      const times: number[] = [];
+      for (const c of cases) {
+        setStatus(`eval ${results.length + 1} of ${cases.length}`);
+        const started = Date.now();
+        const { answers } = await gemma.current.decide(c.text);
+        times.push(Date.now() - started);
+        const entry = runPipeline({ id: c.id, now: new Date(), text: c.text, input: 'text', context: { status: 'pregnant' }, typedAnswers: answers });
+        results.push({ case: c, entry });
+      }
+      const sorted = [...times].sort((a, b) => a - b);
+      record({
+        step: 'eval',
+        ...scoreRun(results),
+        medianMs: sorted[Math.floor(sorted.length / 2)],
+        slowestMs: sorted[sorted.length - 1],
+        mismatched: results
+          .filter((r) => r.entry.decision.level !== r.case.expectLevel)
+          .map((r) => `${r.case.id}: expected ${r.case.expectLevel}, got ${r.entry.decision.level}`),
+      });
+    });
+
   const downloadVoiceAddOn = () =>
     run('download voice', async () => {
       const started = Date.now();
@@ -159,6 +190,7 @@ export default function NativeModelTest() {
         onPress={toggleRecording}
       />
       <Button disabled={busy} title="7. Card search: download (about 265 MB) and rank cards for 8 phrases" onPress={rankDemoCards} />
+      <Button disabled={busy} title="8. Run the eval set (eval/cases.json)" onPress={runEval} />
       <Text>{status}</Text>
       <Button title="Share results" onPress={() => Share.share({ message: report })} />
       <Text selectable>{report}</Text>
