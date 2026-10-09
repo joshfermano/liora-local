@@ -1,5 +1,5 @@
 import { createAudioPlayer, setAudioModeAsync, useAudioPlayer, useAudioPlayerStatus, type AudioPlayer } from 'expo-audio';
-import { useRouter } from 'expo-router';
+import { useRouter, type Href } from 'expo-router';
 import { useEffect, useRef } from 'react';
 import type { OrbState } from 'orb-ui';
 import { useWindowDimensions, View } from 'react-native';
@@ -60,7 +60,7 @@ export default function Live() {
   const c = useColors();
   const colors = { deepColor: c.dusk, upperColor: c.tint, lowerColor: c.peach, highlightColor: c['tint-soft'], launchColor: c['tint-fill'], spinnerColor: c.tint };
   const closing = useRef(false);
-  const live = useLive(() => close());
+  const live = useLive((href) => close(href));
   const chime = useAudioPlayer(require('../assets/sounds/live-in.wav'));
 
   const scale = useSharedValue(reduce ? 1 : SEED);
@@ -96,14 +96,14 @@ export default function Live() {
     }
   }, [reduce, scale, glow, chrome]);
 
-  const close = () => {
+  const close = (next?: string) => {
     if (closing.current) return;
     closing.current = true;
     tap();
     chime.pause();
     const bye = outro();
     void bye.seekTo(0).then(() => bye.play());
-    const leave = () => router.back();
+    const leave = () => (next ? router.replace(next as Href) : router.back());
     chrome.value = withTiming(0, { duration: 160 });
     if (reduce) {
       glow.value = withTiming(0, { duration: 200 }, (done) => {
@@ -160,7 +160,7 @@ export default function Live() {
         <Text variant="displayHeading" accessibilityRole="header">
           {en('liora.live')}
         </Text>
-        <PressableSurface label={en('live.close')} onPress={close}>
+        <PressableSurface label={en('live.close')} onPress={() => close()}>
           <GlassCard interactive className="h-tap w-tap items-center justify-center">
             <Symbol name="xmark" fallback="close" tone="label" size={18} />
           </GlassCard>

@@ -6,6 +6,8 @@ import { useVoiceNote } from '../../ai/use-voice-note';
 import { en } from '../../content/copy';
 import type { ReplyBlock } from '../../core/companion';
 import { useCompanionStore } from '../../store/companion';
+import { agentStore } from '../companion/agent-store';
+import { savedLine } from '../companion/saved';
 
 type SpeechModule = typeof import('expo-speech');
 // An app built before expo-speech must not take the router down with it; Live then just stays silent.
@@ -16,16 +18,39 @@ export type LivePhase = 'starting' | 'listening' | 'thinking' | 'speaking' | 'se
 
 const fill = (s: string, v: Record<string, string> = {}) => s.replace(/\{(\w+)\}/g, (_, k: string) => v[k] ?? '');
 
-// Only Liora's fixed sentences are spoken; anything with a decision goes back to the chat to be read in full.
+// Only fixed sentences, her own saved data and the warm line are spoken; a decision is read on the result screen.
 function spoken(blocks: ReplyBlock[]): string {
-  return blocks
-    .filter((b): b is Extract<ReplyBlock, { kind: 'text' }> => b.kind === 'text')
-    .map((b) => fill(en(b.key), b.params))
-    .join(' ');
+  const parts: string[] = [];
+  for (const b of blocks) {
+    if (b.kind === 'text') parts.push(fill(en(b.key), b.params));
+    else if (b.kind === 'warm') parts.push(b.text ?? en(`warm.${b.tone}`));
+    else if (b.kind === 'logged') parts.push(...b.items.map(savedLine));
+  }
+  return parts.join(' ');
 }
 
-export function useLive(onDecision: () => void) {
-  const voice = useVoiceNote();
+type Heard = { text: string; ms: number } | null;
+
+// The best English voice installed (Enhanced first); undefined lets the system pick.
+let voicePick: Promise<string | undefined> | null = null;
+function bestVoice(): Promise<string | undefined> {
+  voicePick ??= (async () => {
+    try {
+      const all = (await Speech?.getAvailableVoicesAsync()) ?? [];
+      const english = all.filter((v) => v.language.toLowerCase().startsWith('en'));
+      const score = (v: (typeof english)[number]) => (v.quality === 'Enhanced' ? 2 : 0) + (v.language.toLowerCase() === 'en-us' ? 1 : 0);
+      return english.sort((x, y) => score(y) - score(x))[0]?.identifier;
+    } catch {
+      return undefined;
+    }
+  })();
+  return voicePick;
+}
+
+// href is set when the decision needs its own screen; Live then closes and opens it.
+export function useLive(onDecision: (href?: string) => void) {
+  const heardRef = useRef<(heard: Heard) => void>(() => {});
+  const voice = useVoiceNote({ autoStop: true, onHeard: (heard) => heardRef.current(heard) });
   // The hook's functions read its state from the render that made them, so always call the latest.
   const latest = useRef(voice);
   latest.current = voice;
@@ -40,38 +65,50 @@ export function useLive(onDecision: () => void) {
       await latest.current.start();
       if (alive.current) setPhase('listening');
     } catch {
-      setPhase('retry');
+      if (alive.current) setPhase('retry');
     }
   }, []);
 
-  const speak = useCallback(
-    (text: string) => {
-      if (!Speech) return void listen();
-      setPhase('speaking');
-      const back = () => {
-        setOutput(0);
-        void listen();
-      };
-      // Each spoken word lifts the orb; the decay below lets it fall between words.
-      Speech.speak(text, { language: 'en-US', onBoundary: () => setOutput(0.9), onDone: back, onStopped: back, onError: back });
+  const speak = useCallback(async (text: string, then: () => void) => {
+    if (!Speech) return then();
+    setPhase('speaking');
+    const voiceId = await bestVoice();
+    if (!alive.current) return;
+    const back = () => {
+      setOutput(0);
+      then();
+    };
+    // Each spoken word lifts the orb; the decay below lets it fall between words.
+    Speech.speak(text, { language: 'en-US', voice: voiceId, rate: 0.95, onBoundary: () => setOutput(0.9), onDone: back, onStopped: back, onError: back });
+  }, []);
+
+  const handle = useCallback(
+    async (heard: Heard) => {
+      if (!alive.current) return;
+      if (!heard) return setPhase('retry');
+      setPhase('thinking');
+      await agentStore().send(heard.text, 'voice');
+      if (!alive.current) return;
+      const reply = [...useCompanionStore.getState().messages].reverse().find((m) => m.role === 'liora');
+      const blocks = reply?.blocks ?? [];
+      const decision = blocks.find((b): b is Extract<ReplyBlock, { kind: 'decision' }> => b.kind === 'decision');
+      if (decision?.level === 'go_now') {
+        return void speak(`${en('go.headline')}. ${en('go.line')}`, () => onDecision(`/result/${decision.entryId}`));
+      }
+      if (decision?.level === 'follow_up') return onDecision(`/result/${decision.entryId}`);
+      if (decision) return onDecision();
+      const text = spoken(blocks);
+      if (text) void speak(text, () => void listen());
+      else void listen();
     },
-    [listen],
+    [listen, speak, onDecision],
   );
+  heardRef.current = (heard) => void handle(heard);
 
   const finish = useCallback(async () => {
     setPhase('thinking');
-    const heard = await latest.current.stop();
-    if (!alive.current) return;
-    if (!heard) return setPhase('retry');
-    await useCompanionStore.getState().send(heard.text);
-    if (!alive.current) return;
-    const reply = [...useCompanionStore.getState().messages].reverse().find((m) => m.role === 'liora');
-    const blocks = reply?.blocks ?? [];
-    if (blocks.some((b) => b.kind === 'decision')) return onDecision();
-    const text = spoken(blocks);
-    if (text) speak(text);
-    else void listen();
-  }, [listen, speak, onDecision]);
+    await handle(await latest.current.stop());
+  }, [handle]);
 
   const tapOrb = useCallback(() => {
     if (phase === 'listening') void finish();

@@ -16,6 +16,8 @@ import { SourceCard } from '../SourceCard';
 import { Symbol } from '../Symbol';
 import { Text } from '../Text';
 import { SURFACE } from '../theme';
+import { agentStore } from './agent-store';
+import { confirmLine, savedLine } from './saved';
 
 const fill = (s: string, v: Record<string, string> = {}) => s.replace(/\{(\w+)\}/g, (_, k: string) => v[k] ?? '');
 const short = (s: string) => format(parseISO(s), 'MMM d');
@@ -127,6 +129,65 @@ function PeriodConfirm({ block }: { block: Extract<ReplyBlock, { kind: 'period_c
   );
 }
 
+function Logged({ block }: { block: Extract<ReplyBlock, { kind: 'logged' }> }) {
+  const [undone, setUndone] = useState(false);
+  if (block.items.length === 0) return null;
+  if (undone) return <Text variant="subheadline" tone="secondary" accessibilityLiveRegion="polite">{en('agent.undone')}</Text>;
+  return (
+    <GlassCard className="gap-xs p-md">
+      <Text variant="footnote" tone="secondary" accessibilityRole="header">
+        {en('agent.logged.title')}
+      </Text>
+      {block.items.map((item, i) => (
+        <Text key={i} variant="body">
+          {savedLine(item)}
+        </Text>
+      ))}
+      <View className="items-start">
+        <CapsuleButton
+          variant="plain"
+          label={en('agent.undo')}
+          onPress={() => {
+            tap();
+            void agentStore().undo?.(block.undoId);
+            setUndone(true);
+          }}
+        />
+      </View>
+    </GlassCard>
+  );
+}
+
+function Confirm({ block }: { block: Extract<ReplyBlock, { kind: 'confirm' }> }) {
+  const [state, setState] = useState<'ask' | 'saved' | 'skipped'>('ask');
+  if (state === 'saved') return <Text variant="subheadline" tone="secondary">{en('agent.logged.title')}</Text>;
+  if (state === 'skipped') return null;
+  const lines = block.actions.map((a) => confirmLine(a)).filter((l): l is string => l !== null);
+  if (lines.length === 0) return null;
+  const answer = (yes: boolean) => {
+    if (yes) confirm();
+    else tap();
+    void agentStore().confirm?.(block.confirmId, yes);
+    setState(yes ? 'saved' : 'skipped');
+  };
+  return (
+    <GlassCard className="gap-xs p-md">
+      <Text variant="headline" accessibilityRole="header">
+        {en('agent.confirm.title')}
+      </Text>
+      {lines.map((l, i) => (
+        <Text key={i} variant="body">
+          {l}
+        </Text>
+      ))}
+      <View className="flex-row flex-wrap gap-xs pt-xxs">
+        <ActionPill label={en('agent.confirm.yes')} sf="checkmark" fallback="check" onPress={() => answer(true)} />
+        <ActionPill label={en('agent.confirm.no')} sf="xmark" fallback="close" onPress={() => answer(false)} />
+      </View>
+    </GlassCard>
+  );
+}
+
 export function Block({ block }: { block: ReplyBlock }) {
   const router = useRouter();
   switch (block.kind) {
@@ -136,6 +197,16 @@ export function Block({ block }: { block: ReplyBlock }) {
           <Text variant="body">{fill(en(block.key), block.params)}</Text>
         </Bubble>
       );
+    case 'warm':
+      return (
+        <Bubble>
+          <Text variant="body">{block.text ?? en(`warm.${block.tone}`)}</Text>
+        </Bubble>
+      );
+    case 'logged':
+      return <Logged block={block} />;
+    case 'confirm':
+      return <Confirm block={block} />;
     case 'decision':
       return <Decision block={block} />;
     case 'period_confirm':

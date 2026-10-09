@@ -8,11 +8,12 @@ import {
   type RecordingOptions,
 } from 'expo-audio';
 import { File } from 'expo-file-system';
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import { createVad } from '../core/agent';
 import { gemmaSession } from './gemma-session';
-import type { VoiceNote, VoiceNoteState } from './voice-note-types';
+import type { VoiceNote, VoiceNoteOptions, VoiceNoteState } from './voice-note-types';
 
-export type { VoiceNote, VoiceNoteState } from './voice-note-types';
+export type { VoiceNote, VoiceNoteOptions, VoiceNoteState } from './voice-note-types';
 
 // 16 kHz mono 16-bit WAV: what Gemma 4's audio encoder reads; llama.cpp cannot decode AAC.
 const WAV_16K: RecordingOptions = {
@@ -36,11 +37,18 @@ const WAV_16K: RecordingOptions = {
 
 const message = (e: unknown) => (e instanceof Error ? e.message : String(e));
 
-export function useVoiceNote(): VoiceNote {
+const AUTO_LIMIT_S = 30;
+
+export function useVoiceNote({ autoStop = false, onHeard }: VoiceNoteOptions = {}): VoiceNote {
   const recorder = useAudioRecorder(WAV_16K);
   const status = useAudioRecorderState(recorder, 100);
   const [state, setState] = useState<VoiceNoteState>('idle');
   const [error, setError] = useState<string | null>(null);
+  const vad = useRef(createVad());
+  const autoStopping = useRef(false);
+  const stopLatest = useRef<() => Promise<{ text: string; ms: number } | null>>(() => Promise.resolve(null));
+  const heardLatest = useRef(onHeard);
+  heardLatest.current = onHeard;
 
   async function start() {
     setError(null);
@@ -48,8 +56,10 @@ export function useVoiceNote(): VoiceNote {
     if (!permission.granted) {
       setState('error');
       setError('Microphone permission was not given');
-      return;
+      throw new Error('Microphone permission was not given');
     }
+    vad.current.reset();
+    autoStopping.current = false;
     await setAudioModeAsync({ allowsRecording: true, playsInSilentMode: true });
     await recorder.prepareToRecordAsync();
     recorder.record();
@@ -102,6 +112,18 @@ export function useVoiceNote(): VoiceNote {
       } catch {}
     }
   }
+
+  stopLatest.current = stop;
+
+  // Hands-free: the recorder's loudness decides when she has finished speaking.
+  useEffect(() => {
+    if (!autoStop || state !== 'recording' || autoStopping.current) return;
+    const seconds = (status.durationMillis ?? 0) / 1000;
+    const verdict = vad.current.push(status.metering ?? -160, status.durationMillis ?? 0);
+    if (verdict !== 'end' && seconds < AUTO_LIMIT_S) return;
+    autoStopping.current = true;
+    void stopLatest.current().then((heard) => heardLatest.current?.(heard));
+  }, [autoStop, state, status.metering, status.durationMillis]);
 
   // Metering is in dBFS; about -55 is a quiet room and -5 is close, clear speech.
   const level = state === 'recording' ? Math.min(1, Math.max(0, ((status.metering ?? -160) + 55) / 50)) : 0;
