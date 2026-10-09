@@ -1,4 +1,4 @@
-import { setAudioModeAsync, useAudioPlayer, useAudioPlayerStatus } from 'expo-audio';
+import { createAudioPlayer, setAudioModeAsync, useAudioPlayer, useAudioPlayerStatus, type AudioPlayer } from 'expo-audio';
 import { useRouter } from 'expo-router';
 import { useEffect, useRef } from 'react';
 import type { OrbState } from 'orb-ui';
@@ -24,6 +24,10 @@ import { PressableSurface } from '../src/ui/PressableSurface';
 import { Symbol } from '../src/ui/Symbol';
 import { Text } from '../src/ui/Text';
 import { SURFACE, useColors } from '../src/ui/theme';
+
+// Owned outside the screen so the closing chime outlives the screen it closes; made on first open so it is loaded by then.
+let outroChime: AudioPlayer | null = null;
+const outro = () => (outroChime ??= createAudioPlayer(require('../assets/sounds/live-out.wav')));
 
 const ORB_STATE: Record<LivePhase, OrbState> = {
   starting: 'listening',
@@ -71,6 +75,9 @@ export default function Live() {
     void setAudioModeAsync({ playsInSilentMode: true }).catch(() => {});
   }, []);
   useEffect(() => {
+    outro();
+  }, []);
+  useEffect(() => {
     if (!chimeStatus.isLoaded || chimed.current) return;
     chimed.current = true;
     chime.play();
@@ -93,6 +100,9 @@ export default function Live() {
     if (closing.current) return;
     closing.current = true;
     tap();
+    chime.pause();
+    const bye = outro();
+    void bye.seekTo(0).then(() => bye.play());
     const leave = () => router.back();
     chrome.value = withTiming(0, { duration: 160 });
     if (reduce) {
