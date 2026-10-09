@@ -15,13 +15,19 @@ function byMoods(moods: readonly Mood[]): ReplyStyle | null {
 }
 
 // What she says now comes first: a symptom or pain in this message, then the moods in it, then how it
-// sounds. The moods logged earlier today count only when this message carries none of these.
-export function replyStyle(moodsToday: readonly Mood[], tone: Tone, now: { moods?: readonly Mood[]; hurting?: boolean } = {}): ReplyStyle {
+// sounds. Earlier today's log counts only when this message carries none of these: symptoms first.
+export function replyStyle(
+  moodsToday: readonly Mood[],
+  tone: Tone,
+  now: { moods?: readonly Mood[]; hurting?: boolean } = {},
+  hurtingToday = false,
+): ReplyStyle {
   if (now.hurting) return 'gentle';
   const said = byMoods(now.moods ?? []);
   if (said) return said;
   if (tone === 'worried' || tone === 'sad' || tone === 'tired') return 'gentle';
   if (tone === 'happy') return 'bright';
+  if (hurtingToday) return 'gentle';
   return byMoods(moodsToday) ?? 'steady';
 }
 

@@ -41,6 +41,7 @@ const NO_SUCH_TOOL =
   /\bremind\w*|\b(?:i(?:'ll|\s+will|\s+can)|let\s+me)\s+(?:notify|tell|call|text|message|alert|contact|send)\b|\b(?:told|notified|texted|called|messaged|alerted|contacted)\s+(?:your|her|them)\b/i;
 const URL = /https?:|www\.|\b[\w-]+\.(?:com|ph|org|net|io|app|gov|edu)\b/i;
 const LABELS = [...SYMPTOMS, ...DANGER_CODES];
+const TWIN: Partial<Record<string, string>> = { severe_headache: 'headache' };
 
 function flat(facts: Facts): string {
   return Object.values(facts)
@@ -75,7 +76,13 @@ export function guardReply(text: string, facts: Facts, secret?: string): string 
     if ((sentence.match(/\d+/g) ?? []).some((n) => !numbers.has(n))) return false;
     const lower = sentence.toLowerCase();
     if (LABELS.some((c) => lower.includes(c.replace(/_/g, ' ')) && !known.includes(c.replace(/_/g, ' ')))) return false;
-    return readText(sentence).every((f) => known.includes(f.code.replace(/_/g, ' ')));
+    // The word list reads "headache" as both the symptom and the danger sign; naming a headache she
+    // logged is fine, so the danger twin passes when its plain symptom is in her data.
+    return readText(sentence).every((f) => {
+      const code = f.code.replace(/_/g, ' ');
+      const plain = TWIN[f.code];
+      return known.includes(code) || (plain !== undefined && known.includes(plain));
+    });
   };
   const kept = text
     .replace(/[‘’]/g, "'")

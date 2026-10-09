@@ -180,7 +180,9 @@ export async function runTurn(text: string, entry: Entry, day: string, thread: T
   }
 
   const tone = toneOf(text, entry);
-  const { facts, fallback, style } = replyPlan(outcome, { name: profile.name, tone, today: day, moods: moodsOn(data.dayLogs, day), said: pick(actions, 'moods')?.moods, hurting: Boolean(pick(actions, 'symptoms')) || entry.findings.length > 0 });
+  const { facts, fallback, style } = replyPlan(outcome, { name: profile.name, tone, today: day, moods: moodsOn(data.dayLogs, day), said: pick(actions, 'moods')?.moods, hurting: Boolean(pick(actions, 'symptoms')) || entry.findings.length > 0,
+    hurtingToday: (data.dayLogs.find((l) => l.date === day)?.symptoms.length ?? 0) > 0,
+  });
   if (attachments.length === 0) {
     if (asksAboutHerData) attachments.push({ kind: 'actions', items: ['calendar'] });
     else if (facts.no_action_taken === true) attachments.push({ kind: 'actions', items: [...HOME] });

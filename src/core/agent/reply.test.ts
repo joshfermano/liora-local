@@ -49,3 +49,23 @@ describe('guardReply keeps warm, factual sentences', () => {
     expect(guardReply('Logged it for today.', saved)).toBe('Logged it for today.');
   });
 });
+
+describe('guardReply lets Liora name a symptom she logged herself', () => {
+  const data = { her_data: 'Logged in the last 7 days:\n- Oct 10: flow medium; symptoms cramps, back pain, headache, bloating' };
+  it('keeps "you logged a headache today"', () => {
+    expect(guardReply('You logged a headache and cramps today.', data)).toBe('You logged a headache and cramps today.');
+  });
+  it('still drops calling it severe', () => {
+    expect(guardReply('You have a severe headache.', data)).toBeNull();
+  });
+  it('still drops a symptom she did not log', () => {
+    expect(guardReply('You logged a fever today.', data)).toBeNull();
+  });
+});
+
+describe('the symptom twin is narrow', () => {
+  it('does not let a logged symptom carry an unrelated danger sign', () => {
+    const data = { her_data: 'symptoms cramps' };
+    expect(guardReply('You logged cramps and you are vomiting a lot.', data)).toBeNull();
+  });
+});

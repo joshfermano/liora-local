@@ -150,11 +150,11 @@ function styled(fallback: Fallback, style: ReplyStyle): Fallback {
 
 export function replyPlan(
   o: Outcome,
-  who: { name?: string; tone: Tone; today: string; moods?: Mood[]; said?: Mood[]; hurting?: boolean },
+  who: { name?: string; tone: Tone; today: string; moods?: Mood[]; said?: Mood[]; hurting?: boolean; hurtingToday?: boolean },
 ): { facts: Facts; fallback: Fallback; style: ReplyStyle } {
   const facts: Facts = {};
   const moods = who.moods ?? [];
-  const style = replyStyle(moods, who.tone, { moods: who.said, hurting: who.hurting });
+  const style = replyStyle(moods, who.tone, { moods: who.said, hurting: who.hurting }, who.hurtingToday);
   if (who.name) facts.her_name = who.name;
   const tone = TONE_WORD[who.tone];
   if (tone) facts.her_tone = tone;

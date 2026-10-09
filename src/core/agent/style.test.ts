@@ -48,3 +48,14 @@ describe('what she says now beats what she logged earlier today', () => {
     expect(replyPlan(calm, { ...who, tone: 'neutral' }).fallback.key).toBe('reply.greeting.bright');
   });
 });
+
+describe('symptoms logged earlier today count too', () => {
+  it('is gentle on a day with symptoms, even when the only mood logged is calm', () => {
+    const { fallback } = replyPlan(calm, { name: 'Ana', tone: 'neutral', today: '2026-10-10', moods: ['calm'], hurtingToday: true });
+    expect(fallback.key).toBe('reply.greeting.gentle');
+  });
+  it('still follows a happy message now', () => {
+    const { fallback } = replyPlan(calm, { name: 'Ana', tone: 'neutral', today: '2026-10-10', moods: ['calm'], hurtingToday: true, said: ['joyful'] });
+    expect(fallback.key).toBe('reply.greeting.bright');
+  });
+});
