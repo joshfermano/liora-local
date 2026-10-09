@@ -3,6 +3,8 @@ import { applyFollowUpAnswer, runPipeline } from '../core/pipeline';
 import type { Context, Entry } from '../core/types';
 import { useLogStore } from './log';
 import { contextFrom, readProfile } from './profile';
+import { scopeAnswers, triage } from '../core/agent/triage';
+import { format } from 'date-fns';
 
 export type TellStatus = 'idle' | 'thinking' | 'done' | 'error';
 
@@ -83,7 +85,11 @@ export const useTellStore = create<TellState>()((set, get) => ({
   submit: async (text, input = 'text') => {
     set({ status: 'thinking', error: null });
     try {
-      const answers = await typedAnswers(text);
+      // System 1 first: an edit or a question about her own data skips Gemma's danger questions;
+      // the word list still runs on every message, so a danger word always counts.
+      const today = format(new Date(), 'yyyy-MM-dd');
+      const { typed } = triage(text, today, readProfile(useLogStore.getState().setup).status);
+      const answers = typed === 'none' ? undefined : scopeAnswers(await typedAnswers(text), typed);
       const entry = runPipeline({
         id: newId(),
         now: new Date(),

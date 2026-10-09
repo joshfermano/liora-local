@@ -147,3 +147,31 @@ describe('the status the rules use', () => {
     expect(useTellStore.getState().context).toEqual({ status: 'pregnant', weeks: 30 });
   });
 });
+
+describe("triage decides which of Gemma's danger answers count", () => {
+  // Gemma answering yes to bleeding for any message that mentions a period.
+  const saysBleeding = vi.fn(async () => ({ 'yesno.vaginal_bleeding': [0.95, 0.05] }));
+  beforeEach(() => {
+    saysBleeding.mockClear();
+    setAskModel(saysBleeding, { role: 'llm', id: 'test', version: '1' });
+  });
+
+  it('never asks Gemma about danger for an edit to her data', async () => {
+    useLogStore.setState({ setup: { status: 'neither' } });
+    const entry = await useTellStore.getState().submit('Can you remove my period logged this month?');
+    expect(saysBleeding).not.toHaveBeenCalled();
+    expect(entry.decision.level).toBe('ok');
+  });
+
+  it("ignores Gemma's bleeding answer when she logs a period and is not pregnant", async () => {
+    useLogStore.setState({ setup: { status: 'neither' } });
+    const entry = await useTellStore.getState().submit('Niregla ako today');
+    expect(entry.decision.level).toBe('ok');
+  });
+
+  it('keeps bleeding as a danger sign while she is pregnant', async () => {
+    useLogStore.setState({ setup: { status: 'pregnant', weeks: 20 } });
+    const entry = await useTellStore.getState().submit('Niregla ako today');
+    expect(entry.decision.level).toBe('go_now');
+  });
+});
