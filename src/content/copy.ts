@@ -178,6 +178,10 @@ export const COPY = {
   'decided.rules.none': ui('No rule fired'),
   'decided.models': ui('Models that ran'),
   'decided.models.none': ui('No AI model ran; the word list and rules decided.'),
+  // name, lock and settings (LUM-81, LUM-82)
+  'name.question': ui('What should Liora call you?'),
+  'name.optional': ui('Optional. It stays on this phone.'),
+  'home.greeting': ui('Hi, {name}'),
 } as const satisfies Record<string, Entry>;
 
 export type CopyKey = keyof typeof COPY;

@@ -7,6 +7,7 @@ import type { Context, Entry } from '../../core/types';
 import { CapsuleButton } from '../CapsuleButton';
 import { Pair } from '../Pair';
 import { Screen } from '../Screen';
+import { useName } from '../name';
 import { Text } from '../Text';
 
 function Fact({ label, children }: { label: string; children: ReactNode }) {
@@ -21,6 +22,7 @@ function Fact({ label, children }: { label: string; children: ReactNode }) {
 // Raised Pearl, system face, no decoration: a nurse reads it fast (FR-6).
 export function NurseCard({ entry, context }: { entry: Entry; context: Context }) {
   const router = useRouter();
+  const name = useName();
   const figure = context.status === 'postpartum' ? context.days_since_birth : context.status === 'pregnant' ? context.weeks : undefined;
   const figureKey = context.status === 'postpartum' ? 'nurse.days_since_birth' : 'nurse.weeks';
   const logged = new Date(entry.created_at);
@@ -29,6 +31,7 @@ export function NurseCard({ entry, context }: { entry: Entry; context: Context }
   return (
     <Screen raised field={false}>
       <View className="gap-xl pt-lg">
+        {name ? <Text variant="display">{name}</Text> : null}
         {figure !== undefined ? (
           <Fact label={figureKey}>
             <Text variant="display">{figure}</Text>

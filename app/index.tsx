@@ -13,6 +13,7 @@ import { Pair } from '../src/ui/Pair';
 import { Screen } from '../src/ui/Screen';
 import { useAiStatus, useOffline } from '../src/ui/status';
 import { TellField } from '../src/ui/TellField';
+import { useName } from '../src/ui/name';
 import { Text } from '../src/ui/Text';
 
 const RECORD_LIMIT_S = 30;
@@ -22,8 +23,9 @@ export default function Home() {
   const submit = useTellStore((s) => s.submit);
   const status = useTellStore((s) => s.status);
   const aiOn = useAiStatus((s) => s.on);
-  const setupDone = useLogStore((s) => s.setup !== null);
+  const setupDone = useLogStore((s) => s.setup?.status != null);
   const offline = useOffline();
+  const name = useName();
   const [text, setText] = useState('');
   const voice = useVoiceNote();
   const recording = voice.state === 'recording';
@@ -56,6 +58,7 @@ export default function Home() {
           <Text variant="wordmark" accessibilityRole="header">
             Liora
           </Text>
+          {name ? <Text variant="title2">{en('home.greeting').replace('{name}', name)}</Text> : null}
           <View accessible accessibilityLabel={`${fil('home.prompt')} ${en('home.prompt')}`} className="gap-xxs">
             <Text variant="displayTitle">{fil('home.prompt')}</Text>
             <Text variant="body" tone="secondary">

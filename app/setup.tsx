@@ -15,6 +15,8 @@ import { InlineError } from '../src/ui/InlineError';
 import { Screen } from '../src/ui/Screen';
 import { SetupRow, type RowState } from '../src/ui/SetupRow';
 import { useAiStatus } from '../src/ui/status';
+import { cleanName, mergeSetup } from '../src/ui/name';
+import { NameField } from '../src/ui/NameField';
 import { Text } from '../src/ui/Text';
 import { EDGE, SURFACE, TEXT_TONE } from '../src/ui/theme';
 
@@ -68,6 +70,7 @@ export default function Setup() {
   const [lastPeriod, setLastPeriod] = useState('');
   const [cycle, setCycle] = useState('');
   const [invalid, setInvalid] = useState(false);
+  const [name, setName] = useState(() => cleanName(String(useLogStore.getState().setup?.name ?? '')));
 
   const busy = model.state === 'busy' || voice.state === 'busy';
   const needsDownload = !web && (model.state !== 'done' || voice.state !== 'done');
@@ -106,25 +109,27 @@ export default function Setup() {
 
   const save = () => {
     const log = useLogStore.getState();
+    const keep = (a: Record<string, unknown>) => mergeSetup({ ...a, name: cleanName(name) || undefined });
     if (status === 'pregnant') {
       const w = whole(weeks, 1, 45);
       if (w === null) return setInvalid(true);
       useTellStore.getState().setContext({ status, weeks: w });
-      log.setSetup({ status, weeks: w });
+      keep({ status, weeks: w });
     } else if (status === 'postpartum') {
       const d = whole(days, 0, 365);
       if (d === null) return setInvalid(true);
       useTellStore.getState().setContext({ status, days_since_birth: d });
-      log.setSetup({ status, days_since_birth: d });
+      keep({ status, days_since_birth: d });
     } else if (status === 'neither') {
       const len = whole(cycle, 15, 90);
       const okDate = /^\d{4}-\d{2}-\d{2}$/.test(lastPeriod) && !Number.isNaN(Date.parse(lastPeriod));
       if (len === null || !okDate) return setInvalid(true);
       useTellStore.getState().setContext({ status });
-      log.setSetup({ status, last_period_start: lastPeriod, cycle_length: len });
+      keep({ status, last_period_start: lastPeriod, cycle_length: len });
       log.setPeriods([{ id: `setup-${lastPeriod}`, start: lastPeriod, end: null, flow_by_day: {}, source: 'setup' }]);
       log.setCycleSettings({ ...log.cycleSettings, stated_cycle_length: len });
     }
+    if (!status) keep({});
     router.replace('/');
   };
 
@@ -137,7 +142,7 @@ export default function Setup() {
     <Screen
       footer={
         <View className="gap-xs">
-          {status ? <CapsuleButton label={en('setup.save')} onPress={save} /> : null}
+          {status || name.trim() ? <CapsuleButton label={en('setup.save')} onPress={save} /> : null}
           <CapsuleButton variant="plain" label={en('setup.skip')} onPress={() => router.replace('/')} />
         </View>
       }
@@ -161,6 +166,8 @@ export default function Setup() {
             onPress={start}
           />
         ) : null}
+
+        <NameField value={name} onChange={setName} />
 
         <Text variant="headline" accessibilityRole="header">
           {en('setup.q.status')}
