@@ -36,10 +36,11 @@ next-period estimate. Everything runs on the device.
 ## Hard rules
 
 - **The AI never decides and never writes medical text.** Decisions come from `src/core/rules/`.
-  Go-now and crisis screens use fixed copy. Source cards are shown verbatim. One approved exception
-  (user, 2026-10-10): on calm turns Gemma may write one short warm sentence, which must pass
-  `guardWarm` in `src/core/agent` (no advice, symptoms, medicines, numbers or dates) or a fixed
-  `warm.*` line is shown instead. Never on go-now or follow-up turns.
+  Go-now and crisis screens use fixed copy. Source cards are shown verbatim. Approved by the user
+  (2026-10-10): on calm turns Liora is an agent and Gemma writes its one reply from the facts the
+  tools produced; every sentence must pass `guardReply` in `src/core/agent` (no medical advice,
+  diagnosis, medicine or contraception advice, and no number missing from the facts) or a fixed
+  `reply.*` line is shown. Never on go-now or follow-up turns; health facts come only from cards.
 - **No made-up medical content**, including fixtures and placeholder copy.
 - **Every number in the README or pitch is measured on the demo iPhones.** Fake benchmarks
   disqualify the team.

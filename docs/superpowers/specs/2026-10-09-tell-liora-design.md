@@ -209,9 +209,10 @@ it. Tell Liora runs the same idea on the phone:
   free text into the pipeline. An error or timeout equals "no findings"; the word list and
   embedding matcher still run. **Agent (2026-10-10):** Gemma may also choose agent actions through
   a closed JSON schema (tools, symptom, mood, activity and flow enums, date words that code
-  resolves), and on calm turns write one warm sentence that must pass `guardWarm` (no advice,
-  symptoms, medicines, numbers, dates or contraception words) or a fixed `warm.*` line is shown.
-  Neither runs on a `go_now` or `follow_up` turn, and neither can change a decision.
+  resolves), and on calm turns write the agent's one reply from the tools' facts; each sentence
+  must pass `guardReply` (no medical advice, diagnosis, medicine or contraception advice, and no
+  number missing from the facts) or a fixed `reply.*` line is shown. Neither runs on a `go_now` or
+  `follow_up` turn, neither can change a decision, and health facts come only from cards.
 - **SR-3** The decision model is pure, deterministic TypeScript with a source on every rule.
 - **SR-4** Go-now and crisis screens contain only fixed copy.
 - **SR-5** Unknown severity triggers a follow-up; skipping resolves to serious.

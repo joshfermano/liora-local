@@ -65,10 +65,11 @@ reported.
   "mild" reading counts only when her own words say so ("medyo", "konti").
 - **No AI-written medical text.** The "go now" and crisis screens use fixed copy. The urgent lines
   quote approved WHO passages word for word, and source cards are shown verbatim, never paraphrased.
-  Gemma answers yes/no questions with probabilities and picks actions from closed lists. The one
-  thing it writes is a short warm sentence on calm turns, checked by a filter that blocks advice,
-  symptoms, medicines, numbers and dates (a fixed warm line replaces anything it blocks); never on
-  a danger turn.
+  Gemma answers yes/no questions with probabilities and picks actions from closed lists. On calm
+  turns it writes Liora's reply from what the tools did, and a filter drops any sentence with
+  medical advice, a diagnosis, a medicine or a number that is not in those facts (a fixed reply
+  replaces anything it drops). On a danger turn it writes nothing, and health facts only ever come
+  from the reviewed cards, shown word for word.
 - **Works without the AI.** If the model cannot load, "AI off, checklist on" lets her tap her signs,
   and the same rules decide.
 - **Not a medical device.** Liora doesn't diagnose or prescribe; it helps her decide when to go.
