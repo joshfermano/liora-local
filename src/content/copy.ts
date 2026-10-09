@@ -329,6 +329,10 @@ export const COPY = {
   'history.open': ui('Open this conversation'),
   'history.delete': ui('Delete conversation'),
   'history.clear_all': ui('Clear all history'),
+  'history.clear_all.title': ui('Clear all past conversations?'),
+  'history.clear_all.body': ui('They will be deleted from this phone and cannot be brought back. The conversation you are in stays.'),
+  'history.clear_all.cancel': ui('Cancel'),
+  'history.clear_all.confirm': ui('Clear All'),
   // her mood words, shown back as she said them
   'feeling.calm': ui('Calm'),
   'feeling.joyful': ui('Joyful'),

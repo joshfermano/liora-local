@@ -1,6 +1,6 @@
 import { format, parseISO } from 'date-fns';
 import { useRouter } from 'expo-router';
-import { View } from 'react-native';
+import { Alert, Platform, View } from 'react-native';
 import { en } from '../src/content/copy';
 import { useCompanionStore, type PastChat } from '../src/store/companion';
 import { confirm, tap } from '../src/ui/haptics';
@@ -18,6 +18,18 @@ const when = (iso: string) => {
     return '';
   }
 };
+// Clearing every past conversation cannot be undone, so it asks first.
+function askToClear(clear: () => void) {
+  if (Platform.OS === 'web') {
+    if (globalThis.confirm?.(`${en('history.clear_all.title')}\n${en('history.clear_all.body')}`)) clear();
+    return;
+  }
+  Alert.alert(en('history.clear_all.title'), en('history.clear_all.body'), [
+    { text: en('history.clear_all.cancel'), style: 'cancel' },
+    { text: en('history.clear_all.confirm'), style: 'destructive', onPress: clear },
+  ]);
+}
+
 const opening = (chat: PastChat) => chat.messages.find((m) => m.role === 'her')?.text ?? '';
 
 export default function History() {
@@ -89,7 +101,7 @@ export default function History() {
               label={en('history.clear_all')}
               onPress={() => {
                 tap();
-                clearHistory();
+                askToClear(clearHistory);
               }}
               pressScale={0.98}
               surfaceClassName="min-h-tap items-center justify-center"
