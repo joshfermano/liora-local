@@ -8,6 +8,7 @@ import type { QuickAction, ReplyBlock } from '../../core/companion';
 import { resolvePeriodDate } from '../../core/cycle';
 import { useLogStore } from '../../store/log';
 import { CapsuleButton } from '../CapsuleButton';
+import { EmergencyButtons } from '../EmergencyButtons';
 import { GlassCard } from '../Glass';
 import type { IconName } from '../Icon';
 import { confirm, tap, warn } from '../haptics';
@@ -70,6 +71,7 @@ function Decision({ block }: { block: Extract<ReplyBlock, { kind: 'decision' }> 
           {en('go.line')}
         </Text>
         <CapsuleButton variant="onAlarm" label={en('liora.go.open')} onPress={open} />
+        <EmergencyButtons onAlarm />
       </View>
     );
   }

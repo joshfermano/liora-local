@@ -2,6 +2,7 @@ import { Linking, View } from 'react-native';
 import { en } from '../src/content/copy';
 import { CRISIS_HOTLINE } from '../src/content/phq9';
 import { CapsuleButton } from '../src/ui/CapsuleButton';
+import { EmergencyButtons } from '../src/ui/EmergencyButtons';
 import { Lattice } from '../src/ui/Lattice';
 import { Screen } from '../src/ui/Screen';
 import { Text } from '../src/ui/Text';
@@ -30,6 +31,7 @@ export default function Crisis() {
         <Text variant="caption1" tone="secondary">
           {en('crisis.source')}
         </Text>
+        <EmergencyButtons />
       </View>
     </Screen>
   );

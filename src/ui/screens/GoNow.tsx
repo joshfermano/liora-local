@@ -6,6 +6,7 @@ import { en, fil, severityKey, signKey } from '../../content/copy';
 import type { Entry } from '../../core/types';
 import { CapsuleButton } from '../CapsuleButton';
 import { ExplainLinks } from '../decisionParts';
+import { EmergencyButtons } from '../EmergencyButtons';
 import { warn } from '../haptics';
 import { Icon } from '../Icon';
 import { Lattice } from '../Lattice';
@@ -50,6 +51,7 @@ export function GoNow({ entry }: { entry: Entry }) {
               label={en('result.show_nurse')}
               onPress={() => router.push(`/card/${entry.id}`)}
             />
+            <EmergencyButtons onAlarm />
           </View>
         </View>
 
