@@ -8,8 +8,9 @@ import { DANGER_CODES } from '../src/core/vocabulary';
 import { useLogStore } from '../src/store/log';
 import { useTellStore } from '../src/store/tell';
 import { CapsuleButton } from '../src/ui/CapsuleButton';
-import { ChoiceCard } from '../src/ui/ChoiceCard';
+import { CheckRow } from '../src/ui/private/CheckRow';
 import { InlineError } from '../src/ui/InlineError';
+import { Lattice } from '../src/ui/Lattice';
 import { Screen } from '../src/ui/Screen';
 import { Text } from '../src/ui/Text';
 
@@ -60,14 +61,14 @@ export default function Checklist() {
       }
     >
       <View className="gap-lg pt-xxl pb-lg">
-        <Text variant="title1" accessibilityRole="header">
+        <Text variant="displayHeading" accessibilityRole="header">
           {en('checklist.title')}
         </Text>
-        <View className="gap-xs">
+        <Lattice>
           {DANGER_CODES.map((code) => (
-            <ChoiceCard key={code} label={en(signKey(code))} chosen={chosen.includes(code)} onPress={() => toggle(code)} />
+            <CheckRow key={code} label={en(signKey(code))} chosen={chosen.includes(code)} onPress={() => toggle(code)} />
           ))}
-        </View>
+        </Lattice>
       </View>
     </Screen>
   );

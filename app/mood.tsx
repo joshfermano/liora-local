@@ -6,9 +6,10 @@ import { PHQ9_CREDIT, PHQ9_ITEMS, PHQ9_OPTIONS, PHQ9_PROMPT } from '../src/conte
 import { score } from '../src/core/phq9/score';
 import { useLogStore } from '../src/store/log';
 import { CapsuleButton } from '../src/ui/CapsuleButton';
-import { ChoiceCard } from '../src/ui/ChoiceCard';
 import { LockGate } from '../src/ui/LockGate';
 import { Screen } from '../src/ui/Screen';
+import { ChapterProgress } from '../src/ui/setup/ChapterProgress';
+import { ChoicePane } from '../src/ui/setup/ChoicePane';
 import { Text } from '../src/ui/Text';
 
 const newId = () => `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
@@ -53,7 +54,7 @@ function Mood() {
     return (
       <Screen footer={<CapsuleButton label={en('mood.done')} onPress={() => router.replace('/')} />}>
         <View className="gap-lg pt-xxl pb-lg">
-          <Text variant="title2" accessibilityRole="header">
+          <Text variant="displayHeading" accessibilityRole="header">
             {en(above ? 'mood.result.high' : 'mood.result.low')}
           </Text>
           {credit}
@@ -71,9 +72,11 @@ function Mood() {
       }
     >
       <View className="gap-lg pt-xxl pb-lg">
-        <Text variant="footnote" tone="secondary">
-          {`${step + 1} ${en('mood.of')} ${PHQ9_ITEMS.length}`}
-        </Text>
+        <ChapterProgress
+          step={step + 1}
+          total={PHQ9_ITEMS.length}
+          label={`${step + 1} ${en('mood.of')} ${PHQ9_ITEMS.length}`}
+        />
         <Text variant="subheadline" tone="secondary">
           {PHQ9_PROMPT}
         </Text>
@@ -82,7 +85,7 @@ function Mood() {
         </Text>
         <View className="gap-xs" accessibilityRole="radiogroup">
           {PHQ9_OPTIONS.map((o) => (
-            <ChoiceCard key={`${step}-${o.value}`} label={o.label} onPress={() => choose(o.value)} />
+            <ChoicePane key={`${step}-${o.value}`} label={o.label} chosen={false} onPress={() => choose(o.value)} />
           ))}
         </View>
         {credit}

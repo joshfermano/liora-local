@@ -39,13 +39,13 @@ function Log() {
   const [confirming, setConfirming] = useState(false);
   const grouped = useMemo(() => {
     const by: Record<Group, Entry[]> = { period: [], symptoms: [], mood: [], pregnancy: [] };
-    for (const e of entries) by[groupOf(e)].push(e);
+    for (const e of [...entries].sort((a, b) => b.created_at.localeCompare(a.created_at))) by[groupOf(e)].push(e);
     return by;
   }, [entries]);
 
   return (
     <Screen>
-      <View className="gap-xl pt-xl">
+      <View className="gap-xl pt-xl pb-xl">
         <Text variant="displayHeading" accessibilityRole="header">
           {en('log.title')}
         </Text>
@@ -63,7 +63,7 @@ function Log() {
           GROUPS.filter((g) => grouped[g].length > 0).map((g) => (
             <Lattice key={g} header={en(`log.group.${g}`)}>
               {grouped[g].map((e) => (
-                <View key={e.id} className="flex-row items-start px-md py-sm gap-xs">
+                <View key={e.id} className="flex-row items-start py-sm pl-md pr-xs gap-xs">
                   <EntryRow entry={e} />
                   <PressableSurface
                     label={en('log.delete_entry')}
