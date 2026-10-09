@@ -16,6 +16,7 @@ import { useAiStatus, useOffline } from '../../src/ui/status';
 import { TellField } from '../../src/ui/TellField';
 import { useName } from '../../src/ui/name';
 import { Text } from '../../src/ui/Text';
+import { TodayDashboard } from '../../src/ui/today/dashboard';
 import { QuickActions, StatusCard } from '../../src/ui/today/parts';
 
 const RECORD_LIMIT_S = 30;
@@ -101,6 +102,7 @@ export default function Home() {
             {offline ? <StatusRow icon="phone">{en('home.offline')}</StatusRow> : null}
           </View>
           <QuickActions />
+          <TodayDashboard />
           {setupDone ? null : (
             <Link href="/setup" className="self-start">
               <Text variant="footnote" tone="secondary">
