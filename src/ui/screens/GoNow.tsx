@@ -9,6 +9,7 @@ import { ExplainLinks } from '../decisionParts';
 import { EmergencyButtons } from '../EmergencyButtons';
 import { warn } from '../haptics';
 import { Icon } from '../Icon';
+import { PressableSurface } from '../PressableSurface';
 import { useMargin } from '../Screen';
 import { Symbol } from '../Symbol';
 import { Text } from '../Text';
@@ -100,11 +101,13 @@ export function GoNow({ entry }: { entry: Entry }) {
                 {en('go.source.header')}
               </Text>
               {sources.map((src, i) => (
-                <View
+                <PressableSurface
                   key={i}
-                  accessible
-                  accessibilityLabel={`${src.title}. ${sourceLine(src)}`}
-                  className={`${SURFACE.surface} ${EDGE} rounded-pane flex-row gap-sm p-md`}
+                  label={`${src.title}. ${sourceLine(src)}`}
+                  role="link"
+                  onPress={() => router.push('/sources')}
+                  pressScale={0.98}
+                  surfaceClassName={`${SURFACE.surface} ${EDGE} rounded-pane flex-row gap-sm p-md`}
                 >
                   <View className="pt-0.5">
                     <Symbol name="book.closed.fill" fallback="list" tone="tintSoftInk" size={16} />
@@ -117,7 +120,7 @@ export function GoNow({ entry }: { entry: Entry }) {
                       {sourceLine(src)}
                     </Text>
                   </View>
-                </View>
+                </PressableSurface>
               ))}
             </View>
           ) : null}

@@ -748,6 +748,17 @@ export const COPY = {
   'handoff.nothing_logged': ui('Nothing logged'),
   'handoff.private': ui('Made on her phone. Nothing was sent anywhere.'),
   'handoff.call': ui('Call {name}'),
+
+  'sources.title': ui('Sources'),
+  'sources.intro': ui("Liora's decisions and cards come from these documents. Passages are shown word for word; no AI rewrites them."),
+  'sources.row': ui('Sources Liora uses'),
+  'sources.link': ui('See all sources'),
+  'sources.use.rules': ui('Decision rules'),
+  'sources.use.card': ui('1 card'),
+  'sources.use.cards': ui('{n} cards'),
+  'sources.show_all': ui('Show all {n}'),
+  'sources.show_less': ui('Show fewer'),
+  'sources.open': ui('Open the official document'),
 } as const satisfies Record<string, Entry>;
 
 export type CopyKey = keyof typeof COPY;

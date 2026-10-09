@@ -1,4 +1,6 @@
+import { useRouter } from 'expo-router';
 import { Linking, View } from 'react-native';
+import { en } from '../content/copy';
 import type { SourceCardData } from '../content/cards';
 import { readQuote } from '../content/quote';
 import { PressableSurface } from './PressableSurface';
@@ -20,6 +22,7 @@ export function SourceCard({ card }: { card: SourceCardData }) {
   // The PDF's line wraps are rejoined and a list told from its lead; the words are the source's.
   const { lead, items } = readQuote(card.quote);
   const isLink = /^https?:\/\//.test(card.source);
+  const router = useRouter();
 
   return (
     <View className={`${SURFACE.surface} ${EDGE} rounded-pane overflow-hidden`}>
@@ -77,6 +80,12 @@ export function SourceCard({ card }: { card: SourceCardData }) {
           </Text>
         </View>
       )}
+      <View className={`h-px ${SEPARATOR}`} />
+      <PressableSurface label={en('sources.link')} role="link" onPress={() => router.push('/sources')} surfaceClassName="min-h-tap flex-row items-center px-md">
+        <Text variant="footnote" tone="secondary">
+          {en('sources.link')}
+        </Text>
+      </PressableSurface>
     </View>
   );
 }
