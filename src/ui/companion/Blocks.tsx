@@ -2,6 +2,7 @@ import { format, parseISO } from 'date-fns';
 import { useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { View } from 'react-native';
+import Animated, { FadeOut } from 'react-native-reanimated';
 import { CARDS } from '../../content/cards';
 import { en } from '../../content/copy';
 import type { QuickAction, ReplyBlock } from '../../core/companion';
@@ -64,6 +65,7 @@ function FollowUpInline({ entryId }: { entryId: string }) {
   const current = useTellStore((s) => s.current);
   const answerFollowUp = useTellStore((s) => s.answerFollowUp);
   const [busy, setBusy] = useState(false);
+  const [picked, setPicked] = useState(false);
   const question = current?.decision.follow_up?.question_id;
   if (current?.id !== entryId || current.decision.level !== 'follow_up' || !question) return null;
   const answer = async (a: 'yes' | 'no' | 'skip') => {
@@ -78,17 +80,20 @@ function FollowUpInline({ entryId }: { entryId: string }) {
   };
   return (
     <View className="gap-xs">
-      <SwipeCard onAnswer={(yes) => void answer(yes ? 'yes' : 'no')} disabled={busy}>
+      <SwipeCard onAnswer={(yes) => void answer(yes ? 'yes' : 'no')} onChoose={() => setPicked(true)} disabled={busy}>
         <View className="py-sm">
           <Pair copyKey={question} large="title3" small="body" />
         </View>
       </SwipeCard>
-      <View className="items-center gap-xxs">
-        <CapsuleButton variant="plain" label={en('result.skip')} onPress={() => void answer('skip')} disabled={busy} />
-        <Text variant="footnote" tone="secondary" className="text-center">
-          {en('followup.skip_means')}
-        </Text>
-      </View>
+      {/* Once she has answered, Skip no longer applies, so it fades out. */}
+      {picked ? null : (
+        <Animated.View exiting={FadeOut.duration(180)} className="items-center gap-xxs">
+          <CapsuleButton variant="plain" label={en('result.skip')} onPress={() => void answer('skip')} disabled={busy} />
+          <Text variant="footnote" tone="secondary" className="text-center">
+            {en('followup.skip_means')}
+          </Text>
+        </Animated.View>
+      )}
     </View>
   );
 }

@@ -29,13 +29,15 @@ const FLY_MS = 240;
 export interface SwipeCardProps {
   children: ReactNode;
   onAnswer: (yes: boolean) => void;
+  // Fires the moment she answers, before the card has flown, so the screen can react at once.
+  onChoose?: (yes: boolean) => void;
   disabled?: boolean;
 }
 
 // Right is yes and left is no. The card tilts with her finger, a stamp shows which way it will go, and
 // past the point of no return it flies off. Under it, round No and Yes buttons fly it the same way, so
 // a tap and VoiceOver work as well as a swipe.
-export function SwipeCard({ children, onAnswer, disabled = false }: SwipeCardProps) {
+export function SwipeCard({ children, onAnswer, onChoose, disabled = false }: SwipeCardProps) {
   const { width } = useWindowDimensions();
   const reduce = useReducedMotion();
   const x = useSharedValue(0);
@@ -46,6 +48,7 @@ export function SwipeCard({ children, onAnswer, disabled = false }: SwipeCardPro
   const commit = (yes: boolean) => {
     confirm();
     setGone(true);
+    onChoose?.(yes);
     setTimeout(() => onAnswer(yes), reduce ? 0 : FLY_MS);
   };
 

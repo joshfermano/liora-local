@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { View } from 'react-native';
+import Animated, { FadeOut } from 'react-native-reanimated';
 import { en, fil } from '../../content/copy';
 import type { Entry } from '../../core/types';
 import { useTellStore } from '../../store/tell';
@@ -19,6 +20,7 @@ const fill = (s: string, v: Record<string, string>) => s.replace(/\{(\w+)\}/g, (
 export function FollowUp({ entry }: { entry: Entry }) {
   const answerFollowUp = useTellStore((s) => s.answerFollowUp);
   const [chosen, setChosen] = useState<Answer | null>(null);
+  const [picked, setPicked] = useState(false);
   const question = entry.decision.follow_up?.question_id ?? 'fu.unknown';
 
   const code = entry.decision.follow_up?.code;
@@ -33,7 +35,7 @@ export function FollowUp({ entry }: { entry: Entry }) {
     <Screen>
       <View className="gap-xxl pt-xxl">
         <Pair copyKey="followup.comfort" large="body" small="subheadline" />
-        <SwipeCard onAnswer={(yes) => answer(yes ? 'yes' : 'no')} disabled={chosen !== null}>
+        <SwipeCard onAnswer={(yes) => answer(yes ? 'yes' : 'no')} onChoose={() => setPicked(true)} disabled={chosen !== null}>
           <View className="gap-xs py-lg">
             <Pair copyKey={question} large="title3" small="body" />
             {code ? (
@@ -43,19 +45,22 @@ export function FollowUp({ entry }: { entry: Entry }) {
             ) : null}
           </View>
         </SwipeCard>
-        <View className="gap-sm">
-          <CapsuleButton variant="plain" label={en('result.skip')} onPress={() => answer('skip')} disabled={chosen !== null} />
-        </View>
-        <View className="gap-xxs px-md">
-          <Text variant="footnote" tone="secondary">
-            {fil('followup.skip_means')}
-          </Text>
-          {fil('followup.skip_means') === en('followup.skip_means') ? null : (
-            <Text variant="footnote" tone="secondary">
-              {en('followup.skip_means')}
-            </Text>
-          )}
-        </View>
+        {/* Once she has answered yes or no, Skip no longer applies, so it fades out. */}
+        {picked ? null : (
+          <Animated.View exiting={FadeOut.duration(180)} className="gap-sm">
+            <CapsuleButton variant="plain" label={en('result.skip')} onPress={() => answer('skip')} disabled={chosen !== null} />
+            <View className="gap-xxs px-md">
+              <Text variant="footnote" tone="secondary">
+                {fil('followup.skip_means')}
+              </Text>
+              {fil('followup.skip_means') === en('followup.skip_means') ? null : (
+                <Text variant="footnote" tone="secondary">
+                  {en('followup.skip_means')}
+                </Text>
+              )}
+            </View>
+          </Animated.View>
+        )}
         <DecidedLink id={entry.id} />
       </View>
     </Screen>
