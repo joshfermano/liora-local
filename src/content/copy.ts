@@ -785,6 +785,7 @@ export const COPY = {
   'her.symptom.energy': ui('low energy'),
   'her.symptom.appetite': ui('appetite changes'),
   'her.late.on_period': ui('No. Your period started on {date} and is logged as going on now.'),
+  'her.period_day': ui('Today is day {n} of your period, which started on {date}.'),
   'her.flow': ui('{flow} flow'),
   'her.discharge': ui('discharge'),
   'reply.contact': ui('I cannot call or text by myself, but you can reach your emergency contact with the buttons below.'),

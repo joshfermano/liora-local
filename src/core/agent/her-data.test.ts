@@ -32,6 +32,9 @@ describe('answering from her own logs', () => {
     ['may regla ba ako ngayon?', 'her.on_period.yes', { date: 'Oct 9' }],
     ['am I on my period?', 'her.on_period.yes', { date: 'Oct 9' }],
     ['kailan huling sumakit ulo ko?', 'her.last_sign', { date: 'Oct 8' }],
+    ['kelan last mens ko?', 'her.last_period', { date: 'Oct 9' }],
+    ['how long do my periods usually last?', 'her.period_length', { n: '5' }],
+    ['ilang araw na ako may regla?', 'her.period_day', { n: '2', date: 'Oct 9' }],
   ])('"%s"', (text, key, params) => {
     expect(ask(text)).toMatchObject({ key, params });
   });
@@ -47,6 +50,7 @@ describe('answering from her own logs', () => {
 
   it('lists the days she logged this week, newest first', () => {
     expect(ask('ano nilog ko this week?')?.days?.map((d) => d.date)).toEqual(['2026-10-09', '2026-10-08', '2026-10-05']);
+    expect(ask('show me my logs this week')?.key).toBe('her.week');
   });
 
   it('says how many days until the next period, and whether she is late', () => {

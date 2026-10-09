@@ -12,16 +12,18 @@ import type { AgentData } from './types';
 const DAYS_UNTIL = /\bilang\s+araw\s+pa\b|\bhow\s+many\s+days\s+(?:until|till|before|left)\b|\bdays?\s+(?:until|till|left\s+(?:until|before))\b/i;
 const CYCLE_DAY = /\bcycle\s+day\b|\bday\s+(?:of|ng)\s+(?:my\s+)?cycle\b|\bpang-?ilang\s+araw\b|\bwhat\s+day\s+of\s+my\s+cycle\b/i;
 const LAST_PERIOD =
-  /\b(?:kailan|when)\b.*\b(?:huling|last|nakaraang|previous|latest)\s+(?:na\s+)?(?:regla|period|mens)\b|\b(?:huling|last)\s+(?:regla|period|mens)\s+(?:ko\s+)?(?:kailan|when)\b/i;
+  /\b(?:kailan|kelan|when)\b.*\b(?:huling|last|nakaraang|previous|latest)\s+(?:na\s+)?(?:regla|periods?|mens)\b|\b(?:huling|last)\s+(?:regla|period|mens)\s+(?:ko\s+)?(?:kailan|kelan|when)\b/i;
 const CYCLE_LENGTH = /\b(?:gaano\s+kahaba|how\s+long|average|karaniwang\s+haba|haba)\b.*\bcycle\b|\bcycle\s+length\b|\bcycle\s+ko\s+(?:ay\s+)?ilang\s+araw\b/i;
 const PERIOD_LENGTH =
-  /\b(?:ilang\s+araw|how\s+(?:long|many\s+days)|gaano\s+katagal)\b(?:(?!\bpa\b|\bbago\b|\buntil\b|\bnext\b).)*\b(?:regla|period|mens)\b|\b(?:regla|period|mens)\s+(?:ko\s+)?(?:usually\s+)?(?:lasts?|tumatagal)\b/i;
+  /\b(?:ilang\s+araw|how\s+(?:long|many\s+days)|gaano\s+katagal)\b(?:(?!\bpa\b|\bbago\b|\buntil\b|\bnext\b).)*\b(?:regla|periods?|mens)\b|\b(?:regla|period|mens)\s+(?:ko\s+)?(?:usually\s+)?(?:lasts?|tumatagal)\b/i;
 const REGULAR = /\b(?:ir)?regular\b/i;
 const FERTILE_NOW = /\bfertile\s+ba\s+ako\b|\bam\s+i\s+fertile\b|\bfertile\b.*\b(?:ngayon|today|now)\b|\b(?:ngayon|today)\b.*\bfertile\b/i;
 const LATE = /\blate\s+ba\s+(?:ako|ang\s+regla|regla)\b|\bam\s+i\s+late\b|\bdelay(?:ed)?\s+ba\s+(?:ako|ang\s+regla)\b|\bis\s+my\s+period\s+late\b/i;
+const PERIOD_DAY =
+  /\bilang\s+araw\s+na\s+(?:ako\s+)?(?:may\s+|nagkaka)?(?:regla|mens|dalaw)\b|\bhow\s+(?:many\s+days|long)\s+have\s+i\s+(?:been\s+on|had)\s+my\s+period\b|\bwhat\s+day\s+of\s+my\s+period\b|\bpang-?ilang\s+araw\s+(?:na\s+)?(?:ng\s+)?(?:regla|mens)\b/i;
 const ON_PERIOD =
   /\bmay\s+(?:regla|mens|dalaw)\s+ba\s+ako\b|\bnasa\s+(?:period|regla)\s+ba\s+ako\b|\bam\s+i\s+on\s+my\s+period\b|\bnireregla\s+ba\s+ako\b|\bam\s+i\s+(?:still\s+)?(?:bleeding|on\s+it)\b/i;
-const LAST_SIGN = /\b(?:kailan|when)\b.*\b(?:huli(?:ng)?|last)\b|\b(?:huli(?:ng)?|last)\b.*\b(?:kailan|when)\b/i;
+const LAST_SIGN = /\b(?:kailan|kelan|when)\b.*\b(?:huli(?:ng)?|last)\b|\b(?:huli(?:ng)?|last)\b.*\b(?:kailan|kelan|when)\b/i;
 const HOW_OFTEN = /\b(?:ilang\s+beses|how\s+many\s+times|how\s+often|gaano\s+kadalas)\b/i;
 const MOODS_LATELY =
   /\bhow\s+(?:have|has)\s+i\s+been\s+feeling\b|\b(?:mood|moods|nararamdaman|feelings?)\s+(?:ko\s+)?(?:lately|nitong\s+mga\s+araw|this\s+week|ngayong\s+linggo)\b|\bkumusta\s+(?:ang\s+)?mood\s+ko\b|\bmy\s+moods?\s+(?:lately|recently|this\s+week)\b/i;
@@ -29,7 +31,7 @@ const WEEK =
   /\b(?:this|last|past)\s+week\b|\b(?:ngayong|nitong|noong\s+isang)\s+linggo\b|\blast\s+7\s+days\b|\bnakaraang\s+(?:linggo|7\s+araw)\b/i;
 const LOGS = /\bnilog|na-?log|logged|\blogs?\b|naitala|\btinala\b/i;
 const MONTH = /\b(?:this|last|past)\s+month\b|\bngayong\s+buwan\b|\bnitong\s+buwan\b/i;
-const ASKS = /\?|^\s*(?:ano|anong|kailan|ilang|ilan|gaano|paano|may|nasa|am|is|was|do|did|have|how|what|when|which|fertile|late|delayed|regular)\b/i;
+const ASKS = /\?|^\s*(?:show|tell\s+me|list|ipakita|ano|anong|kailan|ilang|ilan|gaano|paano|may|nasa|am|is|was|do|did|have|how|what|when|which|fertile|late|delayed|regular)\b/i;
 
 export interface HerAnswer {
   key: string;
@@ -51,6 +53,10 @@ function namedSymptoms(text: string): Symptom[] {
 function cycleAnswer(text: string, data: AgentData, today: string): HerAnswer | null {
   const starts = data.periods.map((p) => p.start).filter((s) => s <= today).sort();
   const last = starts.at(-1);
+  if (PERIOD_DAY.test(text)) {
+    const now = periodCovering(today, data, today);
+    return now ? { key: 'her.period_day', params: { n: String(differenceInCalendarDays(parseISO(today), parseISO(now.start)) + 1), date: day(now.start) } } : { key: 'her.on_period.no' };
+  }
   if (ON_PERIOD.test(text)) {
     const now = periodCovering(today, data, today);
     return now ? { key: 'her.on_period.yes', params: { date: day(now.start) } } : { key: 'her.on_period.no' };

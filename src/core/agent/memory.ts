@@ -74,7 +74,7 @@ export function applyMemory(actions: AgentAction[], notes: string[]): { notes: s
 }
 
 const ALL_NOTES =
-  /\bwhat\s+(?:do|did)\s+you\s+remember\b|\bwhat\s+did\s+i\s+(?:tell|ask)\s+you\s+to\s+remember\b|\bano(?:ng)?\s+(?:ang\s+)?(?:naaalala|natatandaan|tanda)\s+mo\b|\bano\s+(?:ang\s+)?(?:mga\s+)?(?:pinatandaan|pinaalala)\s+ko\b/i;
+  /\bwhat'?s\s+in\s+my\s+notes\b|\b(?:show|list)\s+(?:me\s+)?my\s+notes\b|\b(?:mga\s+)?notes?\s+ko\b|\bmy\s+notes\b|\bwhat\s+(?:do|did)\s+you\s+remember\b|\bwhat\s+did\s+i\s+(?:tell|ask)\s+you\s+to\s+remember\b|\bano(?:ng)?\s+(?:ang\s+)?(?:naaalala|natatandaan|tanda)\s+mo\b|\bano\s+(?:ang\s+)?(?:mga\s+)?(?:pinatandaan|pinaalala)\s+ko\b/i;
 const ASKS = /\?|^\s*(?:sino|ano|kailan|saan|who|what|when|where|which)\b/i;
 const QUIET = new Set([
   ...STOP, 'ko', 'my', 'is', 'are', 'was', 'sino', 'ano', 'who', 'what', 'when', 'where', 'which', 'kailan', 'saan', 'ang', 'ng', 'si', 'ni',
