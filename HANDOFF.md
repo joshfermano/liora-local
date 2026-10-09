@@ -125,8 +125,8 @@ check shows a crisis hotline on any self-harm answer. Nothing leaves the phone.
 **Added 2026-10-09 evening (spec v4; details and sources in `docs/research-summary.md` items 8 to 11):**
 
 - `@huggingface/transformers` 4.3.1 (2026-10-07) has `gemma4`, `embedding_gemma2`, `modernbert`.
-- `onnx-community/gemma-4-E2B-it-ONNX`: decoder q4f16 ~1,520 MB, token embeddings int8 ~466 MB or
-  q4f16 ~1,591 MB, audio encoder q4f16 ~172 MB, vision encoder q4f16 ~99 MB. 2-bit fallback:
+- `onnx-community/gemma-4-E2B-it-ONNX`: decoder q4f16 ~1,520 MB, token embeddings q4f16 ~1,591 MB
+  (int8: ~3.2 GB, see the correction below), audio encoder q4f16 ~172 MB, vision encoder q4f16 ~99 MB. 2-bit fallback:
   `onnx-community/gemma-4-E2B-it-qat-mobile-ONNX`.
 - **Correction from the Hub file listing (2026-10-09, LUM-58):** `embed_tokens_quantized` (the int8
   option) is three shards of 465.6 + 2,348.8 + 367.0 MB, about 3.2 GB in all. The "466 MB" was

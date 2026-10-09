@@ -21,8 +21,8 @@ Manila). CLAUDE.md is already in your context: its hard rules bind you.
 ## The models (verified 2026-10-09; re-check sizes on the model card before quoting)
 
 - **Gemma 4 E2B**, `onnx-community/gemma-4-E2B-it-ONNX`, Apache-2.0, via `@huggingface/transformers`
-  4.3.1 (has `gemma4`). Text, audio and image in. Decoder q4f16 ~1.5 GB plus token embeddings
-  (int8 ~466 MB or q4f16 ~1.6 GB), audio encoder ~172 MB, vision encoder ~99 MB.
+  4.3.1 (has `gemma4`). Text, audio and image in. Text-only download about 3.1 GB: decoder q4f16 ~1.5 GB plus token
+  embeddings q4f16 ~1.6 GB (int8 embeddings are ~3.2 GB in three shards), audio encoder ~172 MB, vision encoder ~99 MB.
 - **EmbeddingGemma 2**, `onnx-community/embeddinggemma-2-ONNX`, Apache-2.0: text ~157 MB, vision
   ~98 MB (FR-14 only). Same model and settings in the browser and in `scripts/embed-cards.ts`.
 - **Fallbacks, in order:** the 2-bit `gemma-4-E2B-it-qat-mobile-ONNX`; WebLLM 0.2.85

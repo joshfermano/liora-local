@@ -524,14 +524,14 @@ Install Expo packages with `pnpm expo install` so versions stay SDK-aligned.
 
 | Role | Model | Download (Hugging Face file sizes) | Loaded when |
 | --- | --- | --- | --- |
-| Text understanding and typed decisions | `onnx-community/gemma-4-E2B-it-ONNX` (Gemma 4 E2B, Apache-2.0; 2.3B effective parameters; text, image and audio in) | decoder q4f16 ~1,520 MB plus token embeddings (int8 ~466 MB or q4f16 ~1,591 MB; pick in S1) | Setup; kept resident |
+| Text understanding and typed decisions | `onnx-community/gemma-4-E2B-it-ONNX` (Gemma 4 E2B, Apache-2.0; 2.3B effective parameters; text, image and audio in) | text-only: decoder q4f16 ~1,520 MB plus token embeddings q4f16 ~1,591 MB (~3.1 GB); int8 embeddings are ~3.2 GB in three shards (~4.7 GB total) | Setup; kept resident |
 | Speech recognition | Gemma 4 E2B audio encoder. Fallback `onnx-community/whisper-base` | q4f16 ~172 MB / Whisper decoder ~54 MB int8 plus encoder | On mic tap; released after |
 | Embeddings (multimodal) | `onnx-community/embeddinggemma-2-ONNX`. Fallback `Xenova/multilingual-e5-small` | ~157 MB text; ~98 MB vision for FR-14 | On submit; released after |
 | Image reading (stretch) | Gemma 4 E2B vision encoder. Fallback `onnx-community/Florence-2-base-ft` | q4f16 ~99 MB | On scan; released after |
 | Typed decisions, fallback | `convaiinnovations/laya-multilingual` (Laya, Apache-2.0, 322M, mmBERT), exported with `laya-ts/scripts/export_onnx.py` | ~644 MB safetensors before export and quantisation | Only if Gemma 4 E2B cannot load |
 
 **If Gemma 4 E2B does not fit Safari's memory:** `onnx-community/gemma-4-E2B-it-qat-mobile-ONNX`
-(2-bit decoder ~995 MB plus embeddings ~1,297 MB), then WebLLM `gemma3-1b-it-q4f16_1-MLC` (~711 MB
+(2-bit decoder ~995 MB plus embeddings ~1,297 MB, ~2.3 GB), then WebLLM `gemma3-1b-it-q4f16_1-MLC` (~711 MB
 GPU estimate), then Laya-multilingual, then the AI-off checklist. All sizes are Hugging Face file
 sizes or vendor estimates, not measurements. Real numbers come from S1 and section 15.
 

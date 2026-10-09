@@ -51,7 +51,7 @@ per finding.
    metadata). 2.3B effective parameters (5.1B with embeddings); text, image and audio input, with
    speech recognition on E2B and E4B; 128K context; 35+ languages out of the box, pre-trained on
    140+. `onnx-community/gemma-4-E2B-it-ONNX` file sizes: decoder q4f16 1,520 MB; token embeddings
-   int8 466 MB or q4f16 1,591 MB; audio encoder q4f16 172 MB; vision encoder q4f16 99 MB. A 2-bit
+   q4f16 1,591 MB, or int8 about 3.2 GB in three shards (an earlier note said 466 MB: that was one shard); audio encoder q4f16 172 MB; vision encoder q4f16 99 MB. A 2-bit
    `gemma-4-E2B-it-qat-mobile-ONNX` build has a 995 MB decoder and 1,297 MB embeddings. Google's
    LiteRT-LM web build is text-only. Whether any of it fits Safari's memory on the iPhones is
    unknown until S1. https://huggingface.co/onnx-community/gemma-4-E2B-it-ONNX
