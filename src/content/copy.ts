@@ -75,6 +75,29 @@ export const COPY = {
 
   'why.title': ui('Why?'),
   'why.none': ui('Ask at your check-up'),
+
+  // setup and checklist (LUM-71, LUM-64)
+  'setup.title': ui('Getting Liora ready for offline'),
+  'setup.wifi': ui('Use Wi-Fi. The download is large.'),
+  'setup.model.gemma': ui('Gemma 4'),
+  'setup.model.voice': ui('Voice add-on'),
+  'setup.done': ui('Ready'),
+  'setup.web': ui('Not available on web'),
+  'setup.failed': ui('Download did not finish. Try again on Wi-Fi.'),
+  'setup.retry': ui('Try again'),
+  'setup.mb': ui('MB'),
+  'setup.download': ui('Download'),
+  'setup.q.status': ui('Where are you now?'),
+  'setup.status.pregnant': ui('Pregnant'),
+  'setup.status.postpartum': ui('Recently gave birth'),
+  'setup.status.neither': ui('Neither'),
+  'setup.weeks': ui('Weeks pregnant'),
+  'setup.days': ui('Days since birth'),
+  'setup.last_period': ui('Last period started (YYYY-MM-DD)'),
+  'setup.cycle_length': ui('Usual cycle length in days'),
+  'setup.invalid': ui('Check the number or date'),
+  'setup.save': ui('Save and continue'),
+  'setup.skip': ui('Skip for now'),
 } as const satisfies Record<string, Entry>;
 
 export type CopyKey = keyof typeof COPY;
