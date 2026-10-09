@@ -77,7 +77,7 @@ function Calendar() {
     setAway(m !== thisMonth);
   };
 
-  const floatBottom = insets.bottom + TAB_BAR_CLEARANCE + 12;
+  const floatBottom = insets.bottom + TAB_BAR_CLEARANCE - 8;
   const listPad = floatBottom + 80;
 
   return (
