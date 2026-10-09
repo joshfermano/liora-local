@@ -18,6 +18,10 @@ const pairs = {
   'label-tertiary': ['#9A8996', '#7D6C77'],
   separator: ['#E4D7E0', '#33262E'],
   nacre: ['#D9CAD4', '#3D2E37'],
+  frame: ['#7A5640', '#D2AE92'],
+  lit: ['#F6E3B8', '#F1D79A'],
+  peach: ['#F5C6A5', '#E8A77F'],
+  pearl: ['#FBF8FA', '#2E242B'],
   'light-dawn-source': ['#F2CFD4', '#5E2638'],
   'light-dawn-fade': ['#F6DEC4', '#3E2616'],
 };
