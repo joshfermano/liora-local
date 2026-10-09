@@ -96,6 +96,64 @@ describe('readActions: questions and small talk', () => {
   });
 });
 
+describe('readActions: delete, clear, undo, look up, open', () => {
+  it('reads "Remove the logged period from today" as only a period delete', () => {
+    expect(readActions('Remove the logged period from today', TODAY)).toEqual([{ tool: 'delete_period', date: { kind: 'today' } }]);
+  });
+  it('reads "alisin mo yung regla ko kahapon" as a delete yesterday', () => {
+    expect(readActions('alisin mo yung regla ko kahapon', TODAY)).toEqual([{ tool: 'delete_period', date: { kind: 'yesterday' } }]);
+  });
+  it.each(['delete my period on Oct 8', 'burahin ang regla noong Oktubre 8', 'tanggalin ang regla ko 2026-10-08'])('reads "%s" as a delete on Oct 8', (text) => {
+    expect(readActions(text, TODAY)).toEqual([{ tool: 'delete_period', date: { kind: 'date', date: '2026-10-08' } }]);
+  });
+  it('does not delete when she only says her period started', () => {
+    expect(tools('niregla ako today')).not.toContain('delete_period');
+  });
+  it.each([
+    ['clear my log today', 'all'],
+    ['alisin ang nilog ko today', 'all'],
+    ['remove my symptoms today', 'symptoms'],
+    ['burahin ang sintomas ko kahapon', 'symptoms'],
+    ['remove my moods today', 'moods'],
+    ['remove my activities today', 'activities'],
+    ['remove the flow today', 'flow'],
+  ])('reads "%s" as clear_day %s', (text, what) => {
+    expect(one(text, 'clear_day')?.what).toBe(what);
+    expect(tools(text)).toEqual(['clear_day']);
+  });
+  it('reads the date of a clear', () => {
+    expect(one('burahin ang sintomas ko kahapon', 'clear_day')?.date).toEqual({ kind: 'yesterday' });
+  });
+  it.each(['undo', 'i-undo mo', 'bawiin mo', 'ibalik mo'])('reads "%s" as undo_last', (text) => {
+    expect(readActions(text, TODAY)).toEqual([{ tool: 'undo_last' }]);
+  });
+  it.each([
+    ['ano ang nilog ko kahapon', { kind: 'yesterday' }],
+    ['ano nilog ko kahapon?', { kind: 'yesterday' }],
+    ['what did I log yesterday', { kind: 'yesterday' }],
+    ['what did I log today?', { kind: 'today' }],
+  ])('reads "%s" as ask_day', (text, date) => {
+    expect(readActions(text, TODAY)).toEqual([{ tool: 'ask_day', date }]);
+  });
+  it.each([
+    ['open my calendar', 'calendar'],
+    ['buksan mo calendar', 'calendar'],
+    ['open the mood check', 'mood_check'],
+    ['buksan ang checklist', 'checklist'],
+    ['open my profile', 'profile'],
+    ['log my day', 'log_day'],
+  ])('reads "%s" as open %s', (text, screen) => {
+    expect(readActions(text, TODAY)).toEqual([{ tool: 'open', screen }]);
+  });
+  it('reads thanks as smalltalk', () => {
+    expect(readActions('thank you so much', TODAY)).toEqual([{ tool: 'smalltalk' }]);
+    expect(readActions('maraming salamat po', TODAY)).toEqual([{ tool: 'smalltalk' }]);
+  });
+  it('keeps logging when thanks come with a symptom', () => {
+    expect(tools('salamat, masakit ang ulo ko')).toContain('symptoms');
+  });
+});
+
 describe('mergeActions', () => {
   const rules: AgentAction[] = [{ tool: 'flow', date: { kind: 'today' }, flow: 'heavy' }];
   it('keeps the rules action when both have the tool', () => {

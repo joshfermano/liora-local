@@ -1,5 +1,5 @@
 import { resolveDate } from './dates';
-import { flowClashes, openPeriodFor, startFits } from './fit';
+import { dayHas, flowClashes, openPeriodFor, periodCovering, startFits } from './fit';
 import type { AgentAction, AgentData, AgentPlan } from './types';
 
 type Verdict = 'apply' | 'confirm' | 'skip';
@@ -12,9 +12,15 @@ function verdict(a: AgentAction, data: AgentData, status: string | undefined, to
     case 'undo_last':
     case 'ask_day':
     case 'open':
-    case 'delete_period':
-    case 'clear_day':
       return 'skip';
+    case 'delete_period': {
+      const date = resolveDate(a.date, today);
+      return date && periodCovering(date, data, today) ? 'apply' : 'skip';
+    }
+    case 'clear_day': {
+      const date = resolveDate(a.date, today);
+      return date && dayHas(date, a.what, data) ? 'apply' : 'skip';
+    }
     case 'weeks':
       return status === 'pregnant' ? 'apply' : 'confirm';
     case 'symptoms':

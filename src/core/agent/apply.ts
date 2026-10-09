@@ -1,6 +1,6 @@
-import { applyFlow } from '../daylog';
+import { applyFlow, upsertDayLog } from '../daylog';
 import { resolveDate } from './dates';
-import { mergeLog, openPeriodFor, startFits } from './fit';
+import { dayHas, mergeLog, openPeriodFor, periodCovering, startFits } from './fit';
 import type { AgentAction, AgentData, Applied, SavedItem } from './types';
 
 type Step = { data: Partial<AgentData>; saved: SavedItem[] } | null;
@@ -10,10 +10,29 @@ function step(a: AgentAction, cur: AgentData, today: string): Step {
     return { data: { setup: { ...(cur.setup ?? {}), status: 'pregnant', weeks: a.weeks } }, saved: [{ kind: 'weeks', weeks: a.weeks }] };
   }
   if (a.tool === 'cycle_question' || a.tool === 'health_question' || a.tool === 'smalltalk') return null;
-  if (a.tool === 'delete_period' || a.tool === 'clear_day' || a.tool === 'undo_last' || a.tool === 'ask_day' || a.tool === 'open') return null;
+  if (a.tool === 'undo_last' || a.tool === 'ask_day' || a.tool === 'open') return null;
   const date = resolveDate(a.date, today);
   if (!date) return null;
   switch (a.tool) {
+    case 'delete_period': {
+      const gone = periodCovering(date, cur, today);
+      if (!gone) return null;
+      const dayLogs = Object.keys(gone.flow_by_day).reduce((logs, d) => {
+        const log = logs.find((l) => l.date === d);
+        return log ? upsertDayLog(logs, { ...log, flow: null }) : logs;
+      }, cur.dayLogs);
+      return { data: { periods: cur.periods.filter((p) => p !== gone), dayLogs }, saved: [{ kind: 'period_deleted', date }] };
+    }
+    case 'clear_day': {
+      if (!dayHas(date, a.what, cur)) return null;
+      const log = cur.dayLogs.find((l) => l.date === date);
+      const part = a.what;
+      const next = log && { ...log, ...(part === 'all' ? { flow: null, symptoms: [], moods: [], activities: [], note: undefined } : part === 'flow' ? { flow: null } : { [part]: [] }) };
+      const periods = part === 'all' || part === 'flow' ? applyFlow(cur.periods, date, null) : cur.periods;
+      const data: Partial<AgentData> = { dayLogs: next ? upsertDayLog(cur.dayLogs, next) : cur.dayLogs };
+      if (periods !== cur.periods) data.periods = periods;
+      return { data, saved: [{ kind: 'day_cleared', date, what: part }] };
+    }
     case 'period_start': {
       if (!startFits(date, cur, today)) return null;
       const record = { id: `tell-${date}`, start: date, end: null, flow_by_day: a.flow ? { [date]: a.flow } : {}, source: 'tell' as const };

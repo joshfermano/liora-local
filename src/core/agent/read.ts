@@ -1,7 +1,9 @@
 import { readMoods, readText, readWeeks } from '../lexicon';
 import type { Activity, Flow, Symptom } from '../types';
 import { ACTIVITIES, SYMPTOMS } from '../vocabulary';
+import { readEdit, THANKS } from './edits';
 import type { AgentAction, DateWord } from './types';
+import { dateWord } from './when';
 
 // Input patterns only: what she might type, in Tagalog, Taglish or English. No advice here.
 const PERIOD_WORD = /regla|\bmens\b|\bperiod\b|dalaw/i;
@@ -34,18 +36,7 @@ const GREETING_ONLY =
 const QUESTION_START = /^\s*(?:ano|bakit|paano|puwede|pwede|(?:ok|okay)\s+lang\s+ba|normal\s+ba|safe\s+ba|masama\s+ba|is\s+it|is\s+this|can\s+i|should\s+i|what|why|how)\b/i;
 const CYCLE_QUESTION = /\bkailan\b.*(?:regla|period|mens|dalaw)|(?:regla|period|mens|dalaw).*\bkailan\b|\bwhen\b.*(?:period|next)|next\s+(?:period|regla)/i;
 
-const DAYS_AGO = /(\d{1,2})\s*(?:araw\s+na|days?\s+ago|araw\s+(?:ang\s+)?(?:nakaraan|nakalipas))/i;
-const ISO_DATE = /\b(\d{4}-\d{2}-\d{2})\b/;
 
-function dateWord(text: string, fallback: DateWord): DateWord {
-  const iso = ISO_DATE.exec(text);
-  if (iso) return { kind: 'date', date: iso[1]! };
-  if (/\b(?:kahapon|yesterday)\b/i.test(text)) return { kind: 'yesterday' };
-  const ago = DAYS_AGO.exec(text);
-  if (ago) return { kind: 'days_ago', n: Number(ago[1]) };
-  if (/\b(?:ngayon|today|kanina)\b/i.test(text)) return { kind: 'today' };
-  return fallback;
-}
 
 const unique = <T>(items: T[]): T[] => [...new Set(items)];
 
@@ -58,8 +49,10 @@ function activitiesOf(text: string): Activity[] {
   return ACTIVITIES.filter((a) => done.some((c) => ACTIVITY[a].test(c)));
 }
 
-export function readActions(text: string, _today: string): AgentAction[] {
+export function readActions(text: string, today: string): AgentAction[] {
   if (GREETING_ONLY.test(text) && text.trim()) return [{ tool: 'smalltalk' }];
+  const edit = readEdit(text, today);
+  if (edit) return edit;
   const cycleQuestion = CYCLE_QUESTION.test(text);
   const question = /\?/.test(text) || QUESTION_START.test(text);
   const hasPeriodWord = PERIOD_WORD.test(text);
@@ -68,22 +61,23 @@ export function readActions(text: string, _today: string): AgentAction[] {
 
   if (!question && !NOT_YET.test(text)) {
     const flow = flowOf(text, hasPeriodWord);
-    if (START.test(text)) out.push({ tool: 'period_start', date: dateWord(text, { kind: 'unknown' }), flow });
-    else if (hasPeriodWord && END.test(text)) out.push({ tool: 'period_end', date: dateWord(text, { kind: 'unknown' }) });
-    else if (flow) out.push({ tool: 'flow', date: dateWord(text, now), flow });
+    if (START.test(text)) out.push({ tool: 'period_start', date: dateWord(text, { kind: 'unknown' }, today), flow });
+    else if (hasPeriodWord && END.test(text)) out.push({ tool: 'period_end', date: dateWord(text, { kind: 'unknown' }, today) });
+    else if (flow) out.push({ tool: 'flow', date: dateWord(text, now, today), flow });
   }
 
   const symptoms = unique(readText(text).map((f) => f.code)).filter((c): c is Symptom => (SYMPTOMS as readonly string[]).includes(c));
-  if (symptoms.length) out.push({ tool: 'symptoms', date: dateWord(text, now), symptoms });
+  if (symptoms.length) out.push({ tool: 'symptoms', date: dateWord(text, now, today), symptoms });
   const moods = readMoods(text);
-  if (moods.length) out.push({ tool: 'moods', date: dateWord(text, now), moods });
+  if (moods.length) out.push({ tool: 'moods', date: dateWord(text, now, today), moods });
   const activities = question ? [] : activitiesOf(text);
-  if (activities.length) out.push({ tool: 'activities', date: dateWord(text, now), activities });
+  if (activities.length) out.push({ tool: 'activities', date: dateWord(text, now, today), activities });
   const weeks = readWeeks(text);
   if (weeks !== null) out.push({ tool: 'weeks', weeks });
 
   if (cycleQuestion) out.push({ tool: 'cycle_question' });
   else if (question) out.push({ tool: 'health_question' });
+  if (out.length === 0 && THANKS.test(text)) out.push({ tool: 'smalltalk' });
   return out;
 }
 
