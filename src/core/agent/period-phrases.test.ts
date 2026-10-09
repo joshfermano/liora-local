@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { readActions } from './index';
+import { triage } from './triage';
 
 // Everyday ways she might say her period started, in Tagalog, Taglish and English. A phrase missed here
 // only means the calendar is not offered; it can no longer raise a false alarm (rules/who.ts).
@@ -43,6 +44,12 @@ describe('period start phrasings', () => {
     for (const text of ['wala pa akong regla', 'hindi pa ako dinatnan', 'my period has not started yet', 'wala akong mens', 'kailan regla ko?', 'first day ng regla ko kailan?']) {
       expect(readActions(text, '2026-10-10').some((a) => a.tool === 'period_start')).toBe(false);
     }
+  });
+  it('skips the bleeding question for a recognised period log only when she is neither', () => {
+    // Bleeding stays a danger sign for every status (rules/who.ts); only a clear period log narrows the check.
+    expect(triage('Nagsimula regla ko ngayon', '2026-10-10', 'neither').typed).toBe('no_bleeding');
+    expect(triage('Nagsimula regla ko ngayon', '2026-10-10', 'pregnant').typed).toBe('all');
+    expect(triage('Nagsimula regla ko ngayon', '2026-10-10', undefined).typed).toBe('all');
   });
 });
 
