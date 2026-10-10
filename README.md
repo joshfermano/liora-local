@@ -249,7 +249,7 @@ ships without a cited source.
 
 ## Team
 
-**Lumosyn Labs**: Josh Fermano, Ivan Reeve Lopez, Uriel Papa.
+**Team Potato**: Josh Khovick Fermano, Ivan Reeve Lopez, Inaki Manuel Flores, Uriel Papa.
 
 ## After the hackathon
 

@@ -10,8 +10,8 @@ Every claim here matches the README; fill the two blanks marked **[to add]** bef
   feels in Taglish, Gemma 4 runs on her iPhone, and WHO-based rules tell her whether to go to the
   hospital now, go to the health centre as soon as possible, or wait, with the WHO source word for
   word. It also logs her cycle, moods and symptoms, and works in airplane mode.
-- **Team name and members:** Lumosyn Labs: Josh Fermano, Ivan Reeve Lopez, Uriel Papa (each must
-  be on the appbuildersph.com/hackathon list).
+- **Team name and members:** Team Potato: Josh Khovick Fermano, Ivan Reeve Lopez, Inaki Manuel
+  Flores, Uriel Papa (each must be on the appbuildersph.com/hackathon list).
 - **GitHub repository:** https://github.com/joshfermano/liora-local (public; recreate steps in the
   README).
 - **Hardware tested on:** iPhone 17 Pro (iOS 27.2), the demo phone and the only phone for measured
