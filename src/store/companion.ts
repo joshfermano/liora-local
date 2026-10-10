@@ -251,6 +251,8 @@ export const useCompanionStore = create<CompanionState>()(
           try {
             const next = await useTellStore.getState().answerFollowUp(typed);
             const level = next.decision.level;
+            // The decision moves down to this reply, so one card stands for it, where she is reading.
+            set((s) => ({ messages: dropBlock(s.messages, (b) => b.kind === 'decision' && (b.entryId === pending.id || b.entryId === next.id)) }));
             add(
               level === 'ok'
                 ? [{ kind: 'text', key: 'companion.symptom.ok' }, { kind: 'decision', entryId: next.id, level }]

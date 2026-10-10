@@ -18,8 +18,9 @@ const list = (prefix: string, values: string[]) => values.map((v) => en(`${prefi
 
 export function savedLine(item: SavedItem): string {
   switch (item.kind) {
+    // An end still ahead is the app's expectation from her usual length, not something she logged.
     case 'period_start':
-      return item.end
+      return item.end && item.end <= ymd(new Date())
         ? fill(en('agent.logged.period_range'), { from: dayWord(item.date), to: dayWord(item.end) })
         : fill(en('agent.logged.period_start'), { date: dayWord(item.date) });
     case 'period_end':
