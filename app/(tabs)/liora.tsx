@@ -69,6 +69,9 @@ export default function Liora() {
     };
   }, []);
   const scroll = useRef<ScrollView>(null);
+  // Whether she is at the newest message. A reply grows as it streams and its cards arrive late, so the
+  // thread follows that growth while she is at the bottom, and leaves her be once she scrolls up to read.
+  const atEnd = useRef(true);
 
   // A cleared chat keeps iOS's old scroll offset, which leaves the short new content out of view and the
   // screen blank, so an empty chat goes back to the top; otherwise the newest message is brought into view.
@@ -77,6 +80,7 @@ export default function Liora() {
       scroll.current?.scrollTo({ y: 0, animated: false });
       return;
     }
+    atEnd.current = true;
     const t = setTimeout(() => scroll.current?.scrollToEnd({ animated: true }), 50);
     return () => clearTimeout(t);
   }, [messages.length, messages[messages.length - 1]?.blocks?.length, thinking]);
@@ -100,6 +104,14 @@ export default function Liora() {
           keyboardShouldPersistTaps="handled"
           contentInsetAdjustmentBehavior="never"
           scrollIndicatorInsets={{ top: headerH, bottom: footerH }}
+          scrollEventThrottle={32}
+          onScroll={(e) => {
+            const { contentOffset, contentSize, layoutMeasurement } = e.nativeEvent;
+            atEnd.current = contentOffset.y + layoutMeasurement.height >= contentSize.height - 48;
+          }}
+          onContentSizeChange={() => {
+            if (atEnd.current && messages.length > 0) scroll.current?.scrollToEnd({ animated: true });
+          }}
           contentContainerStyle={{ flexGrow: 1, paddingTop: headerH + 4, paddingBottom: footerH + 12, paddingHorizontal: margin }}
         >
           <View className="w-full max-w-column flex-1 self-center">
