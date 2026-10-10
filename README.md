@@ -58,18 +58,27 @@ reported.
 
 ## Safety by design
 
-- **The AI never decides.** Every "go now", follow-up and calm outcome comes from rule tables, each
-  with a WHO or DOH source.
+- **The AI never decides.** Every "go now", "as soon as possible", follow-up and calm outcome comes
+  from rule tables, each with a WHO or DOH source. In pregnancy the rules follow the two lists of
+  WHO's *Pregnancy, childbirth, postpartum and newborn care* guide (M2, p. 163): "go to the hospital
+  or health centre immediately" and "go to the health centre as soon as possible", and a fever gets
+  WHO's own question ("Are you too weak to get out of bed?") before either.
 - **Caution only goes up.** A danger sign found by any reader counts. Skipping the follow-up
   question counts as the serious case. The AI can never talk her out of a follow-up on its own: its
   "mild" reading counts only when her own words say so ("medyo", "konti").
 - **No AI-written medical text.** The "go now" and crisis screens use fixed copy. The urgent lines
   quote approved WHO passages word for word, and source cards are shown verbatim, never paraphrased.
   Gemma answers yes/no questions with probabilities and picks actions from closed lists. On calm
-  turns it writes Liora's reply from what the tools did, and a filter drops any sentence with
-  medical advice, a diagnosis, a medicine or a number that is not in those facts (a fixed reply
-  replaces anything it drops). On a danger turn it writes nothing, and health facts only ever come
-  from the reviewed cards, shown word for word.
+  turns it only rephrases Liora's fixed line in English, and its version is shown only if it keeps
+  the line's numbers and most of its words and passes a filter for medical advice, diagnosis,
+  medicine, reassurance and prompt leaks; otherwise the fixed line shows. On a danger turn it writes
+  nothing, and health facts only ever come from the reviewed cards, shown word for word.
+- **It does not let go.** After a go-now, a calm message ("Kaya ko pa naman") keeps the go-now and
+  her **Call / Text** buttons in view. When she is not pregnant, signs that should not wait for
+  anyone (losing sight, fits, fainting, blue lips, a severe headache, belly pain or breathing
+  trouble) get a fixed "do not wait" line and her contact.
+- **Her words are data, never instructions.** Attempts to change Liora's rules or reveal its prompt
+  get a fixed line, with no model call and no writes.
 - **Works without the AI.** If the model cannot load, "AI off, checklist on" lets her tap her signs,
   and the same rules decide.
 - **Not a medical device.** Liora doesn't diagnose or prescribe; it helps her decide when to go.
@@ -81,29 +90,32 @@ reported.
 
 ## Features
 
-"Checked on a phone" means seen working on an iPhone 16 Pro Max during the build; the demo phones
-(the iPhone 17 Pro) is checked before the demo.
+"Checked on the iPhone 17 Pro" means seen working on the demo phone on 10 Oct; "built" means built
+and tested in code (2,100+ automated tests) but not yet confirmed on the phone.
 
 | Feature | Status |
 | --- | --- |
-| Gemma 4 on the iPhone: download, load on the GPU, typed decisions | checked on a phone |
-| Tell Liora by typing; go-now, follow-up and calm decided by the WHO rules | checked on a phone |
-| "Go to the hospital now" screen with the signs found and the WHO source | checked on a phone |
-| Voice: speech to text with Gemma 4's audio encoder, from the home mic | built |
-| Offline setup with per-model download progress and automatic retry | built |
-| Nurse card: weeks, signs, severity, time, blood pressure | built |
-| Calm answer and "Why?" with a cited WHO or DOH source card, word for word | built |
-| My log, with delete one and delete everything | built |
+| Gemma 4 E2B on the iPhone: download, load on the GPU, typed decisions, fully offline | checked on the iPhone 17 Pro |
+| Liora chat agent: logs periods, flow, symptoms and moods from Taglish, with Undo; answers from her logs | checked on the iPhone 17 Pro |
+| Liora Live: hands-free voice with Gemma 4's audio encoder and silence detection | checked on the iPhone 17 Pro |
+| "Go to the hospital now" card with WHO's fixed words and Call / Text her emergency contact | checked on the iPhone 17 Pro |
+| One question first: comfort line and the follow-up for an unsure sign | checked on the iPhone 17 Pro |
+| Skip counts as serious, shown calmly as "Let's be safe" with a way back to the question | built |
+| Nurse handoff report: her details, blood type, her words, signs, WHO rule and citation, last 7 days; Share as PDF | built |
+| Cycle calendar: logged period days and the explained next-period estimate | checked on the iPhone 17 Pro |
+| Estimated fertile window and likely ovulation, labelled "An estimate, not contraception." | built |
+| Today: logged today, cycle stats, patterns | checked on the iPhone 17 Pro |
+| "How Liora decided": her words, what each reader found, which rule fired, which models ran | checked on the iPhone 17 Pro |
+| WHO's two lists: "as soon as possible" screen with the WHO passage, and the fever question | built |
+| Replies that follow her mood (upbeat or gentle) and answer in her language | built |
+| Prompt-injection and leak guardrails | built |
+| Sources screen: every WHO and DOH document, its passages and the official link | built |
+| Face ID lock on every tab, with "Check danger signs" open without unlocking | built |
 | Private mood check (PHQ-9), with the NCMH crisis hotline on any self-harm answer | built |
-| AI-off checklist | built |
-| "How Liora decided": what each reader found, which rule fired, which models ran | built |
-| Cycle calendar and explained next-period estimate | built |
-| Source-card search by meaning (EmbeddingGemma, on the phone) | built |
-| Native iPhone tabs (Today, Calendar, Liora, Profile) with Liquid Glass, SF Symbols and haptics | built |
-| Liora companion thread: logs periods and moods, answers cycle questions from her logs, shows the rules' decision and nurse card inline | built |
-| Profile: name, age, height, weight, pregnancy status and weeks, cycle settings, Face ID lock (shown on the nurse card; never used to decide) | built |
-| Period tracking: log, edit and delete periods with flow; cycle ring and history | built |
-| Stretch: read blood pressure and weeks from a photo of the check-up record | stretch |
+| AI-off checklist, feeding the same WHO rules | built |
+| Profile: name, age, height, weight, blood type, emergency contact, pregnancy or after-birth status | built |
+| Source-card search by meaning (EmbeddingGemma 300M, on the phone) | built |
+| Native iPhone tabs with Liquid Glass, SF Symbols, wheel pickers, share sheet and haptics | built |
 
 ## Why does this product benefit from running AI locally?
 
@@ -124,7 +136,6 @@ from other phones are not listed here.
 | Cold and warm load time | not measured |
 | Time from message to result | not measured |
 | Transcription time for a 10 s clip | not measured |
-| Danger-sign recall on the 30-case Taglish test set | not measured |
 
 ## Models
 
