@@ -39,6 +39,12 @@ describe('answering from her own logs', () => {
     expect(ask(text)).toMatchObject({ key, params });
   });
 
+  it.each(['do i have ovulation', 'am i ovulating?', 'ovulating ba ako ngayon?', 'nag-o-ovulate ba ako?'])('says whether today is an ovulation day for "%s"', (text) => {
+    const notNow = { ...ANA, periods: ANA.periods.slice(0, 3) };
+    expect(herAnswer(text, notNow, 'neither', '2026-10-01')).toMatchObject({ key: 'her.ovulating.no' });
+    expect(herAnswer(text, notNow, 'neither', '2026-10-27')).toMatchObject({ key: 'her.ovulating.yes', params: { from: 'Oct 26', to: 'Oct 28' } });
+  });
+
   it('counts a sign over the month', () => {
     expect(ask('how many times did I have a headache this month?')).toMatchObject({ key: 'her.count_sign.one', params: { n: '1', from: 'Oct 1' } });
     expect(ask('ilang beses ako nag-headache?')).toMatchObject({ key: 'her.count_sign', params: { n: '2', from: 'Sep 11' } });

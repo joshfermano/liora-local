@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { carryOver, confirmAnswer, continuesTopic, corrects, dateAnswer, needsDate, withDate } from './carry';
+import { carryOver, confirmAnswer, continuesTopic, corrects, dateAnswer, goAhead, needsDate, withDate } from './carry';
 import type { SavedItem } from './types';
 
 const TODAY = '2026-10-10';
@@ -114,5 +114,15 @@ describe('a confirm that still needs its day', () => {
 
   it('fills the missing day and leaves the rest', () => {
     expect(withDate(start, '2026-10-09')).toEqual([start[0], { tool: 'period_start', date: { kind: 'date', date: '2026-10-09' }, flow: null }]);
+  });
+});
+
+describe('telling Liora to go ahead', () => {
+  it.each(['do it then', 'do it', 'go ahead', 'yes please', 'sige na', 'gawin mo na', 'check it', 'tingnan mo na', 'ok do it', 'please do'])('"%s" means go ahead', (text) => {
+    expect(goAhead(text)).toBe(true);
+  });
+
+  it.each(['do i have ovulation', 'masakit ulo ko', 'yes', 'ok', 'thank you', 'do it later'])('"%s" does not', (text) => {
+    expect(goAhead(text)).toBe(false);
   });
 });

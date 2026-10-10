@@ -266,3 +266,13 @@ describe('readActions: plans are not logs', () => {
   });
 });
 
+describe('readActions: questions about her cycle, however they are asked', () => {
+  it.each(['do i have ovulation', 'am i ovulating', 'when do i ovulate', 'fertile ba ako', 'is my next period soon', 'may ovulation ba ako ngayon'])('"%s" is a cycle question', (text) => {
+    expect(readActions(text, TODAY)).toEqual([{ tool: 'cycle_question' }]);
+  });
+
+  it.each(['what is ovulation?', 'ano ang ibig sabihin ng fertile window?'])('"%s" asks what a word means', (text) => {
+    expect(readActions(text, TODAY)).toEqual([{ tool: 'health_question' }]);
+  });
+});
+

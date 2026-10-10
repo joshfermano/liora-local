@@ -117,3 +117,11 @@ export function needsDate(actions: AgentAction[]): boolean {
 export function withDate(actions: AgentAction[], date: string): AgentAction[] {
   return actions.map((a) => (undated(a) ? ({ ...a, date: at(date) } as AgentAction) : a));
 }
+
+// "Do it then", "sige na", "go ahead": she wants what she asked for just before.
+const GO_AHEAD =
+  /^\s*(?:(?:ok(?:ay)?|sige|oo|yes|yeah|sure|please|go)[,!.\s]+)?(?:do\s+it|do\s+that|go\s+ahead|go\s+for\s+it|please\s+do|yes\s+please|sige\s+na|gawin\s+mo(?:\s+na)?|i-?check\s+mo(?:\s+na)?|check\s+it|tingnan\s+mo(?:\s+na)?|ituloy\s+mo|proceed)(?:\s+(?:then|na|po|please|now|naman))*[\s.!]*$/i;
+
+export function goAhead(text: string): boolean {
+  return GO_AHEAD.test(text);
+}

@@ -5,6 +5,7 @@ import { readEdit, THANKS } from './edits';
 import { readMemory } from './memory';
 import type { AgentAction, DateWord } from './types';
 import { dateWord, namesComingDate } from './when';
+import { isQuestion } from './question';
 import { readDischarge } from './discharge';
 
 // Input patterns only: what she might type, in Tagalog, Taglish or English. No advice here.
@@ -44,6 +45,9 @@ const CONTACT =
 const HEALTH =
   /sakit|pain|hurt|ache|dugo|bleed|blood|buntis|pregnan|baby|sanggol|gamot|medicine|vitamin|normal|safe|delikado|danger|kain|\beat|food|pagkain|inom|drink|exercis|ehersisyo|lagnat|fever|suka|vomit|nause|hilo|dizz|cramp|puson|tiyan|ulo|discharge|ihi|\bpee|urin|contraction|hilab|labou?r|panganak|birth|ovulat|obul|fertile|regla|period|mens|cycle|check-?up|doctor|doktor|\bob\b|clinic|ospital|hospital|symptom|sintomas|breast|dede|gatas|milk|tulog|sleep|stress|anxi|weight|timbang|\bsex|contracep|\bpills?\b|condom|trimester|weeks?\b|linggo|swell|manas|maga|headache|bloat|kabag|kirot|hapdi|pagod|tired|manganak|pahinga|\brest\b|ihanda|prepar|tubig|water|kalinisan|hygien|maligo|\bbath|kape|coffee|caffeine|alak|alcohol|beer|wine|yosi|smok|\b(?:pwede|puwede)\s+ba\b|\bcan\s+i\b|\bshould\s+i\b|\bbawal\b|\bok(?:ay)?\s+lang\s+ba\b|travel|byahe|biyahe/i;
 const WORRY = /\b(?:kulang|konti|kaunti|walang|wala|problema|problem|worried|worry|nag-?aalala|ayaw|hindi|di|baka|maybe|parang|bakit|mahina|low|not\s+enough|trouble|hirap)\b/i;
+const CYCLE_TOPIC = /ovulat|obulasyon|\bobul|fertile|\bnext\s+(?:period|regla|mens)|susunod\s+na\s+(?:regla|mens)/i;
+// "What is ovulation?" asks what a word means, which a reviewed source answers, not her calendar.
+const DEFINE = /\bwhat\s+(?:is|are|does)\b|\bano\s+(?:ang\s+|ba\s+ang\s+)?(?:ibig\s+sabihin|meaning|kahulugan)|\bmeaning\s+of\b|\bdefine\b|^\s*ano\s+(?:ang|ba)\s+(?:ovulation|fertile)/i;
 const MINE = /\b(?:ko|ako|akin|my|i\s+have|i'?ve|i\s+feel|i'?m|i\s+am|i\s+get|i\s+keep)\b/i;
 const ACK = /^\s*(?:ok(?:ay)?|okie|k|sige(?:\s+po)?|noted|got\s+it|alright|cool|nice|ayos|g|oo\s+sige|buti\s+naman|mabuti\s+naman|good|great|good\s+to\s+know|i\s+see|ah+\s+okay|gets)[\s.!]*$/i;
 const ASKING = /\?\s*$|\bba\b|^\s*(?:ano|bakit|paano|puwede|pwede|is\s+it|is\s+this|is\s+that|can\s+i|should\s+i|what|why|how)\b/i;
@@ -108,8 +112,9 @@ export function readActions(text: string, today: string): AgentAction[] {
   // "Log headache and open calendar": a shortcut never hides the log that came with it.
   const opens = edit?.every((a) => a.tool === 'open') ? edit : [];
   if (edit && opens.length === 0) return edit;
-  const cycleQuestion = CYCLE_QUESTION.test(text);
-  const question = /\?/.test(text) || QUESTION_START.test(text);
+  const question = /\?/.test(text) || QUESTION_START.test(text) || isQuestion(text);
+  // Any question about her own ovulation, fertile days or next period, however it is put.
+  const cycleQuestion = CYCLE_QUESTION.test(text) || (question && CYCLE_TOPIC.test(text) && (MINE.test(text) || !DEFINE.test(text)));
   const hasPeriodWord = PERIOD_WORD.test(text);
   const now: DateWord = { kind: 'today' };
   const out: AgentAction[] = [];

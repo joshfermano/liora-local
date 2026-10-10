@@ -34,8 +34,10 @@ import { commit, dataNow, plan, revertLatest, understand } from './agent';
 import { useLogStore } from './log';
 import { lastResult } from './memo';
 import { aboutLiora, asksForHelp } from '../core/agent/about';
+import { isQuestion } from '../core/agent/question';
 import { noteHit, noteTurn } from '../core/probe';
 import { useMemoryStore } from './memory';
+import { en } from '../content/copy';
 import { answerText, dayLine } from './answers';
 import { contextFrom, readProfile } from './profile';
 
@@ -77,6 +79,9 @@ export const packFor = lastResult(
   },
 );
 const HOME = ['checklist', 'mood_check', 'calendar'] as const;
+// Replies that answer her question with facts a tool found; the model may only say them.
+const ANSWERS = /^(?:reply\.(?:cycle|weeks|due|day|recall|card|no_card|name)|her\.|companion\.cycle\.)/;
+const fillCopy = (s: string, v: Record<string, string> = {}) => s.replace(/\{(\w+)\}/g, (_, k: string) => v[k] ?? '');
 
 const day = (iso: string) => format(parseISO(iso), 'MMM d');
 
@@ -175,7 +180,10 @@ export async function runTurn(
   }
   // A question about her own data is answered from her data: no source card, and no router to ask.
   const asksAboutHerData = read.purpose === 'ask';
-  const understood = asksAboutHerData ? read.actions : await understand(text, read.actions);
+  // The router sees the last exchange, so "do it" or "sige" reads as what the chat was about.
+  const lastOf = (role: Turn['role']) => [...thread].reverse().find((t) => t.role === role)?.text;
+  const before = { her: lastOf('her'), liora: lastOf('liora') };
+  const understood = asksAboutHerData && read.actions.length > 0 ? read.actions : await understand(text, read.actions, before);
   // A note is stored only on a calm turn: never when the rules or the model saw a danger sign.
   const calm = read.purpose !== 'urgent' && entry.decision.level === 'ok';
   const actions = calm ? understood : withoutMemory(understood);
@@ -299,17 +307,34 @@ export async function runTurn(
     else if (facts.no_action_taken === true) attachments.push({ kind: 'actions', items: [...HOME] });
   }
 
+  // She asked something and no tool answered it: say so honestly, with what Liora can answer. The model
+  // is not asked to fill the gap, because then it improvises offers and unrelated logs. A question about
+  // her own data (her blood type, her name) may still be answered from her data, with the same honest
+  // line if nothing it says survives the guard.
+  const unanswered = isQuestion(text) && stepsOf(outcome).length === 0 && outcome.smalltalk === null && !asksForHelp(text);
+  if (unanswered && !asksAboutHerData) {
+    return {
+      attachments: [{ kind: 'actions', items: [...HOME] }],
+      fallback: { key: 'reply.unsure' },
+      request: { text: '', pack: '', facts: {}, allowed: {}, thread: [] },
+      undoneId: null,
+      noModel: true,
+    };
+  }
+
   const steps = stepsOf(outcome);
   if (steps.length > 0) attachments.unshift({ kind: 'steps', steps });
 
   const memory = useMemoryStore.getState();
   const { value: pack, hit } = packFor(data.periods, data.dayLogs, data.cycleSettings, data.setup, log.entries, log.moods, memory.notes, memory.language, day);
   if (hit) noteHit('context');
+  const answer = ANSWERS.test(fallback.key) ? fillCopy(en(fallback.key), fallback.params) : undefined;
   return {
     attachments,
-    fallback,
+    fallback: unanswered ? { key: 'reply.unsure' } : fallback,
     request: {
       text,
+      answer,
       pack: pack.text,
       facts,
       // Her own words in this chat may be repeated back to her, so the guard counts them as known.

@@ -18,6 +18,8 @@ const CYCLE_LENGTH = /\b(?:gaano\s+kahaba|how\s+long|average|karaniwang\s+haba|h
 const PERIOD_LENGTH =
   /\b(?:ilang\s+araw|how\s+(?:long|many\s+days)|gaano\s+katagal)\b(?:(?!\bpa\b|\bbago\b|\buntil\b|\bnext\b).)*\b(?:regla|periods?|mens)\b|\b(?:regla|period|mens)\s+(?:ko\s+)?(?:usually\s+)?(?:lasts?|tumatagal)\b/i;
 const REGULAR = /\b(?:ir)?regular\b.*\b(?:cycle|regla|periods?|mens)\b|\b(?:cycle|regla|periods?|mens)\b.*\b(?:ir)?regular\b/i;
+const OVULATING_NOW =
+  /\bam\s+i\s+ovulating\b|\bdo\s+i\s+(?:have|get)\s+(?:my\s+|an?\s+)?ovulation\b|\b(?:nag-?o-?ovulate|nag-?oovulate|ovulating)\s+ba\s+ako\b|\bovulation\s+(?:ko\s+)?(?:ba\s+)?ngayon\b|\bmay\s+ovulation\s+ba\s+ako\b|\bovulating\s+(?:now|today)\b/i;
 const FERTILE_NOW = /\bfertile\s+ba\s+ako\b|\bam\s+i\s+fertile\b|\bfertile\b.*\b(?:ngayon|today|now)\b|\b(?:ngayon|today)\b.*\bfertile\b/i;
 const LATE = /\blate\s+ba\s+(?:ako|ang\s+regla|regla)\b|\bam\s+i\s+late\b|\bdelay(?:ed)?\s+ba\s+(?:ako|ang\s+regla)\b|\bis\s+my\s+period\s+late\b/i;
 const PERIOD_DAY =
@@ -94,6 +96,13 @@ function cycleAnswer(text: string, data: AgentData, today: string): HerAnswer | 
     if (!next) return { key: 'her.cycle_few' };
     const n = differenceInCalendarDays(parseISO(next.next_start), parseISO(today));
     return n > 0 ? { key: 'her.days_until', params: { n: String(n), date: day(next.next_start) } } : { key: 'her.late.no', params: { date: day(next.next_start) } };
+  }
+  if (OVULATING_NOW.test(text)) {
+    const windows = fertileWindows({ periods: data.periods, cycleSettings: data.cycleSettings, status: 'neither', today, dayLogs: [], entries: [] });
+    const now = windows.find((f) => f.ovulation.from <= today && today <= f.ovulation.to);
+    if (now) return { key: 'her.ovulating.yes', params: { from: day(now.ovulation.from), to: day(now.ovulation.to) } };
+    const ahead = windows.find((f) => f.ovulation.from > today);
+    return ahead ? { key: 'her.ovulating.no', params: { from: day(ahead.ovulation.from), to: day(ahead.ovulation.to) } } : { key: 'her.fertile.unknown' };
   }
   if (FERTILE_NOW.test(text)) {
     const window = fertileWindows({ periods: data.periods, cycleSettings: data.cycleSettings, status: 'neither', today, dayLogs: [], entries: [] }).find((f) => f.to >= today);

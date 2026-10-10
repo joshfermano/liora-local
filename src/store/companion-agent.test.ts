@@ -336,7 +336,7 @@ describe('companion agent turn', () => {
       expect(kinds()).not.toContain('reply');
     });
 
-    it('answers a question about her own data from her data: no card, no router, Gemma gets the pack', async () => {
+    it('answers a question about her own data from her data: no card, Gemma gets the pack, the router a second look', async () => {
       core.triage.mockReturnValue({ purpose: 'ask', typed: 'none', actions: [] });
       const route = vi.fn(async () => []);
       setRouteActions(route);
@@ -344,9 +344,9 @@ describe('companion agent turn', () => {
       const say = vi.fn(async (_req: ReplyRequest) => 'Ikaw ay nasa cycle day 3.');
       setSayReply(say);
       await send('ilang weeks na ako?');
-      expect(route).not.toHaveBeenCalled();
+      expect(route).toHaveBeenCalledTimes(1);
       expect(kinds()).not.toContain('card');
-      expect(reply()).toMatchObject({ text: 'Ikaw ay nasa cycle day 3.', fallback: { key: 'reply.other' } });
+      expect(reply()).toMatchObject({ text: 'Ikaw ay nasa cycle day 3.', fallback: { key: 'reply.unsure' } });
       expect(say.mock.calls[0]![0]).toMatchObject({ pack: 'Cycle day: 3' });
       expect(say.mock.calls[0]![0].facts).toMatchObject({ she_asked_about_her_own_data: true });
     });

@@ -16,7 +16,8 @@ import { CONVERSATION_MS, isNewConversation, recentTurns } from './thread';
 import { runTurn, type AgentTurn } from './turn';
 import { mentionsSelfHarm } from '../core/agent/crisis';
 import { mentionsLoss } from '../core/agent/loss';
-import { carryOver, confirmAnswer, continuesTopic, corrects, dateAnswer, needsDate, withDate } from '../core/agent/carry';
+import { modelTime } from '../core/timing';
+import { carryOver, confirmAnswer, continuesTopic, corrects, dateAnswer, goAhead, needsDate, withDate } from '../core/agent/carry';
 import { WRITE_TOOLS, type AgentAction, type SavedItem } from '../core/agent';
 import { followUpAnswer } from '../core/agent/followon';
 import { afterBirthCard, warningSignsCard } from '../core/agent/warning';
@@ -110,6 +111,13 @@ function lastSaved(messages: ThreadMessage[], now = Date.now()): SavedItem[] {
   return (last.blocks ?? []).flatMap((b) => (b.kind === 'logged' ? b.items : []));
 }
 
+// Liora's last reply did nothing for her: no tool step, log, card, answer or decision.
+function lastReplyIdle(messages: ThreadMessage[]): boolean {
+  const last = [...messages].reverse().find((m) => m.role === 'liora');
+  const acted = new Set(['steps', 'logged', 'confirm', 'decision', 'card', 'cycle_answer', 'contact', 'crisis', 'period_confirm']);
+  return !!last && !(last.blocks ?? []).some((b) => acted.has(b.kind));
+}
+
 // The confirm block in Liora's last reply, still waiting for her tap.
 function lastWaiting(messages: ThreadMessage[]): { confirmId: string; actions: AgentAction[] } | null {
   const last = [...messages].reverse().find((m) => m.role === 'liora');
@@ -191,8 +199,12 @@ export const useCompanionStore = create<CompanionState>()(
         return !yes ? 'skipped' : done ? 'saved' : 'unchanged';
       },
       send: async (raw, input = 'text') => {
-        const text = raw.trim();
-        if (!text || get().thinking) return;
+        const words = raw.trim();
+        if (!words || get().thinking) return;
+        // "Do it then" after a reply that did nothing: she still wants what she asked before, so that
+        // is what Liora reads again; her own words stay in the thread as she typed them.
+        const asked = lastHerText(get().messages);
+        const text = asked && goAhead(words) && !lastWaiting(get().messages) && lastReplyIdle(get().messages) ? asked : words;
         const thread = recentTurns(get().messages);
         const opening = isNewConversation(get().messages);
         const goNow = activeGoNow(get().messages);
@@ -210,7 +222,7 @@ export const useCompanionStore = create<CompanionState>()(
         const correcting = !carried && corrects(text, lastSaved(get().messages));
         // "Bakit kaya?" right after "masakit puson ko": a question about that, so the card search reads both.
         const topic = before && !carried && continuesTopic(text) ? `${before}. ${text}` : undefined;
-        const her: ThreadMessage = { id: newId(), role: 'her', text, at: new Date().toISOString() };
+        const her: ThreadMessage = { id: newId(), role: 'her', text: words, at: new Date().toISOString() };
         set((s) => ({ messages: [...s.messages, her], thinking: true }));
         useMemoryStore.getState().setLanguage(languageOf(get().messages.filter((m) => m.role === 'her').map((m) => m.text ?? '')));
         const t0 = Date.now();
@@ -382,7 +394,7 @@ export const useCompanionStore = create<CompanionState>()(
         let timer: ReturnType<typeof setTimeout> | undefined;
         // A model call that never returns must not leave her thread stuck on 'thinking'.
         const deadline = new Promise<never>((_, reject) => {
-          timer = setTimeout(() => reject(new Error('reply took too long')), REPLY_DEADLINE_MS);
+          timer = setTimeout(() => reject(new Error('reply took too long')), modelTime(REPLY_DEADLINE_MS));
         });
         try {
           await Promise.race([work(), deadline]);
