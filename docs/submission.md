@@ -50,8 +50,8 @@ Every claim here matches the README; fill the two blanks marked **[to add]** bef
   as published; WHO and DOH passages and the PHQ-9 are cited third-party content. The app icon and
   illustrations were drawn during the hackathon.
 - **AI development tools:** Claude Code (Anthropic; Claude Opus 5.5 with Sonnet 5.5 and Haiku 5.5
-  subagents) with the skills in `skills-lock.json`; Higgsfield for the demo video's story scenes.
-  Add any other tool a teammate used.
+  subagents) with the skills in `skills-lock.json`; Codex (OpenAI); Higgsfield for the demo video's
+  story scenes.
 
 ## Why does this product benefit from running AI locally?
 

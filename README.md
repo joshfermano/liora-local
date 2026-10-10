@@ -238,8 +238,9 @@ ships without a cited source.
   the open SemIf method; no TypeSafe code or service is used.
 - **AI development tools:** [Claude Code](https://claude.com/claude-code) (Anthropic; Claude Opus 5.5,
   with Claude Sonnet 5.5 and Claude Haiku 5.5 subagents), with the agent skills listed in
-  `skills-lock.json` and the project subagents in `.claude/agents/`. Higgsfield was used for the
-  demo video's story scenes only; every app screen in the video is a real screen recording.
+  `skills-lock.json` and the project subagents in `.claude/agents/`, and
+  [Codex](https://openai.com/codex/) (OpenAI). Higgsfield was used for the demo video's story scenes
+  only; every app screen in the video is a real screen recording.
 
 ## Hardware tested on
 
