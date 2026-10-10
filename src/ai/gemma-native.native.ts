@@ -64,7 +64,9 @@ export function runGemmaOnCpu(cpu: boolean): void {
 
 export async function loadGemma(): Promise<NativeGemma> {
   const started = Date.now();
-  const ctx = await initLlama({ model: model().uri, n_ctx: 4096, n_gpu_layers: onCpu ? 0 : 99, n_threads: onCpu ? 8 : undefined, use_mmap: true, use_mlock: false });
+  // The phone's call is exactly as before; only the simulator test adds its CPU settings.
+  const where = onCpu ? { n_gpu_layers: 0, n_threads: 8 } : { n_gpu_layers: 99 };
+  const ctx = await initLlama({ model: model().uri, n_ctx: 4096, ...where, use_mmap: true, use_mlock: false });
   const voice = voiceBytesOnDisk() > 0 && (await ctx.initMultimodal({ path: voiceModel().uri, use_gpu: true }));
   const loadMs = Date.now() - started;
 
