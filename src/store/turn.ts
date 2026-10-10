@@ -79,8 +79,10 @@ export const packFor = lastResult(
   },
 );
 const HOME = ['checklist', 'mood_check', 'calendar'] as const;
-// Replies that answer her question with facts a tool found; the model may only say them.
-const ANSWERS = /^(?:reply\.(?:cycle|weeks|due|day|recall|card|no_card|name)|her\.|companion\.cycle\.)/;
+// The model only puts Liora's fixed line in her language and tone: composing from her data, it recited
+// unrelated logs, offered things it cannot do and dropped what was saved. The one line it may go beyond is
+// "not sure", where a question about her own data may still be answered from her data.
+const COMPOSES = new Set(['reply.unsure']);
 const fillCopy = (s: string, v: Record<string, string> = {}) => s.replace(/\{(\w+)\}/g, (_, k: string) => v[k] ?? '');
 
 const day = (iso: string) => format(parseISO(iso), 'MMM d');
@@ -328,10 +330,11 @@ export async function runTurn(
   const memory = useMemoryStore.getState();
   const { value: pack, hit } = packFor(data.periods, data.dayLogs, data.cycleSettings, data.setup, log.entries, log.moods, memory.notes, memory.language, day);
   if (hit) noteHit('context');
-  const answer = ANSWERS.test(fallback.key) ? fillCopy(en(fallback.key), fallback.params) : undefined;
+  const final = unanswered ? { key: 'reply.unsure' } : fallback;
+  const answer = COMPOSES.has(final.key) ? undefined : fillCopy(en(final.key), final.params);
   return {
     attachments,
-    fallback: unanswered ? { key: 'reply.unsure' } : fallback,
+    fallback: final,
     request: {
       text,
       answer,

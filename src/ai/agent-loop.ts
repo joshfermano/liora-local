@@ -1,4 +1,4 @@
-import { cleanForPrompt, guardReply, languageOf, withoutGreeting, type ReplyRequest } from '../core/agent';
+import { cleanForPrompt, faithfulTo, guardReply, languageOf, withoutGreeting, type ReplyRequest } from '../core/agent';
 import { noteDropped, notePrompt } from '../core/probe';
 import { modelTime } from '../core/timing';
 import type { SayMessage } from './gemma-model';
@@ -86,6 +86,8 @@ export async function sayReply(req: ReplyRequest, onText?: (guarded: string) => 
         temperature: 0.7,
         timeoutMs: modelTime(REPLY_TIMEOUT_MS),
         onToken: (streamed) => {
+          // A line to say is checked whole, at the end: part of it cannot show it kept the line.
+          if (req.answer) return;
           const done = completeSentences(streamed);
           if (done === sentences) return;
           sentences = done;
@@ -96,7 +98,8 @@ export async function sayReply(req: ReplyRequest, onText?: (guarded: string) => 
     ]);
     if (dev) console.log(`[say] ${said === null ? 'timed out' : JSON.stringify(said)}`);
     if (said === null) return shown;
-    const guarded = inHerLanguage(tidy(guardReply(said, req.allowed, PERSONA)), req.language);
+    const checked = inHerLanguage(tidy(guardReply(said, req.allowed, PERSONA)), req.language);
+    const guarded = checked !== null && req.answer && !faithfulTo(req.answer, checked) ? null : checked;
     if (dev) console.log(`[say] kept ${JSON.stringify(guarded)}`);
     noteDropped(Math.max(0, sentenceCount(said) - sentenceCount(guarded)));
     return guarded;

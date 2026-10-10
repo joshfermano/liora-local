@@ -1,5 +1,6 @@
 export * from './types';
 export { cycleFacts, dayFacts, guardReply } from './facts';
+export { faithfulTo } from './reply';
 export { contextPack, type ContextInput, type ContextPack } from './context';
 export { scopeAnswers, triage, type Purpose, type Triage, type TypedScope } from './triage';
 export { stepsOf, type Step } from './steps';

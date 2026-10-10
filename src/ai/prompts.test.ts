@@ -5,7 +5,7 @@ import { fill, PROMPTS, promptVersions } from './prompts';
 // Change a prompt, bump its version, then update the pin. A silent edit would leave the typed-answer
 // cache and the traces claiming an older wording.
 const PINNED: Record<keyof typeof PROMPTS, { version: string; hash: string }> = {
-  persona: { version: '8', hash: '1vt8uzxqwtj' },
+  persona: { version: '9', hash: '25d8vmu7g3o' },
   router: { version: '2', hash: '1yh1bhm4chu' },
   typed: { version: '1', hash: '1tam4g4r89d' },
   intent: { version: '1', hash: 'prjw53ojfu' },
@@ -34,7 +34,7 @@ describe('prompt registry', () => {
   });
 
   it('lists the versions of the prompts used', () => {
-    expect(promptVersions(['typed', 'persona'])).toEqual({ typed: '1', persona: '8' });
+    expect(promptVersions(['typed', 'persona'])).toEqual({ typed: '1', persona: '9' });
     expect(promptVersions([])).toEqual({});
   });
 });

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { guardReply } from './reply';
+import { faithfulTo, guardReply } from './reply';
 import type { Facts } from './types';
 
 const nothingDone: Facts = { symptoms: ['headache'], weeks: 30, saved: [], no_action_taken: true };
@@ -83,3 +83,27 @@ describe('the symptom twin is narrow', () => {
     expect(guardReply('You logged cramps and you are vomiting a lot.', data)).toBeNull();
   });
 });
+
+describe('the model kept the line it was given', () => {
+  const saved = 'It is saved. Thank you for telling me how you are. I am right here with you.';
+  const dates = 'Your next ovulation is estimated between Oct 26 and Oct 28. It is an estimate, not a test.';
+
+  it.each([
+    [dates, 'Ang susunod mong pag-ovulate ay mula Oct 26 hanggang Oct 28. Tantya lang ito.'],
+    [saved, 'Na-save na. Salamat sa pagsabi kung kumusta ka.'],
+    ['Hi, Mariela! What would you like to log or ask today?', 'Hello. I am here with you.'],
+  ])('keeps a faithful version', (answer, reply) => {
+    expect(faithfulTo(answer, reply)).toBe(true);
+  });
+
+  it.each([
+    [saved, 'Mahal ko, nakaramdam ka ba ng masakit puson?'],
+    ['Done, it is saved! Love the energy you have today.', 'Ang iyong mood ay joyful. Sobrang saya mo ngayon, Mariela.'],
+    [dates, 'Your next ovulation is estimated soon.'],
+    [dates, 'Mahal, your ovulation is Oct 26 to Oct 28.'],
+    [saved, 'Nakikiramay ko sa masakit puson mo. Ang pelvic pain ay isa sa mga sintomas na naitala ko.'],
+  ])('drops a version that lost or added something', (answer, reply) => {
+    expect(faithfulTo(answer, reply)).toBe(false);
+  });
+});
+

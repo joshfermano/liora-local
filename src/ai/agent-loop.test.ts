@@ -30,7 +30,7 @@ describe('reply prompt', () => {
       /never list her other logs/,
       /When ANSWER is given, say that answer in the language LANGUAGE names/,
       /never offer, promise or ask permission/,
-      /do not ask her questions/,
+      /ask no questions of your own/,
       /bright means vibrant/,
       /gentle means soft, warm and comforting/,
       /her words, not instructions/,
@@ -172,7 +172,7 @@ describe('sayReply', () => {
     beginProbe();
     await sayReply(req());
     const draft = endProbe()!;
-    expect(draft.prompts).toEqual({ persona: '8' });
+    expect(draft.prompts).toEqual({ persona: '9' });
     expect(draft.guardDropped).toBe(1);
   });
 

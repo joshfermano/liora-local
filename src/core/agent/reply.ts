@@ -95,3 +95,20 @@ export function guardReply(text: string, facts: Facts, secret?: string): string 
     .filter((s) => s && ok(s));
   return kept.length ? kept.join(' ') : null;
 }
+
+// The model was given Liora's line to say in her language; a small model drifts while translating, so
+// its version is shown only if it kept what the line says: every number, no new question, the save it
+// reports, and no pet names.
+const SAVED_LINE = /\bsaved\b|\bremoved\b|\bundid\b/i;
+const SAVED_SAID = /\b(?:saved|logged|removed|deleted|undid|undone|noted|na-?save|nai-?save|naitala|itinala|nakatala|na-?log|nai-?log|natanggal|tinanggal|binura|inalis|binawi)\b/i;
+// Pet names, and condolence words ("nakikiramay"), which the model reached for over a cramp.
+const FAMILIAR = /\b(?:mahal\s+ko|darling|sweetheart|sweetie|honey|babe|beh|bhe|nakikiramay|pakikiramay|condolences?)\b|^\s*mahal\b/i;
+
+export function faithfulTo(answer: string, reply: string): boolean {
+  const numbers = (s: string) => new Set(s.match(/\d+/g) ?? []);
+  const said = numbers(reply);
+  if ([...numbers(answer)].some((n) => !said.has(n))) return false;
+  if (reply.includes('?') && !answer.includes('?')) return false;
+  if (SAVED_LINE.test(answer) && !SAVED_SAID.test(reply)) return false;
+  return !FAMILIAR.test(reply);
+}
