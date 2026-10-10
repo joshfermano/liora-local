@@ -1,5 +1,6 @@
 import { readText } from '../lexicon';
 import { DANGER_CODES, SYMPTOMS } from '../vocabulary';
+import { languageOf } from './language';
 import type { Facts } from './types';
 
 // Words that make a sentence advice, reassurance or diagnosis. Gemma may only restate the facts.
@@ -104,7 +105,19 @@ const SAVED_SAID = /\b(?:saved|logged|removed|deleted|undid|undone|noted|na-?sav
 // Pet names, and condolence words ("nakikiramay"), which the model reached for over a cramp.
 const FAMILIAR = /\b(?:mahal\s+ko|darling|sweetheart|sweetie|honey|babe|beh|bhe|nakikiramay|pakikiramay|condolences?)\b|^\s*mahal\b/i;
 
+const SMALL = new Set(['a', 'an', 'the', 'is', 'are', 'am', 'it', 'its', 'i', 'you', 'your', 'me', 'my', 'to', 'of', 'and', 'or', 'in', 'on', 'for', 'with', 'from', 'be', 'that', 'this', 'what', 'would', 'like', 'not', 'just', 'so', 'do', 'here', 'there']);
+const keyWords = (s: string) => new Set((s.toLowerCase().match(/[\p{L}\p{N}]+/gu) ?? []).filter((w) => w.length > 2 && !SMALL.has(w)));
+// Half the line's own words, at least: "Hello Bea. I am here to keep you company." for "Just checking
+// before I save it." says something else, however safe each word is.
+const KEPT = 0.5;
+
 export function faithfulTo(answer: string, reply: string): boolean {
+  const wanted = [...keyWords(answer)];
+  const heard = keyWords(reply);
+  // Stems, so "estimated" keeps "estimate" and "saved" keeps "save".
+  const kept = wanted.filter((w) => heard.has(w) || [...heard].some((h) => h.slice(0, 5) === w.slice(0, 5)));
+  // Word overlap only says something between two English lines; a Tagalog version is held to the rest.
+  if (languageOf([reply]) === 'english' && wanted.length > 0 && kept.length / wanted.length < KEPT) return false;
   const numbers = (s: string) => new Set(s.match(/\d+/g) ?? []);
   const said = numbers(reply);
   if ([...numbers(answer)].some((n) => !said.has(n))) return false;

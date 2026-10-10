@@ -90,8 +90,8 @@ describe('the model kept the line it was given', () => {
 
   it.each([
     [dates, 'Ang susunod mong pag-ovulate ay mula Oct 26 hanggang Oct 28. Tantya lang ito.'],
-    [saved, 'Na-save na. Salamat sa pagsabi kung kumusta ka.'],
-    ['Hi, Mariela! What would you like to log or ask today?', 'Hello. I am here with you.'],
+    ['Just checking before I save it.', 'Just checking with you before I save this.'],
+    [dates, 'The estimated ovulation days are Oct 26 to Oct 28. It is an estimate, not a test.'],
   ])('keeps a faithful version', (answer, reply) => {
     expect(faithfulTo(answer, reply)).toBe(true);
   });
@@ -100,6 +100,8 @@ describe('the model kept the line it was given', () => {
     [saved, 'Mahal ko, nakaramdam ka ba ng masakit puson?'],
     ['Done, it is saved! Love the energy you have today.', 'Ang iyong mood ay joyful. Sobrang saya mo ngayon, Mariela.'],
     [dates, 'Your next ovulation is estimated soon.'],
+    ['Just checking before I save it.', 'Hello Bea. I am here to keep you company.'],
+    ['Hi, Mariela! What would you like to log or ask today?', 'Hello. I am here with you.'],
     [dates, 'Mahal, your ovulation is Oct 26 to Oct 28.'],
     [saved, 'Nakikiramay ko sa masakit puson mo. Ang pelvic pain ay isa sa mga sintomas na naitala ko.'],
   ])('drops a version that lost or added something', (answer, reply) => {

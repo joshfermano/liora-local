@@ -200,3 +200,11 @@ describe('the reply follows the language of her message', () => {
   });
 });
 
+describe('the model words English replies only', () => {
+  it('leaves a Tagalog or Taglish message to Liora\'s own line', async () => {
+    const req = { text: 'kailan ako fertile?', pack: '', facts: {}, allowed: {}, thread: [], language: 'tagalog' as const };
+    expect(await sayReply(req)).toBeNull();
+    expect(await sayReply({ ...req, language: 'taglish' })).toBeNull();
+  });
+});
+

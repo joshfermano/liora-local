@@ -62,7 +62,13 @@ export function completeSentences(streamed: string): string {
 // Only sentences that passed the guard ever reach onText; a failure or a late answer keeps what already passed.
 const sentenceCount = (text: string | null) => (text ? text.split(/(?<=[.!?…])\s+|\n+/).filter((s) => s.trim()).length : 0);
 
+// Tested in the app with the real model, its Tagalog drifted in meaning ("nakikiramay", condolences, for
+// a cramp; "mabait", kind, for okay), which no rule can check. So the model words only English replies;
+// in Tagalog or Taglish she gets Liora's own line. Set to false to let the model write Tagalog again.
+export const ENGLISH_ONLY = true;
+
 export async function sayReply(req: ReplyRequest, onText?: (guarded: string) => void): Promise<string | null> {
+  if (ENGLISH_ONLY && req.language !== undefined && req.language !== 'english') return null;
   notePrompt('persona', PROMPTS.persona.version);
   // Only the first turn greets; small models greet every time, so later turns drop it in code too.
   const name = typeof req.facts.her_name === 'string' ? req.facts.her_name : undefined;
