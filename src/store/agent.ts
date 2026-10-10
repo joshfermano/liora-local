@@ -2,10 +2,11 @@ import { applyActions, applyMemory, mergeActions, planActions, undoable, type Ag
 import { useJournalStore } from './journal';
 import { useLogStore } from './log';
 import { timed } from '../core/probe';
+import { modelTime } from '../core/timing';
 import { useMemoryStore } from './memory';
 import { readProfile } from './profile';
 
-type RouteActions = (text: string) => Promise<AgentAction[]>;
+type RouteActions = (text: string, before?: { her?: string; liora?: string }) => Promise<AgentAction[]>;
 type SayReply = (req: ReplyRequest, onText?: (guarded: string) => void) => Promise<string | null>;
 
 let routeActions: RouteActions | null = null;
@@ -24,15 +25,15 @@ export const canSay = () => sayReply !== null;
 
 const ROUTE_TIMEOUT_MS = 4500;
 
-async function routed(text: string): Promise<AgentAction[]> {
+async function routed(text: string, before?: { her?: string; liora?: string }): Promise<AgentAction[]> {
   const route = routeActions;
   if (!route) return [];
   let timer: ReturnType<typeof setTimeout> | undefined;
   const timeout = new Promise<AgentAction[]>((resolve) => {
-    timer = setTimeout(() => resolve([]), ROUTE_TIMEOUT_MS);
+    timer = setTimeout(() => resolve([]), modelTime(ROUTE_TIMEOUT_MS));
   });
   try {
-    return await timed('route', () => Promise.race([route(text), timeout]));
+    return await timed('route', () => Promise.race([route(text, before), timeout]));
   } catch {
     return [];
   } finally {
@@ -46,8 +47,8 @@ export const dataNow = () => {
 };
 
 // Rules first (the triage already read them). Gemma is asked only when the rules found no tool.
-export async function understand(text: string, fromRules: AgentAction[]): Promise<AgentAction[]> {
-  return mergeActions(fromRules, fromRules.length === 0 ? await routed(text) : []);
+export async function understand(text: string, fromRules: AgentAction[], before?: { her?: string; liora?: string }): Promise<AgentAction[]> {
+  return mergeActions(fromRules, fromRules.length === 0 ? await routed(text, before) : []);
 }
 
 export function plan(actions: AgentAction[], today: string) {

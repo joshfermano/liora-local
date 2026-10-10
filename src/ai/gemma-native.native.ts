@@ -3,6 +3,7 @@ import { initLlama } from 'llama.rn';
 import { GEMMA_GGUF, GEMMA_VOICE, type NativeGemma } from './gemma-model';
 import { INTENT_OPTIONS, intentPrompt } from './intent';
 import { PROMPTS } from './prompts';
+import { jsonFrom } from './json-out';
 import { withRetries } from './retry';
 import { PROVISIONAL_THRESHOLDS } from '../core/merge';
 import { transcriptOnly } from './transcript';
@@ -54,9 +55,16 @@ export async function downloadModel(onProgress: (written: number, total: number)
   );
 }
 
+// Test only: the iOS Simulator's GPU reads prompts at about 16 tokens a second, so the simulator test
+// driver runs the model on the Mac's CPU instead. The phone always uses its GPU.
+let onCpu = false;
+export function runGemmaOnCpu(cpu: boolean): void {
+  onCpu = cpu;
+}
+
 export async function loadGemma(): Promise<NativeGemma> {
   const started = Date.now();
-  const ctx = await initLlama({ model: model().uri, n_ctx: 4096, n_gpu_layers: 99, use_mmap: true, use_mlock: false });
+  const ctx = await initLlama({ model: model().uri, n_ctx: 4096, n_gpu_layers: onCpu ? 0 : 99, n_threads: onCpu ? 8 : undefined, use_mmap: true, use_mlock: false });
   const voice = voiceBytesOnDisk() > 0 && (await ctx.initMultimodal({ path: voiceModel().uri, use_gpu: true }));
   const loadMs = Date.now() - started;
 
@@ -85,10 +93,12 @@ export async function loadGemma(): Promise<NativeGemma> {
     const timeout = new Promise<never>((_, reject) => {
       timer = setTimeout(() => {
         // Typed as a promise, but on the phone stopCompletion() can return nothing; either way it must not throw here.
+        // The turn is handed on only once the model has stopped, so the next call never finds it busy.
         void Promise.resolve()
           .then(() => ctx.stopCompletion())
-          .catch(() => {});
-        reject(new Error('The model took too long'));
+          .catch(() => {})
+          .then(() => run.catch(() => {}))
+          .then(() => reject(new Error('The model took too long')));
       }, ms);
     });
     try {
@@ -170,7 +180,9 @@ export async function loadGemma(): Promise<NativeGemma> {
         n_predict: 160,
         temperature: 0,
       });
-      return JSON.parse((await within(run, opts?.timeoutMs ?? 4000)).text.trim());
+      const raw = (await within(run, opts?.timeoutMs ?? 4000)).text.trim();
+      if (__DEV__) console.log(`[gemma] json raw ${JSON.stringify(raw.slice(0, 300))}`);
+      return jsonFrom(raw);
     },
     async say(messages, { nPredict, temperature, timeoutMs = 3000, onToken }) {
       let streamed = '';
@@ -181,7 +193,9 @@ export async function loadGemma(): Promise<NativeGemma> {
           onToken?.(streamed);
         },
       );
-      return (await within(run, timeoutMs)).text.trim();
+      const result = await within(run, timeoutMs);
+      if (__DEV__) console.log(`[gemma] say ${JSON.stringify(result.timings)}`);
+      return result.text.trim();
     },
     release: () => ctx.release(),
   };

@@ -56,6 +56,8 @@ export interface ReplyRequest {
   language?: Language;
   // The first message of a conversation: the only turn that greets her.
   opening?: boolean;
+  // A tool already found the answer: the responder only says it, warmly, and adds nothing.
+  answer?: string;
 }
 
 const GREETING = /^\s*(?:hi+|hello|hey+|hiya|kumusta|kamusta|komusta|musta|uy|hoy|good\s*(?:morning|afternoon|evening|day|night)|g\s*night|goodnight|magandang\s+\w+)\b/i;

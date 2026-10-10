@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import { modelTime } from '../core/timing';
 import { applyFollowUpAnswer, dangerRulesApply, reopenFollowUp, runPipeline } from '../core/pipeline';
 import type { Context, Entry } from '../core/types';
 import { useLogStore } from './log';
@@ -45,7 +46,7 @@ async function cardFor(text: string, context: Context): Promise<string | null> {
   if (!retrieveCard) return null;
   let timer: ReturnType<typeof setTimeout> | undefined;
   const timeout = new Promise<null>((resolve) => {
-    timer = setTimeout(() => resolve(null), CARD_TIMEOUT_MS);
+    timer = setTimeout(() => resolve(null), modelTime(CARD_TIMEOUT_MS));
   });
   try {
     return await Promise.race([retrieveCard(text, context), timeout]);
@@ -76,7 +77,7 @@ async function typedAnswers(text: string): Promise<Record<string, number[]> | un
   }
   let timer: ReturnType<typeof setTimeout> | undefined;
   const timeout = new Promise<undefined>((resolve) => {
-    timer = setTimeout(() => resolve(undefined), MODEL_TIMEOUT_MS);
+    timer = setTimeout(() => resolve(undefined), modelTime(MODEL_TIMEOUT_MS));
   });
   try {
     const answers = await timed('typed', () => Promise.race([ask(text), timeout]));

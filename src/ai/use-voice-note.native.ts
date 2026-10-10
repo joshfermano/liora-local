@@ -10,7 +10,7 @@ import {
 import { File } from 'expo-file-system';
 import { useEffect, useRef, useState } from 'react';
 import { createVad } from '../core/agent';
-import { gemmaSession } from './gemma-session';
+import { runTranscribe } from './gemma-session';
 import { heardWords, MIN_CLIP_MS } from './transcript';
 import { MIC_DENIED, type VoiceNote, type VoiceNoteOptions, type VoiceNoteState } from './voice-note-types';
 
@@ -99,8 +99,7 @@ export function useVoiceNote({ autoStop = false, onHeard }: VoiceNoteOptions = {
         setState('idle');
         return null;
       }
-      const gemma = await gemmaSession();
-      const heard = await gemma.transcribe(uri);
+      const heard = await runTranscribe(uri);
       if (__DEV__) console.log(`[voice] ${size} bytes, ${heard.ms} ms, heard: ${JSON.stringify(heard.text)}`);
       setState('idle');
       const words = heardWords(heard.text, clipMs);

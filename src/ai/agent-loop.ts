@@ -1,10 +1,12 @@
-import { cleanForPrompt, guardReply, withoutGreeting, type ReplyRequest } from '../core/agent';
+import { cleanForPrompt, guardReply, languageOf, withoutGreeting, type ReplyRequest } from '../core/agent';
 import { noteDropped, notePrompt } from '../core/probe';
+import { modelTime } from '../core/timing';
 import type { SayMessage } from './gemma-model';
 import { runSay } from './gemma-session';
 import { PROMPTS } from './prompts';
 
 export const REPLY_TIMEOUT_MS = 4000;
+const dev = typeof __DEV__ !== 'undefined' && __DEV__;
 
 export const PERSONA = PROMPTS.persona.text;
 
@@ -17,15 +19,24 @@ const LANGUAGE = {
 
 const opens = (req: ReplyRequest) => req.opening ?? req.thread.length === 0;
 
+// She wrote in English and the model answered in Tagalog: her fixed English line is shown instead. The
+// prompt asks for her language, but a small model still drifts to Tagalog in an app for Filipino women.
+export function inHerLanguage(reply: string | null, language: ReplyRequest['language']): string | null {
+  if (reply === null || language !== 'english') return reply;
+  return languageOf([reply]) === 'tagalog' ? null : reply;
+}
+
 export function replyMessages(req: ReplyRequest): SayMessage[] {
-  const { text, pack, facts, thread, style, language } = req;
+  const { text, pack, facts, thread, style, language, answer } = req;
   const parts: string[] = [];
-  if (pack.trim()) parts.push(`HER DATA:\n${pack.trim()}`);
+  // With an answer to give, her other data stays out: there is nothing else to say.
+  if (answer) parts.push(`ANSWER:\n${answer}`);
+  else if (pack.trim()) parts.push(`HER DATA:\n${pack.trim()}`);
   parts.push(`WHAT YOU JUST DID:\n${JSON.stringify(facts)}`);
   parts.push(`STYLE: ${style ?? 'steady'}`);
   parts.push(
     opens(req)
-      ? 'CONVERSATION: start (greet her warmly once and say one kind, specific thing about what she logged)'
+      ? 'CONVERSATION: start (greet her warmly in a few words, then answer her message)'
       : 'CONVERSATION: ongoing (no greeting, do not open with her name, answer straight away)',
   );
   if (thread.length > 0) {
@@ -66,28 +77,31 @@ export async function sayReply(req: ReplyRequest, onText?: (guarded: string) => 
   };
   let timer: ReturnType<typeof setTimeout> | undefined;
   const timeout = new Promise<null>((resolve) => {
-    timer = setTimeout(() => resolve(null), REPLY_TIMEOUT_MS);
+    timer = setTimeout(() => resolve(null), modelTime(REPLY_TIMEOUT_MS));
   });
   try {
     const said = await Promise.race([
       runSay(replyMessages(req), {
         nPredict: 160,
         temperature: 0.7,
-        timeoutMs: REPLY_TIMEOUT_MS,
+        timeoutMs: modelTime(REPLY_TIMEOUT_MS),
         onToken: (streamed) => {
           const done = completeSentences(streamed);
           if (done === sentences) return;
           sentences = done;
-          show(tidy(guardReply(done, req.allowed, PERSONA)));
+          show(inHerLanguage(tidy(guardReply(done, req.allowed, PERSONA)), req.language));
         },
       }),
       timeout,
     ]);
+    if (dev) console.log(`[say] ${said === null ? 'timed out' : JSON.stringify(said)}`);
     if (said === null) return shown;
-    const guarded = tidy(guardReply(said, req.allowed, PERSONA));
+    const guarded = inHerLanguage(tidy(guardReply(said, req.allowed, PERSONA)), req.language);
+    if (dev) console.log(`[say] kept ${JSON.stringify(guarded)}`);
     noteDropped(Math.max(0, sentenceCount(said) - sentenceCount(guarded)));
     return guarded;
-  } catch {
+  } catch (error) {
+    if (dev) console.warn(`[say] failed: ${error instanceof Error ? error.message : String(error)}`);
     return shown;
   } finally {
     finished = true;

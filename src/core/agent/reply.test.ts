@@ -30,6 +30,20 @@ describe('guardReply drops what Liora must never say', () => {
     (s) => expect(guardReply(s, nothingDone)).toBeNull(),
   );
 
+  // Every tool already ran before Liora speaks, so an offer or promise can never be kept.
+  it.each([
+    'Since you asked about ovulation, I can look at your cycle data for you.',
+    'Let me check your cycle.',
+    "I'll look into that for you.",
+    'Would you like me to calculate your fertile window?',
+    'Do you want me to check your logs?',
+    'Shall I look at your calendar?',
+    'I can check that for you.',
+    'Titingnan ko ang cycle mo.',
+    'Hahanapin ko yan para sa iyo.',
+    'Gusto mo bang tingnan ko ang logs mo?',
+  ])('an offer or promise: %s', (s) => expect(guardReply(s, saved)).toBeNull());
+
   it.each(['I will remind you tomorrow.', 'I have told your contact.', "I'll text your husband for you."])(
     'an action Liora has no tool for, even after a save: %s',
     (s) => expect(guardReply(s, saved)).toBeNull(),

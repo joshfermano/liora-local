@@ -4,6 +4,7 @@ import { ActivitySchema, FlowSchema, MoodSchema, SymptomSchema } from '../core/t
 import { ACTIVITIES, FLOWS, MOODS, SYMPTOMS } from '../core/vocabulary';
 import { runJson } from './gemma-session';
 import { notePrompt } from '../core/probe';
+import { modelTime } from '../core/timing';
 import { fill, PROMPTS } from './prompts';
 
 const TOOLS = [...WRITE_TOOLS.filter((t) => t !== 'set_status'), 'undo_last', 'ask_day', 'open', 'cycle_question', 'health_question', 'smalltalk'] as const;
@@ -11,6 +12,7 @@ const DATES = ['today', 'yesterday', 'days_ago', 'unknown'] as const;
 const PARTS = ['all', 'flow', 'symptoms', 'moods', 'activities'] as const;
 const SCREENS = ['calendar', 'mood_check', 'checklist', 'profile', 'log_day'] as const satisfies readonly Screen[];
 export const ROUTER_TIMEOUT_MS = 4000;
+const dev = typeof __DEV__ !== 'undefined' && __DEV__;
 
 // Closed on purpose: every field is an enum or a small integer, so nothing she says can become free text.
 export const ROUTER_SCHEMA = {
@@ -130,21 +132,29 @@ export function parseActions(raw: unknown): AgentAction[] {
   return out;
 }
 
-export function routerPrompt(text: string): string {
-  return fill(PROMPTS.router.text, { message: cleanForPrompt(text).replace(/"/g, "'") });
+// `before` is the last exchange, so "do it" or "sige" can be read as what the chat was about.
+export function routerPrompt(text: string, before?: { her?: string; liora?: string }): string {
+  const quote = (s: string) => cleanForPrompt(s, 200).replace(/"/g, "'");
+  const lines = [before?.her ? `Her: "${quote(before.her)}"` : '', before?.liora ? `Liora: "${quote(before.liora)}"` : ''].filter(Boolean);
+  return fill(PROMPTS.router.text, {
+    message: cleanForPrompt(text).replace(/"/g, "'"),
+    before: lines.length ? `Chat before: ${lines.join(' ')}\n` : '',
+  });
 }
 
 // Errors and timeouts mean no actions; the word rules have already read what they could.
-export async function routeWithGemma(text: string): Promise<AgentAction[]> {
+export async function routeWithGemma(text: string, before?: { her?: string; liora?: string }): Promise<AgentAction[]> {
   notePrompt('router', PROMPTS.router.version);
   let timer: ReturnType<typeof setTimeout> | undefined;
   const timeout = new Promise<null>((resolve) => {
-    timer = setTimeout(() => resolve(null), ROUTER_TIMEOUT_MS);
+    timer = setTimeout(() => resolve(null), modelTime(ROUTER_TIMEOUT_MS));
   });
   try {
-    const raw = await Promise.race([runJson(routerPrompt(text), ROUTER_SCHEMA, ROUTER_TIMEOUT_MS), timeout]);
+    const raw = await Promise.race([runJson(routerPrompt(text, before), ROUTER_SCHEMA, modelTime(ROUTER_TIMEOUT_MS)), timeout]);
+    if (dev) console.log(`[router] ${raw === null ? 'timed out' : JSON.stringify(raw)}`);
     return parseActions(raw);
-  } catch {
+  } catch (error) {
+    if (dev) console.warn(`[router] failed: ${error instanceof Error ? error.message : String(error)}`);
     return [];
   } finally {
     clearTimeout(timer);

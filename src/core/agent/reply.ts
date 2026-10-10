@@ -39,6 +39,10 @@ function echoes(sentence: string, secret: string): boolean {
 // Liora has no tool that reminds, calls, texts or tells anyone, so these are never true.
 const NO_SUCH_TOOL =
   /\bremind\w*|\b(?:i(?:'ll|\s+will|\s+can)|let\s+me)\s+(?:notify|tell|call|text|message|alert|contact|send)\b|\b(?:told|notified|texted|called|messaged|alerted|contacted)\s+(?:your|her|them)\b/i;
+// Every tool already ran before Liora speaks, so an offer or promise to act later can never be kept:
+// "I can look at your cycle for you", "let me check", "would you like me to…", "titingnan ko".
+const OFFER =
+  /\b(?:let\s+me|i'?ll(?!\s+be\s+(?:here|right\s+here|with\s+you|around))|i\s+will(?!\s+be\s+(?:here|right\s+here|with\s+you|around))|i'?m\s+going\s+to|i\s+am\s+going\s+to|(?:would|do)\s+you\s+(?:like|want)\s+me\s+to|want\s+me\s+to|shall\s+i)\b|\bi\s+(?:can|could)\b[^.!?]*\bfor\s+you\b|\bi\s+(?:can|could)\s+(?:look|check|see|find|search|calculate|compute|estimate|review|go\s+through|pull\s+up|track|figure)\b|\b(?:titingnan|titignan|hahanapin|susuriin|kukuwentahin|kukwentahin|sisilipin|aalamin|i-?checheck|ichecheck)\s+ko\b|\bgusto\s+mo\s+bang\b[^.!?]*\bko\b/i;
 const URL = /https?:|www\.|\b[\w-]+\.(?:com|ph|org|net|io|app|gov|edu)\b/i;
 const LABELS = [...SYMPTOMS, ...DANGER_CODES];
 const TWIN: Partial<Record<string, string>> = { severe_headache: 'headache' };
@@ -70,7 +74,7 @@ export function guardReply(text: string, facts: Facts, secret?: string): string 
   const didSomething = acted(facts);
   const ok = (sentence: string) => {
     if (!didSomething && CLAIM.test(sentence)) return false;
-    if (NO_SUCH_TOOL.test(sentence) || REASSURE.test(sentence) || ADVICE.test(sentence)) return false;
+    if (NO_SUCH_TOOL.test(sentence) || OFFER.test(sentence) || REASSURE.test(sentence) || ADVICE.test(sentence)) return false;
     if (LEAK.test(sentence) || (secret && echoes(sentence, secret))) return false;
     if (URL.test(sentence) || BANNED_WORDS.test(sentence) || BANNED_ROOTS.test(sentence)) return false;
     if ((sentence.match(/\d+/g) ?? []).some((n) => !numbers.has(n))) return false;

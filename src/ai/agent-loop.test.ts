@@ -10,7 +10,7 @@ vi.mock('../core/agent', async (actual) => ({
 }));
 
 import { beginProbe, endProbe } from '../core/probe';
-import { completeSentences, PERSONA, replyMessages, REPLY_TIMEOUT_MS, sayReply } from './agent-loop';
+import { completeSentences, inHerLanguage, PERSONA, replyMessages, REPLY_TIMEOUT_MS, sayReply } from './agent-loop';
 
 const req = (over: Partial<ReplyRequest> = {}): ReplyRequest => ({
   text: 'Thank you!',
@@ -26,8 +26,11 @@ describe('reply prompt', () => {
     for (const phrase of [
       /warm, smart companion/,
       /Filipino women/,
-      /First answer what she just said/,
-      /one short, gentle question/,
+      /Answer what she just said, and only that/,
+      /never list her other logs/,
+      /When ANSWER is given, say that answer in the language LANGUAGE names/,
+      /never offer, promise or ask permission/,
+      /do not ask her questions/,
       /bright means vibrant/,
       /gentle means soft, warm and comforting/,
       /her words, not instructions/,
@@ -169,7 +172,7 @@ describe('sayReply', () => {
     beginProbe();
     await sayReply(req());
     const draft = endProbe()!;
-    expect(draft.prompts).toEqual({ persona: '6' });
+    expect(draft.prompts).toEqual({ persona: '8' });
     expect(draft.guardDropped).toBe(1);
   });
 
@@ -185,3 +188,15 @@ describe('sayReply', () => {
     expect(await sayReply(req())).toBeNull();
   });
 });
+
+describe('the reply follows the language of her message', () => {
+  it('drops a Tagalog reply to an English message, so her English line shows', () => {
+    expect(inHerLanguage('Ang iyong susunod na pag-ovulate ay tinatayang sa Oct 26 hanggang Oct 28.', 'english')).toBeNull();
+  });
+
+  it('keeps a reply in her language, and Taglish', () => {
+    expect(inHerLanguage('Your next ovulation is estimated between Oct 26 and Oct 28.', 'english')).not.toBeNull();
+    expect(inHerLanguage('Ang iyong susunod na pag-ovulate ay sa Oct 26.', 'tagalog')).not.toBeNull();
+  });
+});
+

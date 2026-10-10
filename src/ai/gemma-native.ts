@@ -20,6 +20,8 @@ export function downloadVoice(_onProgress: (written: number, total: number) => v
   return unavailable();
 }
 
+export function runGemmaOnCpu(_cpu: boolean): void {}
+
 export function loadGemma(): Promise<NativeGemma> {
   return unavailable();
 }

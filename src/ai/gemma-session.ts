@@ -13,14 +13,24 @@ export function gemmaSession(): Promise<NativeGemma> {
   return session;
 }
 
+// One call at a time: the context runs one completion, and a second call while one runs fails at once
+// with "Context is busy". A call waits its turn instead, and a call that timed out holds the turn until
+// the model has really stopped.
+let lane: Promise<unknown> = Promise.resolve();
+function inTurn<T>(job: () => Promise<T>): Promise<T> {
+  const run = lane.then(job, job);
+  lane = run.catch(() => {});
+  return run;
+}
+
 export async function askGemma(text: string): Promise<Record<string, number[]>> {
   const gemma = await gemmaSession();
-  return (await gemma.decide(text)).answers;
+  return (await inTurn(() => gemma.decide(text))).answers;
 }
 
 export async function askIntent(text: string): Promise<Intent | null> {
   const gemma = await gemmaSession();
-  return pickIntent((await gemma.intent(text)).probs);
+  return pickIntent((await inTurn(() => gemma.intent(text))).probs);
 }
 
 export async function releaseGemma(): Promise<void> {
@@ -30,9 +40,16 @@ export async function releaseGemma(): Promise<void> {
 }
 
 export async function runJson(prompt: string, schema: object, timeoutMs?: number): Promise<unknown> {
-  return (await gemmaSession()).json(prompt, schema, { timeoutMs });
+  const gemma = await gemmaSession();
+  return inTurn(() => gemma.json(prompt, schema, { timeoutMs }));
 }
 
 export async function runSay(...args: Parameters<NativeGemma['say']>): Promise<string> {
-  return (await gemmaSession()).say(...args);
+  const gemma = await gemmaSession();
+  return inTurn(() => gemma.say(...args));
+}
+
+export async function runTranscribe(wavUri: string): Promise<{ text: string; ms: number }> {
+  const gemma = await gemmaSession();
+  return inTurn(() => gemma.transcribe(wavUri));
 }
