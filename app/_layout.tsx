@@ -8,6 +8,7 @@ import { bootGemma } from '../src/ai/gemma-boot';
 import { gemmaSession } from '../src/ai/gemma-session';
 import { storage } from '../src/store/storage';
 import { useAiStatus } from '../src/ui/status';
+import { useDevDriver } from '../src/ui/dev/driver';
 
 // Card vectors are kept on the phone so a later launch embeds only new or changed cards.
 setCardVectorStorage(storage);
@@ -15,6 +16,7 @@ setCardVectorStorage(storage);
 export default function RootLayout() {
   // Marcellus only sets calm titles; a failed load must never block an urgent screen.
   const [loaded, error] = useFonts({ Marcellus_400Regular });
+  useDevDriver();
   useEffect(() => {
     if (!bootGemma()) return;
     const { setOn } = useAiStatus.getState();
