@@ -26,7 +26,7 @@ in `.claude/agents/` and the slash commands in `.claude/commands/` come with the
 
 ## What it is
 
-A web app (Expo exported for web, opened in Safari on iPhone) that helps a pregnant or new mother
+A native iPhone app (Expo prebuild, llama.rn; the web export still builds) that helps a pregnant or new mother
 decide whether a symptom means "go to the hospital now" or "this can wait". She types or speaks
 Taglish. On-device Gemma 4 turns her words into Jev-style typed decisions (symptom codes, each with
 a confidence). A deterministic decision model from WHO and DOH sources decides. Cited source cards,
@@ -68,12 +68,11 @@ next-period estimate. Everything runs on the device.
 
 ## Testing on the iPhones
 
-- **Quick loop:** `pnpm build:workers`, then `pnpm expo start --tunnel`. It gives an
-  `https://…exp.direct` address with live reload that Safari accepts for WebGPU and the microphone.
-  In development the app and its public files are served from the root (for example `/dev/workers`),
-  not under `/liora-local`. The laptop must stay awake and online.
-- **Release check:** the GitHub Pages build, served under `/liora-local/`. Offline mode, the Home
-  Screen web app and every measured number count only there.
+- **Quick loop:** a Debug build on the iPhone loads the app from Metro on the build Mac and live
+  reloads; the phone stays on the same Wi-Fi (details in `.tmp/EXTRAS.md`).
+- **Release check:** a Release build (JavaScript inside the app). Open it once on Wi-Fi after each
+  install (iOS checks a developer-signed build online), then airplane mode. Offline checks and every
+  measured number count only on a Release build on the iPhone 17 Pro.
 
 ## Commits: Conventional Commits
 

@@ -3,15 +3,15 @@
 **Know when to go, even with no signal and no one watching.**
 
 Tell Liora helps a pregnant woman or a new mother decide, at any hour and with no signal, whether
-what she feels means "go to the hospital now" or "this can wait for your check-up". She types or
-says how she feels, in Tagalog, English or Taglish. Everything runs on her phone.
+what she feels means "go to the hospital now", "go to the health centre as soon as possible" or
+"this can wait for your check-up". It also keeps her cycle, symptom and mood log. She types or says
+how she feels, in Tagalog, English or Taglish, to Liora, an on-device AI agent. Everything runs on
+her phone, fully offline after setup.
 
-> **Status (9 Oct 2026, 11 PM):** hackathon build for the
+> **Status (10 Oct 2026, 9 AM, code freeze):** submission for the
 > [AppBuildersPH Hackathon 2026](https://cerebralvalley.ai/e/appbuildersph-hackathon-2026)
-> (theme: Local AI; code freeze 10:00 AM, 10 Oct 2026, Manila). Tell Liora is a **native iPhone
-> app**: Gemma 4 runs on the phone and the core flow (her message, Gemma's typed answers, the WHO
-> rules, the go-now screen) works on an iPhone. The feature table says exactly what is built and what
-> has been checked on a phone.
+> (theme: Local AI). Tell Liora is a **native iPhone app** running Gemma 4 E2B and EmbeddingGemma on
+> the phone. The feature table says exactly what is built and what was checked on the demo iPhone.
 
 ## The moment we're solving
 
@@ -164,7 +164,9 @@ browser.
 Expo SDK 57 with a native iOS build (Expo prebuild, Xcode 27), Expo Router, React 19.2, React Native
 0.86, NativeWind 4.2 with Tailwind 3.4, Reanimated 4.5, Zustand 5, Zod 4, date-fns 4, TypeScript 6.0.
 llama.rn runs the models; expo-audio records 16 kHz WAV for speech; expo-file-system holds the model
-files. Data lives in one JSON file on the phone (IndexedDB on the web). Tests use Vitest.
+files; Expo Router native tabs (Liquid Glass), @expo/ui wheel pickers, expo-local-authentication
+(Face ID), expo-print and expo-sharing (the nurse report PDF), expo-haptics. Data lives in one JSON
+file on the phone (IndexedDB on the web). Tests use Vitest (2,100+ tests).
 
 ## Recreate it
 
@@ -174,7 +176,7 @@ You need a Mac with Xcode 27, an Apple ID (a free one works), and an iPhone with
 git clone https://github.com/joshfermano/liora-local.git
 cd liora-local
 pnpm install
-pnpm test && pnpm typecheck            # 345 tests: rules, word list, typed decisions, scoring
+pnpm test && pnpm typecheck            # 2,100+ tests: rules, agent, word list, cycle maths, chat
 APPLE_TEAM_ID=<your team id> npx expo prebuild -p ios
 npx expo run:ios --device --configuration Release
 ```
@@ -190,6 +192,10 @@ asks only for Increased Memory Limit. `npx expo export -p web` builds the web ve
 | --- | --- |
 | `docs/superpowers/specs/2026-10-09-tell-liora-design.md` | The build spec: requirements, pipeline, decision model, models, timeline |
 | `docs/research-summary.md` | Verified facts, refuted claims, open questions |
+| `docs/submission.md` | Every submission answer, ready to paste |
+| `docs/demo-script.md` | The 5-minute live demo, checked against the rules |
+| `docs/demo-test-prompts.md` | Scenario prompts and expected results for testing |
+| `docs/brand/app-icon.md` | The app icon: idea, files and how to use it |
 | `PRODUCT.md`, `DESIGN.md` | Product context and the design system (Capiz Light) |
 | `HANDOFF.md` | Current status, decisions and next steps |
 | `AGENTS.md`, `CLAUDE.md` | Instructions for coding agents, including the commit convention |
@@ -214,18 +220,36 @@ ships without a cited source.
 - **Models:** listed above. All run on the device.
 - **Technologies:** listed under Tech stack.
 - **APIs and cloud services:** none at runtime. Setup downloads the model files from Hugging Face.
-- **Runs locally:** speech to text, typed decisions, source-card search, the rule-based decision
-  model, the mood check, and storage. **Needs internet:** the first model download only.
+- **Runs locally (all of it, in airplane mode):** the Liora chat agent and its replies (Gemma 4
+  E2B), voice to text (Gemma 4's audio encoder), source-card search (EmbeddingGemma 300M), the WHO
+  rule-based decisions, cycle and fertile-window estimates, the mood check, the nurse report and its
+  PDF, Face ID, and all storage.
+- **Needs internet:** only the one-time model download at setup (about 3.5 GB from Hugging Face,
+  on Wi-Fi). Two things she chooses to do leave the app: "Open the official document" opens the WHO
+  or DOH page in Safari, and Call / Text uses the phone's own call and messages apps. (A
+  developer-signed build is also checked online by iOS the first time it opens; that is Apple's
+  check, not the app's.)
 - **Existing code and assets:** no existing code; every source file was written during the
-  hackathon. WHO and DOH passages and the PHQ-9 are cited third-party content. The typed-decision
+  hackathon. Open-source libraries from npm (listed in `package.json`), the Marcellus font (SIL Open
+  Font License, via `@expo-google-fonts`) and Apple's SF Symbols are used as published. The app
+  icon and illustrations were drawn during the hackathon. WHO and DOH passages and the PHQ-9 are
+  cited third-party content. The typed-decision
   method follows TypeSafe AI's public description of Jev and
   the open SemIf method; no TypeSafe code or service is used.
-- **AI development tools:** [Claude Code](https://claude.com/claude-code) (Anthropic), with the
-  agent skills listed in `skills-lock.json` and the project subagents in `.claude/agents/`.
+- **AI development tools:** [Claude Code](https://claude.com/claude-code) (Anthropic; Claude Opus 5.5,
+  with Claude Sonnet 5.5 and Claude Haiku 5.5 subagents), with the agent skills listed in
+  `skills-lock.json` and the project subagents in `.claude/agents/`. Higgsfield was used for the
+  demo video's story scenes only; every app screen in the video is a real screen recording.
+
+## Hardware tested on
+
+- **iPhone 17 Pro**, iOS 27.2: the demo phone and the only phone for measured numbers.
+- **iPhone 16 Pro Max**: development testing.
+- Builds on a Mac with Xcode 27; development on Linux and macOS laptops.
 
 ## Team
 
-To be added before submission.
+**Lumosyn Labs**: Josh Fermano, Ivan Reeve Lopez, Uriel Papa.
 
 ## After the hackathon
 

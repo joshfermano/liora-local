@@ -312,7 +312,8 @@ components:
 
 # Design System: Tell Liora
 
-**Status, 2026-10-09:** nothing is built. Every component below is committed, not yet built.
+**Status, 2026-10-10:** built as a native iPhone app. Where the app and this file differ, the app's
+screens and `docs/brand/app-icon.md` show what shipped.
 Re-run `$impeccable document` in scan mode once the screens exist, and update this file to match
 what was built.
 

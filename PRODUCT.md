@@ -8,7 +8,8 @@ web
 
 A mobile web app, iPhone first: Safari and the Home Screen web app on the iPhone 17 and iPhone 17
 Pro (iOS 27.2), plus current desktop Chrome and Safari. It follows iOS conventions where
-the web can carry them. There is no native build.
+the web can carry them. Since 9 Oct, 9:55 PM it is a native iPhone app (Expo prebuild, llama.rn);
+the web export still builds as a fallback.
 
 ## Stack
 
