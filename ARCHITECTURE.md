@@ -19,14 +19,14 @@ src/core        the domain: WHO rules, cycle maths, triage, agent policy (pure T
 
 ## Rules
 
-| Layer | May import | Must not import |
-| --- | --- | --- |
-| `src/core` | `src/core`, `zod`, `date-fns` | anything else: no React, React Native, Expo, zustand or model library |
-| `src/content` | `src/core` | `src/ai`, `src/store`, `src/ui` |
-| `src/ai` | `src/core`, `src/content` | `src/store`, `src/ui` |
-| `src/store` | `src/core`, `src/content` | `src/ai` (model functions are injected), `src/ui` |
-| `src/ui` | everything below it | `app/` |
-| `app/` | everything | |
+| Layer         | May import                    | Must not import                                                       |
+| ------------- | ----------------------------- | --------------------------------------------------------------------- |
+| `src/core`    | `src/core`, `zod`, `date-fns` | anything else: no React, React Native, Expo, zustand or model library |
+| `src/content` | `src/core`                    | `src/ai`, `src/store`, `src/ui`                                       |
+| `src/ai`      | `src/core`, `src/content`     | `src/store`, `src/ui`                                                 |
+| `src/store`   | `src/core`, `src/content`     | `src/ai` (model functions are injected), `src/ui`                     |
+| `src/ui`      | everything below it           | `app/`                                                                |
+| `app/`        | everything                    |                                                                       |
 
 `scripts/architecture.test.ts` enforces this table on every `pnpm test`. Known exceptions are
 listed there by file, each with the move that removes it; the list may only shrink.
