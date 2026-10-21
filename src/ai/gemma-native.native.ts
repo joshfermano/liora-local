@@ -1,5 +1,5 @@
 import { File, Paths } from 'expo-file-system';
-import { initLlama } from 'llama.rn';
+import type { initLlama as InitLlama } from 'llama.rn';
 import { GEMMA_GGUF, GEMMA_VOICE, type NativeGemma } from './gemma-model';
 import { INTENT_OPTIONS, intentPrompt } from './intent';
 import { PROMPTS } from './prompts';
@@ -18,6 +18,11 @@ import {
   type Question,
 } from './typed-decisions';
 
+
+// llama.rn is a native module that Expo Go does not include, so it loads only when a model starts.
+function loadLlama(): typeof InitLlama {
+  return (require('llama.rn') as { initLlama: typeof InitLlama }).initLlama;
+}
 export { GEMMA_GGUF, GEMMA_VOICE, type NativeGemma } from './gemma-model';
 
 const model = () => new File(Paths.document, GEMMA_GGUF.file);
@@ -66,6 +71,7 @@ export async function loadGemma(): Promise<NativeGemma> {
   const started = Date.now();
   // The phone's call is exactly as before; only the simulator test adds its CPU settings.
   const where = onCpu ? { n_gpu_layers: 0, n_threads: 8 } : { n_gpu_layers: 99 };
+  const initLlama = loadLlama();
   const ctx = await initLlama({ model: model().uri, n_ctx: 4096, ...where, use_mmap: true, use_mlock: false });
   const voice = voiceBytesOnDisk() > 0 && (await ctx.initMultimodal({ path: voiceModel().uri, use_gpu: true }));
   const loadMs = Date.now() - started;
