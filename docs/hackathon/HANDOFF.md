@@ -1,5 +1,8 @@
 # HANDOFF: Tell Liora (liora-local)
 
+> Archived at the hackathon code freeze, 10 Oct 2026. The submitted code is the
+> `hackathon-submission` tag.
+
 **Last updated:** 2026-10-10, 5:28 AM Manila (two WHO lists with go-soon, Sources screen, chat memory, Face ID lock on every tab, capiz window icon; release build and measurements next).
 **Deadline:** code freeze and submission **10:00 AM, 10 Oct 2026**, on
 cerebralvalley.ai/e/appbuildersph-hackathon-2026. One submission, no edits after.
@@ -17,9 +20,9 @@ claude
 
 Then type `/handoff`. Or paste this prompt:
 
-> Read HANDOFF.md, the spec in docs/superpowers/specs/, and docs/research-summary.md. Check
+> Read docs/hackathon/HANDOFF.md, the spec in docs/superpowers/specs/, and docs/research-summary.md. Check
 > `git log` and the Manila time. Tell me in plain language where we are and the single next step,
-> then continue from HANDOFF.md section 2.
+> then continue from docs/hackathon/HANDOFF.md section 2.
 
 Update section 1 and section 2 of this file as work completes, so any session can pick up.
 
@@ -65,7 +68,7 @@ Update section 1 and section 2 of this file as work completes, so any session ca
    last 10 turns, reads "sobrang sakit" with the message before, and starts each reply from a
    "Right now" line; Face ID locks every tab; a Sources screen (Profile → Sources Liora uses)
    lists each WHO and DOH document with its passages and official link; the app icon is the lit
-   capiz window (`docs/brand/app-icon.md`). Test prompts: `docs/demo-test-prompts.md`.
+   capiz window (`docs/brand/app-icon.md`). Test prompts: `docs/hackathon/demo-test-prompts.md`.
 2. **Feature cutoff about 5 AM.** Then: the release build on the iPhone 17 Pro without
    `EXPO_PUBLIC_SHOW_DEV`, after one run with it for measurements.
 3. **Measurements (LUM-77):** load, answer and transcription times on the iPhone 17 Pro only (team
@@ -189,7 +192,7 @@ check shows a crisis hotline on any self-harm answer. Nothing leaves the phone.
 
 | File                                                                | Purpose                                                   |
 | ------------------------------------------------------------------- | --------------------------------------------------------- |
-| `HANDOFF.md`                                                        | This file: status, next steps, decisions                  |
+| `docs/hackathon/HANDOFF.md`                                                        | This file: status, next steps, decisions                  |
 | `PRODUCT.md`, `DESIGN.md` | Product context and the design system; impeccable reads both. Components are committed, not built: re-run `$impeccable document` once screens exist |
 | `.claude/agents/` (ours) | Six subagents: ui-ux-designer, frontend-engineer, ai-engineer, backend-architect, devops-engineer (Haiku), safety-reviewer. Roster and usage rules in CLAUDE.md |
 | `scripts/ci-status.sh`, `.claude/commands/ci-watch.md` | Free commit and CI check; `/loop 15m /ci-watch` wakes the devops agent only on a flag |
@@ -207,8 +210,8 @@ check shows a crisis hotline on any self-harm answer. Nothing leaves the phone.
 
 ## 10. Demo script, judge Q&A and the 10 AM checklist
 
-**The 5-minute demo (current, 6:15 AM):** `docs/demo-script.md` supersedes the older script below.
-**Test before the demo:** `docs/demo-test-prompts.md` lists scenario prompts with expected results
+**The 5-minute demo (current, 6:15 AM):** `docs/hackathon/demo-script.md` supersedes the older script below.
+**Test before the demo:** `docs/hackathon/demo-test-prompts.md` lists scenario prompts with expected results
 (rules rows verified at 4:20 AM, 10 Oct) and a suggested 5-minute path.
 
 From the team's plain-language guide (kept outside the repo). If it and the spec disagree, the spec

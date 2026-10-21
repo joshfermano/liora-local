@@ -91,7 +91,7 @@ export const COPY = {
   'severity.mild': ui('mild'),
   'severity.unknown': ui('not sure yet'),
 
-  // "Sobrang sakit ba?" is the team's own wording from the demo script (HANDOFF.md section 10).
+  // "Sobrang sakit ba?" is the team's own wording from the demo script (docs/hackathon/HANDOFF.md section 10).
   'fu.severe_headache': ui('Is it very painful?', 'Sobrang sakit ba?'),
   'fu.severe_pain': ui('Is it very painful?', 'Sobrang sakit ba?'),
   'fu.severe_abdominal_pain': ui('Is it very painful?', 'Sobrang sakit ba?'),

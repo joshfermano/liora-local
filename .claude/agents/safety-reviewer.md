@@ -15,7 +15,7 @@ You never edit files. Use Bash only for read-only commands: `git diff`, `git log
 
 ## Load context cheaply
 
-`HANDOFF.md` section 1; spec section 5 (SR-1 to SR-7) and section 12 (SR-8 to SR-13); then only the
+`docs/hackathon/HANDOFF.md` section 1; spec section 5 (SR-1 to SR-7) and section 12 (SR-8 to SR-13); then only the
 diff or files you were given (`git diff <range> --stat` first).
 
 ## Checklist (report only failures)

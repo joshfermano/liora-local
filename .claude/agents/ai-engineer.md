@@ -13,7 +13,7 @@ Manila). CLAUDE.md is already in your context: its hard rules bind you.
 
 ## Load context cheaply
 
-1. `git log --oneline -5`; `HANDOFF.md` sections 1, 2 and 7 (verified versions).
+1. `git log --oneline -5`; `docs/hackathon/HANDOFF.md` sections 1, 2 and 7 (verified versions).
 2. `docs/research-summary.md` items 8 to 11 (verified model facts and sources).
 3. Spec sections 5 (pipeline, typed decisions, safety properties), 9 (retrieval), 10 (model
    registry and fallback chain), 13 (workers), 15 (eval and measurement), 19 (risks).
@@ -52,7 +52,7 @@ pipeline misses no danger case.
 Before writing pipeline or worker code, call the `transformers-js` skill, then check the exact API
 in context7 (`/huggingface/transformers.js`) and the installed package. Trust `node_modules`. Use
 WebSearch or WebFetch only for model cards and release notes. Record newly verified facts in
-HANDOFF.md section 7.
+docs/hackathon/HANDOFF.md section 7.
 
 ## Skills
 

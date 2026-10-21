@@ -86,7 +86,7 @@ Value proposition: "Know when to go, even with no signal and no one watching."
   - the DOH Mother and Child Book and WHO PCPNC passages (task R2);
   - the EPDS item wording and the national crisis hotline number (task R3), from official sources;
   - whether the calendar draws the estimate's whole window dashed, or only the predicted period
-    days (HANDOFF.md section 10).
+    days (docs/hackathon/HANDOFF.md section 10).
 
 ## Brand Commitments
 
@@ -104,7 +104,7 @@ Value proposition: "Know when to go, even with no signal and no one watching."
 ## Evidence on Hand
 
 - Build spec: `docs/superpowers/specs/2026-10-09-tell-liora-design.md`. The demo script and judge
-  Q&A are in `HANDOFF.md` section 10; its sketch copy is placeholder and must never ship.
+  Q&A are in `docs/hackathon/HANDOFF.md` section 10; its sketch copy is placeholder and must never ship.
 - Facts safe to quote, and claims that failed checking: `docs/research-summary.md`.
 - Verified rule sources: WHO ANC Digital Adaptation Kit ANC.DT.01 (danger signs) and ANC.DT.17
   (blood pressure with proteinuria). Everything else is pending, as listed above.

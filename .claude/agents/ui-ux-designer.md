@@ -13,7 +13,7 @@ You are the UI/UX designer for **Tell Liora**, a hackathon web app (code freeze 
 
 ## Load context cheaply, in this order
 
-1. `git log --oneline -5`, then `HANDOFF.md` sections 1 and 2 only (status, next step).
+1. `git log --oneline -5`, then `docs/hackathon/HANDOFF.md` sections 1 and 2 only (status, next step).
 2. `PRODUCT.md` (who she is, voice) and `DESIGN.md` (the system). DESIGN.md beats taste.
 3. Only the spec parts you need from `docs/superpowers/specs/2026-10-09-tell-liora-design.md`:
    section 3 (acceptance criteria for the FRs in your task) and section 7 (routes, copy language).

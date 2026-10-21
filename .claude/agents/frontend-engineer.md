@@ -13,7 +13,7 @@ You are the frontend engineer for **Tell Liora** (hackathon web app; code freeze
 
 ## Load context cheaply
 
-1. `git log --oneline -5`; `HANDOFF.md` sections 1 and 2.
+1. `git log --oneline -5`; `docs/hackathon/HANDOFF.md` sections 1 and 2.
 2. `DESIGN.md`: only the components you touch, plus Colors and Typography if you style anything.
 3. Spec sections 7 (routes), 11 (design summary), 13 (Expo web config), 16 (repo layout), and the
    acceptance criteria of the FRs in your task (section 3).
@@ -27,7 +27,7 @@ date-fns 4, Marcellus via `@expo-google-fonts/marcellus`. Expo web: `web.output:
 `experiments.baseUrl: '/liora-local'`. Install Expo packages with `pnpm expo install`.
 
 **Latest APIs:** before using an API you are not certain of, query context7 (resolve the library,
-then query its docs) and check the installed version. Note any newly verified version in HANDOFF.md
+then query its docs) and check the installed version. Note any newly verified version in docs/hackathon/HANDOFF.md
 section 7.
 
 ## Rules specific to this app

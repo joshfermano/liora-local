@@ -4,19 +4,20 @@ Instructions for every coding agent working in this repo (Claude Code, Codex, Cu
 others). Claude Code reads this file through `CLAUDE.md`, which imports it and adds Claude-only
 notes (skills, subagents, hooks).
 
-Hackathon build for **AppBuildersPH Hackathon 2026** (theme: Local AI). Code freeze **10:00 AM,
-10 Oct 2026, Asia/Manila**. One submission. Repo must be public by then.
+Built for the **AppBuildersPH Hackathon 2026** (theme: Local AI) and submitted before the code
+freeze at 10:00 AM, 10 Oct 2026, Asia/Manila. The submitted state is the `hackathon-submission` tag;
+later commits are fixes and polish.
 
 ## Start here
 
-1. Read `HANDOFF.md`: current status, decisions already made, what is pending, next step.
+1. Read `docs/hackathon/HANDOFF.md`: the status, decisions and pending work at the code freeze.
 2. The build spec is `docs/superpowers/specs/2026-10-09-tell-liora-design.md`. It is the source of
    truth. Requirements have IDs (`FR-`, `NFR-`, `SR-`).
 3. Verified research and facts allowed in the pitch: `docs/research-summary.md`.
 4. Product context and design system: `PRODUCT.md` and `DESIGN.md` (Capiz Light).
-5. Demo script, judge Q&A and the 10 AM checklist: `HANDOFF.md` section 10.
+5. Demo script, judge Q&A and the 10 AM checklist: `docs/hackathon/HANDOFF.md` section 10.
 
-Do not re-open decisions recorded in `HANDOFF.md` unless the user asks.
+Do not re-open decisions recorded in `docs/hackathon/HANDOFF.md` unless the user asks.
 
 ## Setup, once per clone
 

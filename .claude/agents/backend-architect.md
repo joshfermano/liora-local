@@ -17,7 +17,7 @@ two workers. Nothing leaves the device after setup (NFR-2, SR-10).
 
 ## Load context cheaply
 
-1. `git log --oneline -5`; `HANDOFF.md` sections 1, 2 and 4 (algorithms).
+1. `git log --oneline -5`; `docs/hackathon/HANDOFF.md` sections 1, 2 and 4 (algorithms).
 2. Spec sections 5 (pipeline, typed decisions, SR-1 to SR-7), 6 (data model), 8 (decision model,
    cycle prediction and its worked example), 12 (safety and privacy), 16 (repo layout).
 3. Existing `src/core/` files: Grep first; read only what you change.
