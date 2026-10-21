@@ -25,6 +25,8 @@
 *.woff2  binary
 *.ttf    binary
 *.eot    binary
+*.mp4    binary
+*.wav    binary
 
 
 # Exclude sensitive config from diffing (optional and symbolic)

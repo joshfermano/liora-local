@@ -1,19 +1,30 @@
+<div align="center">
+
+<img src="docs/media/icon.png" width="96" alt="Tell Liora app icon: a lit capiz window" />
+
 # Tell Liora
 
-**Know when to go, even with no signal and no one watching.**
+**Know when to go, even with no signal.**
 
-Tell Liora helps a pregnant woman or a new mother decide, at any hour and with no signal, whether
-what she feels means "go to the hospital now", "go to the health centre as soon as possible" or
-"this can wait for your check-up". It also keeps her cycle, symptom and mood log. She types or says
-how she feels, in Tagalog, English or Taglish, to Liora, an on-device AI agent. Everything runs on
-her phone, fully offline after setup.
+An offline AI companion for Filipino mothers. She tells Liora how she feels in Tagalog, English or
+Taglish. Gemma 4 runs on her iPhone, and rules written from WHO guidance tell her whether to go to
+the hospital now, go to the health centre soon, or wait.
 
-> **Status (10 Oct 2026, 9 AM, code freeze):** submission for the
-> [AppBuildersPH Hackathon 2026](https://cerebralvalley.ai/e/appbuildersph-hackathon-2026)
-> (theme: Local AI). Tell Liora is a **native iPhone app** running Gemma 4 E2B and EmbeddingGemma on
-> the phone. The feature table says exactly what is built and what was checked on the demo iPhone.
+![iOS native app](https://img.shields.io/badge/iOS-native%20app-111111?logo=apple&logoColor=white)
+![Expo SDK 57](https://img.shields.io/badge/Expo-SDK%2057-000020?logo=expo&logoColor=white)
+![Gemma 4 on device](https://img.shields.io/badge/Gemma%204-on%20device-c2255c)
+![Works offline](https://img.shields.io/badge/works-in%20airplane%20mode-5e4036)
+![Tests](https://img.shields.io/badge/tests-2%2C100%2B%20passing-2e7d32)
+![AppBuildersPH Hackathon 2026](https://img.shields.io/badge/AppBuildersPH-Hackathon%202026-743c62)
 
-## The moment we're solving
+<img src="docs/media/tell-liora-preview.webp" width="100%" alt="The Tell Liora launch film: setup, Today, Log your day, Calendar, the Liora chat, Liora Live voice and dark mode, all real app screens" />
+
+[**Watch the 30-second film with sound**](docs/media/tell-liora-launch.mp4) ·
+[How it works](#how-it-works) · [Safety](#safety-by-design) · [Run it](#run-it)
+
+</div>
+
+## The moment it's built for
 
 In the Philippines, a pregnant woman goes to the health centre herself; nobody visits her. So the
 hard moment happens at home. It's 2 AM, she's 32 weeks pregnant, she has a bad headache and blurry
@@ -21,7 +32,8 @@ vision. The centre is closed, she has no load or signal, and she doesn't want to
 something that might be nothing. Today she guesses, searches online, asks a Facebook group, or waits
 until morning.
 
-Context, from checked sources:
+Tell Liora gives her an answer on the phone itself, at any hour, and keeps her cycle, symptom and
+mood log beside it. Context, from checked sources:
 
 - After the late-2024 storms, birthing facilities in Bato, Bula and Nabua (Camarines Sur) closed
   temporarily, and flooding damaged medicines and emergency transport
@@ -31,7 +43,41 @@ Context, from checked sources:
   sample was mostly recruited through Facebook ads and is not nationally representative
   ([Filoteo et al., BMJ Open, Feb 2026](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC12918685/)).
 
+## Screens
+
+Every image is an unedited screenshot of the app running on an iPhone.
+
+<table>
+  <tr>
+    <td align="center" width="25%"><img src="docs/media/screens/01-welcome.png" width="200" alt="Welcome screen with the capiz window" /><br /><sub><b>Welcome</b><br />Her name stays on the phone</sub></td>
+    <td align="center" width="25%"><img src="docs/media/screens/02-offline-setup.png" width="200" alt="Get Liora ready for offline, all three models ready" /><br /><sub><b>Offline setup</b><br />One download on Wi-Fi, then no signal needed</sub></td>
+    <td align="center" width="25%"><img src="docs/media/screens/03-today.png" width="200" alt="Today screen on period day 1" /><br /><sub><b>Today</b><br />Her day, quick logs and the Tell Liora bar</sub></td>
+    <td align="center" width="25%"><img src="docs/media/screens/04-cycle-estimates.png" width="200" alt="Fertile window card labelled An estimate, not contraception" /><br /><sub><b>Cycle estimates</b><br />Each one says how sure it is</sub></td>
+  </tr>
+  <tr>
+    <td align="center"><img src="docs/media/screens/05-log-your-day.png" width="200" alt="Log your day sheet with flow and symptoms" /><br /><sub><b>Log your day</b><br />Flow, symptoms, discharge, moods, activities</sub></td>
+    <td align="center"><img src="docs/media/screens/06-calendar.png" width="200" alt="Calendar with logged period days and dashed estimates" /><br /><sub><b>Calendar</b><br />Logged days fill in, estimates stay dashed</sub></td>
+    <td align="center"><img src="docs/media/screens/07-liora-chat.png" width="200" alt="Liora chat greeting with shortcuts" /><br /><sub><b>Liora chat</b><br />Taglish in, with the danger-sign checklist one tap away</sub></td>
+    <td align="center"><img src="docs/media/screens/08-liora-live.png" width="200" alt="Liora Live voice screen listening" /><br /><sub><b>Liora Live</b><br />Hands-free voice, on the phone</sub></td>
+  </tr>
+  <tr>
+    <td align="center"><img src="docs/media/screens/09-dark-today.png" width="200" alt="Today in dark mode" /><br /><sub><b>Today</b>, dark</sub></td>
+    <td align="center"><img src="docs/media/screens/10-dark-calendar.png" width="200" alt="Calendar in dark mode" /><br /><sub><b>Calendar</b>, dark</sub></td>
+    <td align="center"><img src="docs/media/screens/11-dark-liora.png" width="200" alt="Liora chat in dark mode" /><br /><sub><b>Liora</b>, dark</sub></td>
+    <td align="center"><img src="docs/media/screens/12-dark-profile.png" width="200" alt="Profile in dark mode" /><br /><sub><b>Profile</b>, dark</sub></td>
+  </tr>
+</table>
+
 ## How it works
+
+```mermaid
+flowchart LR
+  A["Her words<br/>typed or spoken, in Taglish"] --> B["Readers<br/>Taglish word list +<br/>Gemma 4 typed questions"]
+  B --> C{"Decision model<br/>WHO and DOH rules"}
+  C -->|danger sign| D["Go now<br/>WHO's fixed words,<br/>Call / Text her contact"]
+  C -->|unsure| E["One follow-up question"]
+  C -->|calm| F["Calm answer<br/>with the source, word for word"]
+```
 
 | Step | What happens |
 | --- | --- |
@@ -53,8 +99,7 @@ runs only as a cloud service, so Tell Liora uses the same idea locally: Gemma 4 
 once, and each question is answered by reading the probabilities of its listed options only (the
 open [SemIf](https://github.com/TheoLeeCJ/SemIf-OpenJev) method). Nothing outside the options can
 come back. If the model is unsure about a danger sign, Liora asks the follow-up question instead of
-guessing. We make no claim that this matches Jev's accuracy; only our own measurements will be
-reported.
+guessing. We make no claim that this matches Jev's accuracy.
 
 ## Safety by design
 
@@ -90,8 +135,8 @@ reported.
 
 ## Features
 
-"Checked on the iPhone 17 Pro" means seen working on the demo phone on 10 Oct; "built" means built
-and tested in code (2,100+ automated tests) but not yet confirmed on the phone.
+"Checked on the iPhone 17 Pro" means seen working on the demo phone on 10 Oct 2026; "built" means
+built and tested in code (2,100+ automated tests) but not confirmed on the phone.
 
 | Feature | Status |
 | --- | --- |
@@ -115,27 +160,13 @@ and tested in code (2,100+ automated tests) but not yet confirmed on the phone.
 | AI-off checklist, feeding the same WHO rules | built |
 | Profile: name, age, height, weight, blood type, emergency contact, pregnancy or after-birth status | built |
 | Source-card search by meaning (EmbeddingGemma 300M, on the phone) | built |
-| Native iPhone tabs with Liquid Glass, SF Symbols, wheel pickers, share sheet and haptics | built |
+| Native iPhone tabs with Liquid Glass, SF Symbols, wheel pickers, share sheet, haptics and dark mode | built |
 
-## Why does this product benefit from running AI locally?
+## Why run the AI on the phone?
 
 It works when there is no signal or load: at night, in a typhoon, in airplane mode. Her questions
-about her body, her pregnancy and her mood never leave her phone. Answers come from the phone
-itself, with no server round trip (measured times will be listed below). And with no per-question
-cost, Liora can keep it free for every mother.
-
-## Measured on the demo iPhone
-
-**Not measured yet.** Every number in this section will be measured on the demo phone, an iPhone
-17 Pro (iOS 27.2, the native app, release build). No number is quoted from vendors, and numbers
-from other phones are not listed here.
-
-| Measurement | iPhone 17 Pro |
-| --- | --- |
-| First download size | not measured |
-| Cold and warm load time | not measured |
-| Time from message to result | not measured |
-| Transcription time for a 10 s clip | not measured |
+about her body, her pregnancy and her mood never leave her phone. And with no per-question cost,
+Liora can stay free for every mother.
 
 ## Models
 
@@ -149,8 +180,8 @@ copied into memory. Sizes are Hugging Face file sizes, not our measurements.
 | Speech to text | Gemma 4 E2B audio encoder (projector, Q8_0) from the same repository | Apache-2.0 | 531 MiB |
 | Finding the source card closest in meaning | [EmbeddingGemma 300M, QAT Q4_0](https://huggingface.co/ggml-org/embeddinggemma-300M-qat-q4_0-GGUF) | Apache-2.0 | 264 MiB |
 
-EmbeddingGemma 2 was the plan, but llama.rn 0.13.0-rc.7 runs EmbeddingGemma 300M and not version 2
-yet, so the phone uses 300M. Retrieval only chooses which reviewed card to show; it never decides.
+Speed and memory have not been measured on the demo iPhone yet, so this README quotes no timing
+numbers. Retrieval only chooses which reviewed card to show; it never decides.
 
 We started in Safari with [Transformers.js](https://github.com/huggingface/transformers.js). It
 could not hold Gemma 4 E2B in one tab: iPhone WebGPU caps a buffer at 1,024 MB while Gemma 4's token
@@ -166,17 +197,29 @@ Expo SDK 57 with a native iOS build (Expo prebuild, Xcode 27), Expo Router, Reac
 llama.rn runs the models; expo-audio records 16 kHz WAV for speech; expo-file-system holds the model
 files; Expo Router native tabs (Liquid Glass), @expo/ui wheel pickers, expo-local-authentication
 (Face ID), expo-print and expo-sharing (the nurse report PDF), expo-haptics. Data lives in one JSON
-file on the phone (IndexedDB on the web). Tests use Vitest (2,100+ tests).
+file on the phone (IndexedDB on the web). Tests use Vitest.
 
-## Recreate it
+The code is split into layers that depend inward only, so the safety rules can be read and tested
+without the models or the screens. [ARCHITECTURE.md](ARCHITECTURE.md) explains them, and
+[DESIGN.md](DESIGN.md) holds the design system, Capiz Light.
 
-You need a Mac with Xcode 27, an Apple ID (a free one works), and an iPhone with Developer Mode on.
+## Run it
 
 ```bash
 git clone https://github.com/joshfermano/liora-local.git
 cd liora-local
 pnpm install
-pnpm test && pnpm typecheck            # 2,100+ tests: rules, agent, word list, cycle maths, chat
+pnpm test && pnpm typecheck     # 2,100+ tests: rules, agent, word list, cycle maths, chat
+```
+
+**Quick look in Expo Go (no Mac needed).** Run `npx expo start` and scan the code with Expo Go on an
+iPhone on the same Wi-Fi. Expo Go cannot run the on-device models, so the app opens with the AI off:
+the screens, logging, calendar and the WHO checklist all work, and Liora answers with fixed lines.
+
+**The full app, with Gemma 4.** You need a Mac with Xcode 27, an Apple ID (a free one works) and an
+iPhone with Developer Mode on.
+
+```bash
 APPLE_TEAM_ID=<your team id> npx expo prebuild -p ios
 npx expo run:ios --device --configuration Release
 ```
@@ -184,22 +227,23 @@ npx expo run:ios --device --configuration Release
 On the iPhone, trust the developer once (Settings, General, VPN & Device Management), open Tell
 Liora, and choose "Get Liora ready for offline" to download Gemma 4 over Wi-Fi. After that it works
 in airplane mode. A free Apple ID cannot sign the Extended Virtual Addressing capability, so the app
-asks only for Increased Memory Limit. `npx expo export -p web` builds the web version.
+asks only for Increased Memory Limit, and a free-signed build stops opening after 7 days until it is
+rebuilt. `npx expo export -p web` builds the web version.
 
-## Repository guide
+## Project structure
 
 | Path | What it is |
 | --- | --- |
-| `docs/superpowers/specs/2026-10-09-tell-liora-design.md` | The build spec: requirements, pipeline, decision model, models, timeline |
+| `app/` | Screens and routes (Expo Router) |
+| `src/core/` | The decision model, cycle maths and agent policy: plain TypeScript, no UI or models |
+| `src/ai/` | Gemma 4 and EmbeddingGemma adapters, prompts, voice |
+| `src/store/`, `src/ui/`, `src/content/` | App state, building blocks of the screens, fixed copy and source cards |
+| `sources/` | The WHO and DOH documents behind every rule, and the team's review of each card |
+| `ARCHITECTURE.md`, `DESIGN.md`, `PRODUCT.md` | Layers, the Capiz Light design system, product context |
+| `docs/superpowers/specs/` | The build spec: requirements, pipeline, decision model, models |
 | `docs/research-summary.md` | Verified facts, refuted claims, open questions |
-| `docs/submission.md` | Every submission answer, ready to paste |
-| `docs/demo-script.md` | The 5-minute live demo, checked against the rules |
-| `docs/demo-test-prompts.md` | Scenario prompts and expected results for testing |
-| `docs/brand/app-icon.md` | The app icon: idea, files and how to use it |
-| `PRODUCT.md`, `DESIGN.md` | Product context and the design system (Capiz Light) |
-| `HANDOFF.md` | Current status, decisions and next steps |
-| `AGENTS.md`, `CLAUDE.md` | Instructions for coding agents, including the commit convention |
-| `.claude/agents/` | Six project subagents used to build the app |
+| `docs/hackathon/` | The hackathon working notes: handoff, submission sheet, demo script, test prompts |
+| `AGENTS.md`, `CLAUDE.md`, `.claude/` | Instructions and project subagents for the coding agents used to build it |
 
 ## Sources
 
@@ -215,10 +259,21 @@ Every source card was compared with its page by a team member; each verdict is r
 `sources/review.md` (the fact-check commit is 14b0e94), and only approved cards ship. No rule or card
 ships without a cited source.
 
-## Disclosures
+## Built at the AppBuildersPH Hackathon 2026
+
+Tell Liora was built for the [AppBuildersPH Hackathon 2026](https://cerebralvalley.ai/e/appbuildersph-hackathon-2026)
+(theme: Local AI) and submitted before the code freeze at 10:00 AM, 10 Oct 2026. The submitted code
+is the [`hackathon-submission`](https://github.com/joshfermano/liora-local/tree/hackathon-submission)
+tag; later commits are fixes and this page.
+
+**Team Potato:** Josh Khovick Fermano, Ivan Reeve Lopez, Inaki Manuel Flores, Uriel Papa.
+
+**Hardware tested on:** the iPhone 17 Pro (iOS 27.2) as the demo phone, and an iPhone 16 Pro Max for
+development testing. Builds on a Mac with Xcode 27; development on Linux and macOS laptops.
+
+### Disclosures
 
 - **Models:** listed above. All run on the device.
-- **Technologies:** listed under Tech stack.
 - **APIs and cloud services:** none at runtime. Setup downloads the model files from Hugging Face.
 - **Runs locally (all of it, in airplane mode):** the Liora chat agent and its replies (Gemma 4
   E2B), voice to text (Gemma 4's audio encoder), source-card search (EmbeddingGemma 300M), the WHO
@@ -233,27 +288,19 @@ ships without a cited source.
   hackathon. Open-source libraries from npm (listed in `package.json`), the Marcellus font (SIL Open
   Font License, via `@expo-google-fonts`) and Apple's SF Symbols are used as published. The app
   icon and illustrations were drawn during the hackathon. WHO and DOH passages and the PHQ-9 are
-  cited third-party content. The typed-decision
-  method follows TypeSafe AI's public description of Jev and
-  the open SemIf method; no TypeSafe code or service is used.
+  cited third-party content. The typed-decision method follows TypeSafe AI's public description of
+  Jev and the open SemIf method; no TypeSafe code or service is used.
 - **AI development tools:** [Claude Code](https://claude.com/claude-code) (Anthropic; Claude Opus 5.5,
   with Claude Sonnet 5.5 and Claude Haiku 5.5 subagents), with the agent skills listed in
   `skills-lock.json` and the project subagents in `.claude/agents/`, and
-  [Codex](https://openai.com/codex/) (OpenAI). Higgsfield was used for the demo video's story scenes
-  only; every app screen in the video is a real screen recording.
+  [Codex](https://openai.com/codex/) (OpenAI). Higgsfield was used for the hackathon demo video's
+  story scenes only; every app screen in that video is a real screen recording.
+- **The launch film on this page** was made after the hackathon with
+  [HyperFrames](https://hyperframes.heygen.com/) from real screenshots of the app. Music: "Digital
+  Clouds" by Alejandro Magaña, under the [Mixkit free music licence](https://mixkit.co/license/#musicFree).
 
-## Hardware tested on
-
-- **iPhone 17 Pro**, iOS 27.2: the demo phone and the only phone for measured numbers.
-- **iPhone 16 Pro Max**: development testing.
-- Builds on a Mac with Xcode 27; development on Linux and macOS laptops.
-
-## Team
-
-**Team Potato**: Josh Khovick Fermano, Ivan Reeve Lopez, Inaki Manuel Flores, Uriel Papa.
-
-## After the hackathon
+## What's next
 
 The decision model, word list, source cards and tests are plain TypeScript and data, shared by the
-iPhone app and the web build. WHO content licences (commonly CC BY-NC-SA) will be reviewed before
-any commercial use.
+iPhone app and the web build. Next are measured speed and memory numbers on the demo iPhone, and a
+review of the WHO content licences (commonly CC BY-NC-SA) before any commercial use.
