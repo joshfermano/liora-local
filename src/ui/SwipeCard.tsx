@@ -1,6 +1,6 @@
-import { type ReactNode, useState } from 'react';
+import { type ReactNode, useMemo, useState } from 'react';
 import { useWindowDimensions, View } from 'react-native';
-import { GestureDetector, GestureHandlerRootView, usePanGesture } from 'react-native-gesture-handler';
+import { Gesture, GestureDetector, GestureHandlerRootView } from 'react-native-gesture-handler';
 import Animated, {
   Easing,
   interpolate,
@@ -60,33 +60,38 @@ export function SwipeCard({ children, onAnswer, onChoose, disabled = false }: Sw
     commit(yes);
   };
 
-  const pan = usePanGesture({
-    enabled: !disabled && !gone,
-    activeOffsetX: [-12, 12],
-    failOffsetY: [-18, 18],
-    onUpdate: (e) => {
-      'worklet';
-      x.value = e.translationX;
-      const now = Math.abs(e.translationX) > width * COMMIT ? 1 : 0;
-      if (now !== past.value) {
-        past.value = now;
-        if (now) scheduleOnRN(tap);
-      }
-    },
-    onDeactivate: (e) => {
-      'worklet';
-      const far = Math.abs(e.translationX) > width * COMMIT;
-      const flick = Math.abs(e.velocityX) > FLICK && Math.sign(e.velocityX) === Math.sign(e.translationX);
-      if (far || flick) {
-        const yes = e.translationX > 0;
-        x.value = withTiming((yes ? 1 : -1) * width * 1.4, { duration: reduce ? 0 : FLY_MS, easing: Easing.in(Easing.quad) });
-        scheduleOnRN(commit, yes);
-      } else {
-        x.value = withSpring(0, { damping: 18, stiffness: 220 });
-        past.value = 0;
-      }
-    },
-  });
+  // Gesture handler 2 (the version Expo SDK 57 and Expo Go ship).
+  const pan = useMemo(
+    () =>
+      Gesture.Pan()
+        .enabled(!disabled && !gone)
+        .activeOffsetX([-12, 12])
+        .failOffsetY([-18, 18])
+        .onUpdate((e) => {
+          'worklet';
+          x.value = e.translationX;
+          const now = Math.abs(e.translationX) > width * COMMIT ? 1 : 0;
+          if (now !== past.value) {
+            past.value = now;
+            if (now) scheduleOnRN(tap);
+          }
+        })
+        .onEnd((e) => {
+          'worklet';
+          const far = Math.abs(e.translationX) > width * COMMIT;
+          const flick = Math.abs(e.velocityX) > FLICK && Math.sign(e.velocityX) === Math.sign(e.translationX);
+          if (far || flick) {
+            const yes = e.translationX > 0;
+            x.value = withTiming((yes ? 1 : -1) * width * 1.4, { duration: reduce ? 0 : FLY_MS, easing: Easing.in(Easing.quad) });
+            scheduleOnRN(commit, yes);
+          } else {
+            x.value = withSpring(0, { damping: 18, stiffness: 220 });
+            past.value = 0;
+          }
+        }),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [disabled, gone, width, reduce, onAnswer, onChoose],
+  );
 
   const card = useAnimatedStyle(() => ({
     transform: [{ translateX: x.value }, { rotate: `${interpolate(x.value, [-width, width], [-12, 12])}deg` }],
