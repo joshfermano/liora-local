@@ -256,6 +256,9 @@ const CASES: [Status, string, string][] = [
   ['pregnant', 'undo', 'reply.undone'],
 ];
 
+// A start date three days back, so "kahapon" always ends a short period whatever today is.
+const THREE_DAYS_AGO = new Date(Date.now() - 3 * 864e5).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+
 // A conversation: the summary of Liora's last reply after each of her messages in turn.
 async function talk(status: Status, texts: string[]): Promise<string> {
   disk.clear();
@@ -298,7 +301,7 @@ describe('following on from what Liora just did', () => {
     [['i had cramps last monday'], 'reply.saved.gentle | logged:symptoms'],
     [['nagsimula regla ko', 'kahapon'], 'reply.saved | logged:period_start'],
     [['nagsimula regla ko noong Oct 7', 'natapos regla ko'], 'reply.confirm | confirm:period_end'],
-    [['nagsimula regla ko noong Oct 7', 'natapos regla ko', 'kahapon'], 'reply.saved | logged:period_end'],
+    [[`nagsimula regla ko noong ${THREE_DAYS_AGO}`, 'natapos regla ko', 'kahapon'], 'reply.saved | logged:period_end'],
     [['nagsimula regla ko', 'oo'], 'reply.which_day'],
     [['call me Bea', 'oo'], 'reply.saved'],
     [['call me Bea', 'hindi'], 'reply.not_saved'],
