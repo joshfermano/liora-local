@@ -27,3 +27,10 @@ sources/text/
 
 # Generated native project (Expo prebuild); rebuilt from app.json on the Mac
 /ios/
+
+# Motion-graphics projects and renders (HyperFrames)
+videos/
+
+# Local editor and agent tool settings (Serena MCP, impeccable design hooks)
+.serena/
+.impeccable/
